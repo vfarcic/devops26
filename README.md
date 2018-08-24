@@ -77,3 +77,18 @@ PART III: How to help people in their technical jobs
 ### Blog posts
 
 ### Software
+
+#### SonarQube
+
+* pick a solid database you can upgrade at least every x months as the data store
+* don't scan branches unless there's a special reason
+* as much as possible, use the appropriate language-specific build tools to do the analysis
+    * provide ample examples of how to add the analysis to your pipeline specific to your language
+* give internal demonstrations/training on what it does and helps you with
+* don't use it as a build breaker, more like keeping tabs on trends
+    * for current codebase status, make sure developers can scan on their own machine with IDE plugins/CLI
+* create expert groups for creating & maintaining language specific rulesets & profiles
+    * establish a process for managing false positives
+* if you want to report with aggregates, buy the plugin from SonarSource
+    * comes with a great API for managing separate groups/levels with auto-matching for project id's
+    * if you want high-level aggregate reporting with your own key statistics, use the API's
