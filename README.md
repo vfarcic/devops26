@@ -45,6 +45,36 @@ PART III: How to help people in their technical jobs
     * large org with silos
     * smb with some legacy some new
 
+### Total Cost
+
+* Total Cost of Ownership
+    * Runtime cost
+        * average runtime cost
+        * peak runtime cost
+    * Development cost
+    * Maintenance cost
+
+The total cost of ownership of any software is incredibly complex.
+
+There many ways in which you categorize the different kinds of costs. Such as development cost and maintenance cost.
+
+In this case, I will split the costs into three categories: development, maintenance, and runtime. 
+
+Development: the cost of creating the initial release, changing features and creating new features.
+Maintenance: I see maintenance as having to spend time and energy on keeping the software running as it should, without changing the *intended* functional use.
+Runtime: The software runs somewhere, be that a custom data center, a managed Kubernetes cluster or as a Function in a Serverless/FaaS solution. It consumes data and perhaps other services, such as Sentry, PagerDuty, storage services, license costs, etc..
+
+These three interact with each other in complicated ways. To avoid license costs, we can build our custom implementation of some algorithm, but that will increase development cost and is likely to increase maintenance cost as well. 
+
+You can cut down on development cost by not writing any tests and ship it. This practice is likely to increase maintenance and runtime costs. That might sound bad, but if the software is out there to prove that people want to *pay* for this, it might be acceptable, as any effort spent on software no one is using is 100% wasted. Whereas rewriting software later to compensate for lack of initial quality is only partially lost time.
+
+Another thing that pops into my mind is the on-going discussion about Serverless. Take Java, for example; we've had many different ways of running Java applications at scale. One big clustered Application Server (think WebLogic, WebSphere, JBoss), a collection of lightweight application servers (Tomcat, TomEE), in Docker containers and now Serverless. The cost of the JVM runtime itself in these equations is challenging to measure. In Containers or serverless, it is likely we pay more for resources for several runtimes which are isolated from each other. But these might reduce the cost of Development - only a single JVM in Tomcat is easier to work with -  and maintenance due to more isolated runtimes - more entities, but each much simpler.
+
+ToDo:
+* find out any existing research on this
+* find out if there is any research that has any (statistical) significant ways of reducing overall costs one could apply
+* find out good resources which dive into this problem
+* come up with advice on how to deal with these complexities
 
 ### Lower level concepts
 
