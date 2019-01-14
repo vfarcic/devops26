@@ -1,17 +1,7 @@
-## The DevOps 2.5 Toolkit
+## The DevOps 2.6 Toolkit
 
-- [X] Leanpub.com
-- [X] 00-preface.md
-- [X] 01-hpa.md
-- [X] 02-ca.md
-- [X] 03-monitor.md
-- [X] 04-instrument.md
-- [X] 05-hpa-custom-metrics.md
-- [X] 06-grafana.md
-- [X] 07-logging.md
-- [ ] 99-cloud-metrics.md 
-- [ ] 99-kube-monkey.md 
-- [ ] 99-simian-army.md
+- [ ] Leanpub.com
+- [ ] 00-preface.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -26,8 +16,8 @@
 
 ## Outputs
 
-- [X] Docker For Desktop
-- [X] minikube
+- [ ] Docker For Desktop
+- [ ] minikube
 - [ ] GKE
 - [ ] EKS
 - [ ] AKS
@@ -57,8 +47,9 @@
 - [ ] Serverless (KNative)
 - [ ] [prow](https://github.com/kubernetes/test-infra/tree/master/prow)
 - [ ] JenkinsX
-- [ ] Build images (kaniko, buildah)
+- [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
 - [ ] [Vistio](https://github.com/nmnellis/vistio)
+- [ ] Anchore
 - [ ] Monitoring alternatives (Splunk, DataDog, New Relic)
 - [ ] Hashi Vault
 - [ ] Custom resources
@@ -116,3 +107,4 @@
 - [ ] Operator pattern
 - [ ] https://www.keycloak.org/
 - [ ] [KataContainers](https://katacontainers.io/)
+- [ ] Terraform

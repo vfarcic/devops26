@@ -1,5 +1,11 @@
 ## Routing
 
+* [docker-istio.sh](TODO:):  **Docker for Desktop** TODO:.
+* [minikube-istio.sh](TODO:): **minikube** TODO:.
+* [gke-istio.sh](TODO:): **GKE** TODO:.
+* [eks-istio.sh](TODO:): **EKS** TODO:.
+* [aks-istio.sh](TODO:): **AKS** TODO:.
+
 ```bash
 helm upgrade -i go-demo-7 \
     ../go-demo-7/charts/go-demo-7 \
@@ -8,6 +14,8 @@ helm upgrade -i go-demo-7 \
 
 kubectl label ns go-demo-7 \
     istio-injection=enabled
+
+
 
 
 
