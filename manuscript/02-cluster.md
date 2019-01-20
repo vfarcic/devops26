@@ -22,6 +22,8 @@
 
 ---
 
+W> Some of the features are not available in Minikube. Specifically, GitHub webhooks will not be able to notify Jenkins X that there are new builds since minikube cluster is not accessible from outside your laptop. Please take that in consideration when choosing the type of Kubernetes cluster you will use.
+
 ```bash
 PROJECT=[...] # e.g. devops24-book
 

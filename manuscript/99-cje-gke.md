@@ -5,20 +5,11 @@ gcloud auth login
 
 REGION=us-east1
 
-ZONES=$(gcloud compute zones list \
-    --filter "region:($REGION)" \
-    | tail -n +2 \
-    | awk '{print $1}' \
-    | tr '\n' ',')
-
-echo $ZONES
-
 MACHINE_TYPE=n1-standard-2
 
 gcloud container clusters \
     create devops25 \
     --region $REGION \
-    --node-locations $ZONES \
     --machine-type $MACHINE_TYPE \
     --enable-autoscaling \
     --num-nodes 1 \
@@ -62,11 +53,11 @@ open "https://downloads.cloudbees.com/cloudbees-core/cloud/latest/"
 
 RELEASE_URL=[...]
 
-curl -o cje.tgz $RELEASE_URL
+curl -o cloudbees-core.tgz $RELEASE_URL
 
 tar -xvf cloudbees-core*.tgz
 
-cd cloudbees-core*
+cd cloudbees-core_*
 
 CJE_ADDR=cjoc.$LB_IP.nip.io
 

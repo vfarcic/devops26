@@ -2,6 +2,16 @@
 
 - [ ] Leanpub.com
 - [ ] 00-preface.md
+- [ ] 01-install.md
+- [ ] 02-cluster.md
+- [ ] 03-quickstart.md
+- [ ] 99-local-development-with-skaffold.md
+- [ ] 99-Using-other-code-repositories.md
+- [ ] 99-other-quickstart-buildpacks.md
+- [ ] 99-preview-chart.md
+- [ ] 99-dev-environment.md
+- [ ] 99-issues-in-releases.md
+- [ ] 99-serverless-knative.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -56,7 +66,7 @@
 - [ ] kubernetes Networking - different CNI plugin/provider (Flannel, Calico, etc)
 - [ ] CodeShip
 - [ ] GitLabCI
-- [ ] CJE
+- [ ] https://github.com/FiloSottile/mkcert 
 - [ ] [Sonobuoy](https://github.com/heptio/sonobuoy) 
 - [ ] CD with Argo (https://applatix.com/open-source/argo/)
 - [ ] Spinnaker

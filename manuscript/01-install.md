@@ -4,6 +4,13 @@
 
 # Installing jx
 
+TODO: git
+TODO: GitBash
+TODO: kubectl
+TODO: helm
+TODO: Hosting vendor specific tools
+TODO: jq
+
 
 ## Installing jx (MacOS)
 
@@ -49,3 +56,5 @@ git clone https://github.com/vfarcic/k8s-specs.git
 
 cd k8s-specs
 ```
+
+TODO: Install https://hub.github.com/
