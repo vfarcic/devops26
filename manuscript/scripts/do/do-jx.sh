@@ -4,13 +4,17 @@
 
 # Install [doctl](https://github.com/digitalocean/doctl)
 
-doctl kubernetes cluster \
+doctl auth init
+
+doctl k8s cluster \
     create jx-rocks \
     --count 3 \
     --region nyc1 \
     --size s-2vcpu-4gb
 
 kubectl config use do-nyc1-jx-rocks
+
+# TODO: CA
 
 #########################
 # Install nginx Ingress #
@@ -22,10 +26,10 @@ kubectl apply \
 kubectl apply \
     -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/cloud-generic.yaml
 
-LB_IP=$(kubectl -n ingress-nginx \
+export LB_IP=$(kubectl -n ingress-nginx \
     get svc -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
 
-echo $LB_IP # Repeat the previous command if the output is empty
+echo $LB_IP # It might take a while until LB is created. Repeat the `export` command if the output is empty.
 
 ##################
 # Install Tiller #

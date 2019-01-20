@@ -7,9 +7,11 @@
 - [ ] 03-quickstart.md
 - [ ] 99-local-development-with-skaffold.md
 - [ ] 99-Using-other-code-repositories.md
+- [ ] 99-custom-quickstart-buildpacks.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-preview-chart.md
 - [ ] 99-dev-environment.md
+- [ ] 99-custom-ingress-rules.md
 - [ ] 99-issues-in-releases.md
 - [ ] 99-serverless-knative.md
 - [ ] 99-the-end.md
@@ -39,7 +41,6 @@
 - [ ] Code review
 - [ ] Text review
 - [ ] Highlights
-- [ ] Quote (https://www.theloop.ca/words-of-wisdom-from-leonard-nimoys-iconic-mr-spock-2/, https://www.hollywoodreporter.com/heat-vision/star-trek-quotes-leonard-nimoy-778305)
 - [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles
