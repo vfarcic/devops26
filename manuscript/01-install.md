@@ -11,7 +11,6 @@ TODO: helm
 TODO: Hosting vendor specific tools
 TODO: jq
 
-
 ## Installing jx (MacOS)
 
 ---

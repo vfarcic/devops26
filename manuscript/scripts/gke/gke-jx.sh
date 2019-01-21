@@ -23,7 +23,7 @@ jx create cluster gke \
     --default-environment-prefix jx-rocks \
     -b
 
-# If asked for input, use the default answers unless you're sure you want a different setup.
+# If asked for input, use the default answers unless you're sure you want a non-standard setup.
 
 #######################
 # Destroy the cluster #
