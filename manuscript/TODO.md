@@ -3,7 +3,7 @@
 - [ ] Leanpub.com
 - [ ] 00-preface.md
 - [ ] 01-install.md
-- [ ] 02-cluster.md
+- [ ] 02-intro.md
 - [X] 03-quickstart.md
 - [ ] 04-import.md
 - [ ] 05-env.md

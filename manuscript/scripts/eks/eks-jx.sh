@@ -4,7 +4,7 @@
 
 # Install [AWS CLI](https://aws.amazon.com/cli/) and make sure you have AWS admin permissions
 
-# Install ]eksctl](https://github.com/weaveworks/eksctl)
+# Install [eksctl](https://github.com/weaveworks/eksctl)
 
 export AWS_ACCESS_KEY_ID=[...] # Replace [...] with the AWS Access Key ID
 
