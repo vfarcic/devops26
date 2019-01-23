@@ -521,11 +521,11 @@ kubectl get ns
 ```
 
 ```
-NAME            STATUS   AGE
-default         Active   10m
-ingress-nginx   Active   6m
-kube-public     Active   10m
-kube-system     Active   10m
+NAME          STATUS AGE
+default       Active 10m
+ingress-nginx Active 6m
+kube-public   Active 10m
+kube-system   Active 10m
 ```
 
 In my case, it's `ingress-nginx`. In yours, it might be something else. Or, it might be inside the `kube-system` Namespace. If that's the case, list the Pods with `kubectl -n kube-system get pods` to confirm that it's there.
@@ -545,8 +545,8 @@ kubectl -n $INGRESS_NS get deployments
 The output, in the case of my cluster, is as follows (yours might differ).
 
 ```
-NAME                       DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-nginx-ingress-controller   1         1         1            1           7m
+NAME                     DESIRED CURRENT UP-TO-DATE AVAILABLE AGE
+nginx-ingress-controller 1       1       1          1         7m
 ```
 
 In my case, the Deployment is called `nginx-ingress-controller`. Yours is likely named the same. If it isn't, please modify the command that follows accordingly.
@@ -645,7 +645,7 @@ jx console
 
 Please login using `admin` as the username and password.
 
-![Figure 2-TODO: TODO:](images/ch02/jx-console-environments.png)
+![Figure 2-1: Jenkins X Console](images/ch02/jx-console-environments.png)
 
 What you see in front of you is Jenkins, alive and kicking. It already has two jobs, each being in charge with one of the two environments we have right now (staging and production). They are an essential part of the process we'll explore later. For now, just note that those two repositories will hold all the information about their respective environments.
 
