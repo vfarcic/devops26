@@ -1,8 +1,6 @@
 ## The DevOps 2.6 Toolkit
 
-- [ ] Leanpub.com
-- [ ] 00-preface.md
-- [ ] 01-install.md
+- [ ] 01-preface.md
 - [ ] 02-intro.md
 - [X] 03-quickstart.md
 - [ ] 04-import.md
@@ -14,13 +12,14 @@
 - [ ] 99-prow.md
 - [ ] 08-serverless.md
 - [ ] 09-import-serverless.md
-- [ ] 99-local-development-with-skaffold.md
-- [ ] 99-Using-other-code-repositories.md
+- [ ] 99-container-registry.md
+- [ ] 99-using-other-code-repositories.md
 - [ ] 99-custom-quickstart-buildpacks.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-preview-chart.md
 - [ ] 99-dev-environment.md
 - [ ] 99-custom-ingress-rules.md
+- [ ] 99-custom-domains.md
 - [ ] 99-issues-in-releases.md
 - [ ] 99-context.md
 - [ ] 99-the-end.md

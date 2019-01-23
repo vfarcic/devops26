@@ -1,3 +1,7 @@
+#####################
+# Install Jenkins X #
+#####################
+
 # Replace `[...]` with the IP of the load balancer created when you installed nginx Ingress`
 
 LB_IP=[...]
@@ -27,3 +31,11 @@ jx install \
     --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
     -b
+
+#######################
+# Uninstall Jenkins X #
+#######################
+
+jx uninstall \
+  --context $(kubectl config current-context) \
+  -b

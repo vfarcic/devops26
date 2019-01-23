@@ -1,19 +1,3 @@
-## TODO
-
-- [X] Code
-- [X] Write
-- [X] Code review
-- [X] Text review
-- [-] Highlights
-- [-] Diagrams
-- [X] Gist
-- [X] Review titles
-- [X] Proofread
-- [X] Add to slides
-- [-] Publish on TechnologyConversations.com
-- [X] Add to Book.txt
-- [X] Publish on LeanPub.com
-
 # Exploring Quickstart Projects
 
 Starting a new Jenkins X project is easy. The first time we create one, it looks and feels like magic. All we have to do is answer a few questions, and a few moments later we have a full-blown continuous delivery pipeline, GitHub webhook that triggers it, a mechanism to promote a release to different environments, a way to preview pull requests, and quite a few other things. However, that "magic" might be overwhelming if we accept it without understanding what's going on behind the scene. Our goal is to leverage the power we're given. We need to get a grip on the tools involved in the process, and we need to understand the intricacies of the flow that will ultimately lead to a fast, reliable, and (mostly) hands-free approach to delivering our applications.
@@ -30,15 +14,13 @@ I> All the commands from this chapter are available in the [03-quickstart.sh](ht
 
 For your convenience, I created a few Gists. Feel free to use them as they are, adapt them to your own needs, or skip them altogether and create your cluster and install Jenkins X on your own.
 
-W> ## A note to GKE, and AKS users
-W> 
 W> The gists that follow use `-b` to run in the batch mode and they assume that this is not the first time you create a cluster with `jx`. If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user, and the installation might fail.
 W> Make sure to remove `-b` from the `jx create cluster` command inside the Gists if this is NOT the first time you're creating a cluster with `jx`.
 
 * Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
 * Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
 * Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [jx.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 
 W> Please note that the Gists have the section to "destroy the cluster". Do not execute the commands from there until you're finished with this chapter and you do not plan to continue using it for the next.
 
@@ -490,15 +472,7 @@ All in all, this was a very quick introduction, and the real fun is coming next.
 
 Now is a good time for you to take a break.
 
-If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster at the bottom.
-
-If, on the other hand, you used a cluster that hosts other applications and you do not want to destroy it, feel free to execute the command that follows to uninstall Jenkins X and the applications we deployed.
-
-```bash
-jx uninstall \
-  --context $(kubectl config current-context) \
-  -b
-```
+If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
 
 If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that.
 

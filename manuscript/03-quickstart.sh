@@ -69,10 +69,6 @@ ADDR=$(kubectl -n jx-staging \
 
 curl "http://$ADDR"
 
-jx uninstall \
-  --context $(kubectl config current-context) \
-  -b
-
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
 
