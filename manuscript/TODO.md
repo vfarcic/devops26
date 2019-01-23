@@ -1,7 +1,7 @@
 ## The DevOps 2.6 Toolkit
 
-- [ ] 01-preface.md
-- [ ] 02-intro.md
+- [ ] 01-preface.md (add *Overview* amd *Audience*)
+- [ ] 02-intro.md (publish "Is Your Existing Cluster Ready For Jenkins X?", and "Installing Jenkins X In An Existing Kubernetes Cluster" sub-chapters)
 - [X] 03-quickstart.md
 - [ ] 04-import.md
 - [ ] 05-env.md
@@ -12,6 +12,8 @@
 - [ ] 99-prow.md
 - [ ] 08-serverless.md
 - [ ] 09-import-serverless.md
+- [ ] 99-kaniko.md
+- [ ] 99-security-scanning.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-custom-quickstart-buildpacks.md

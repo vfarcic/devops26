@@ -10,12 +10,14 @@ export AWS_ACCESS_KEY_ID=[...] # Replace [...] with the AWS Access Key ID
 
 export AWS_SECRET_ACCESS_KEY=[...] # Replace [...] with the AWS Secret Access Key
 
+export AWS_DEFAULT_REGION=us-west-2
+
 # The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
 # If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
 # Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
 jx create cluster eks -n jx-rocks \
-    -r us-west-2 \
+    -r $AWS_DEFAULT_REGION \
     --node-type t2.medium \
     --nodes 3 \
     --nodes-min 3 \
