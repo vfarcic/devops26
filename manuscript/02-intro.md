@@ -1,6 +1,6 @@
 # What Is Jenkins X?
 
-To understand Jenkins X, we need to understand Kubernetes. But, this is not the place where you will learn Kubernetes, but rather extend your knowledge. So, I will assume that you already know what Kubernetes is and how to use it. If you do not, Jenkins X might be overwhelming, and I suggest you learn at least basic Kubernetes features and get a bit of hands-on practice. You might want to fetch **The DevOps 2.3 Toolkit: Kubernetes** book before proceeding with this one. Yet, we all know that Kubernetes has a very steep learning curve. I do not expect you to be a Kubernetes ninja and to know everything there is to know about Kubernetes. No one does. As a matter a fact, Jenkins X helps us by simplifying complex processes into concepts that can be adopted quickly and without spending months in trying to figure out "the right way to do stuff." It helps to elevate some of the problems based on the overall complexity of Kubernetes and its ecosystem.
+To understand **intricacies and inner workings** of Jenkins X, we need to understand Kubernetes. But, you do not need to understand Kubernetes to **use Jenkins X**. That is one of the main contributions of the project. Jenkins X allows us to harness the power of Kubernetes without spending eternity learning the ever-growing list of the things it does. Jenkins X helps us by simplifying complex processes into concepts that can be adopted quickly and without spending months in trying to figure out "the right way to do stuff." It helps by removing and simplifying some of the problems caused by the overall complexity of Kubernetes and its ecosystem. If you are indeed a Kubernetes ninja, you will appreciate all the effort put into Jenkins X. If you're not, you will be able to jump right in and harness the power of Kubernetes without ripping your hair out of frustration caused by Kubernetes complexity.
 
 I'll skip telling you that Kubernetes is a container orchestrator, how it manages our deployments, and how it took over the world by the storm. You hopefully already know all that. Instead, I'll define Kubernetes as a platform to rule them all. Today, most software vendors are building their next generation of software to be Kubernetes-native or, at least, to work better inside it. A whole ecosystem is emerging and treating Kubernetes as a blank canvas. As a result, new tools are being added on a daily basis, and it is becoming evident that Kubernetes offers near-limitless possibilities. However, with that comes increased complexity. It is harder than ever to choose which tools to use. How are we going to develop our applications? How are we going to manage different environments? How are we going to package our applications? Which process are we going to apply for application lifecycles? And so on and so forth. Assembling a Kubernetes cluster with all the tools and processes takes time, and learning how to use what we assembled feels like a never-ending story. Jenkins X aims to remove those and quite other obstacles.
 
@@ -394,7 +394,7 @@ If you're reading this, the chances are that you do not want to use `jx cluster 
 
 However, using an existing Kubernetes cluster is risky. Does it have everything we need? Does it comply with standards, or did you tweak it to meet your corporate restrictions? Did you choose to remove StorageClass because all your applications are stateless? Were you forced by your security department to restrict communication between Namespaces? Is the Kubernetes version too old? We can answer those and many other questions by running compliance tests.
 
-However, before we proceed, we'll verify whether the cluster we're hoping to use meets the requirements. Fortunately, `jx` has a command that can help us. We can run compliance tests and check whether there is anything "suspicious" in the results. Among many other things, `jx` has its own implementation of the [sonobuoy](https://github.com/heptio/sonobuoy) SDK.
+Before we proceed, we'll verify whether the cluster we're hoping to use meets the requirements. Fortunately, `jx` has a command that can help us. We can run compliance tests and check whether there is anything "suspicious" in the results. Among many other things, `jx` has its own implementation of the [sonobuoy](https://github.com/heptio/sonobuoy) SDK.
 
 So, what is sonobuoy? It is a diagnostic tool that makes it easier to understand the state of a Kubernetes cluster by running a set of Kubernetes conformance tests in an accessible and non-destructive manner.
 
@@ -520,6 +520,8 @@ On the other hand, if you do have nginx Ingress, we need to find out in which Na
 kubectl get ns
 ```
 
+The output is as follows.
+
 ```
 NAME          STATUS AGE
 default       Active 10m
@@ -602,6 +604,8 @@ We're almost done. Only one question is pending. `Select the organization where 
 The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. When, for example, you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push a change to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment. That's GitOps. Nothing is done without recording a change in Git. Of course, for that process to work, we need new jobs in Jenkins, so the process created two that correspond to those repositories. We'll discuss the environments in greater detail later.
 
 Finally, the `kubectl` context was changed to point to the `jx` Namespace, instead of the `default`.
+
+Now you're ready to use Jenkins X.
 
 ## What Did We Get? {#intro-what-did-we-get}
 

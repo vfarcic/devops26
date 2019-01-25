@@ -14,6 +14,8 @@ As with all other books, I do not know in advance where will this subject lead m
 
 What matters is that I want you to be successful and I hope that this book will help you with your career path.
 
+I> If you explore [jenkins-x.io](https://jenkins-x.io/), you might notice some similarities between the content there and in this book. What you read here is not a copy from what's there. Instead, I decided to contribute part of the chapters to the community.
+
 Eventually, you might get stuck and will be in need of help. Or you might want to write a review or comment on the book's content. Please join the [DevOps20](http://slack.devops20toolkit.com/) Slack workspace and post your thoughts, ask questions, or participate in a discussion. If you prefer a more one-on-one communication, you can use Slack to send me a private message or send an email to viktor@farcic.com. All the books I wrote are very dear to me, and I want you to have a good experience reading them. Part of that experience is the option to reach out to me. Don't be shy.
 
 Please note that this one, just as the previous books, is self-published. I believe that having no intermediaries between the writer and the reader is the best way to go. It allows me to write faster, update the book more frequently, and have more direct communication with you. Your feedback is part of the process. No matter whether you purchased the book while only a few or all chapters were written, the idea is that it will never be truly finished. As time passes, it will require updates so that it is aligned with the change in technology or processes. When possible, I will try to keep it up to date and release updates whenever that makes sense. Eventually, things might change so much that updates are not a good option anymore, and that will be a sign that a whole new book is required. **I will keep writing as long as I continue getting your support.**
@@ -24,7 +26,7 @@ Viktor Farcic is a Developer Advocate at [CloudBees](https://www.cloudbees.com/)
 
 He coded using a plethora of languages starting with Pascal (yes, he is old), Basic (before it got Visual prefix), ASP (before it got .Net suffix), C, C++, Perl, Python, ASP.Net, Visual Basic, C#, JavaScript, Java, Scala, etc. He never worked with Fortran. His current favorite is Go.
 
-His big passions are containers, distributed systems, microservices, continuous delivery and deployment (CD) and test-driven development (TDD).
+His big passions are containers, distributed systems, microservices, continuous delivery (CD), continuous deployment (CDP) and test-driven development (TDD).
 
 He often speaks at community gatherings and conferences.
 

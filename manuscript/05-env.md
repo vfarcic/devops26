@@ -10,6 +10,8 @@
 ---
 
 ```bash
+git checkout import
+
 jx get env
 
 jx get env -p Auto

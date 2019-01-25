@@ -93,6 +93,10 @@ We got the `jx-go` directory for our new Go application. Later on, it was conver
 
 If you're wondering where do those quickstart projects come from, the answer is GitHub. The community created an organization called *jenkins-x-quickstarts* that contains the repositories hosting the quickstarts.
 
+W> ## A note to Windows users
+W> 
+W> Git Bash might not be able to use the `open` command. If that's the case, replace `open` with `echo`. As a result, you'll get the full address that should be opened directly in your browser of choice.
+
 ```bash
 open "https://github.com/jenkins-x-quickstarts"
 ```

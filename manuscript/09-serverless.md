@@ -321,27 +321,267 @@ vfarcic/jx-go/master                           N/A N/A        N/A    N/A
 ```bash
 jx get build logs \
     -f environment-jx-rocks-staging # Available for a few hours
+```
 
+```
+? Which build do you want to view the logs of?:   [Use arrows to move, type to filter]
+  vfarcic/environment-jx-rocks-staging/PR-1 #1
+> vfarcic/environment-jx-rocks-staging/master #1
+```
+
+NOTE: Select [GITHUB_USER]/environment-jx-rocks-staging/master
+
+```bash
 jx get apps
+```
 
-ADDR=$(kubectl -n jx-staging \
+```
+APPLICATION STAGING PODS URL
+jx-go       0.0.1   1/1  http://jx-go.jx-staging.35.196.4.10.nip.io
+```
+
+```bash
+JX_GO_ADDR=$(kubectl -n jx-staging \
     get ing jx-go \
     -o jsonpath="{.spec.rules[0].host}")
 
-curl "http://$ADDR"
+curl "http://$JX_GO_ADDR"
 ```
 
-TODO: prow
-
-TODO: UI through Deck
-
-TODO: Centralized logging
-
-TODO: Changes to Jenkinsfile
+```
+Hello from:  Jenkins X golang http example
+```
 
 ```bash
+kubectl -n jx get pods
+```
 
 ```
+NAME                                               READY   STATUS      RESTARTS   AGE
+02411b9b-1f64-11e9-bdb9-0a580a1c0007-pod-48ea54    0/1     Completed   0          4m
+115d0d0b-1f64-11e9-8eb4-0a580a1c010e-pod-1d6384    0/1     Completed   0          4m
+942bbcf2-1f63-11e9-9ed1-30230373a07c-pod-29d7f5    0/1     Completed   0          7m
+build-controller-6d8c58db8b-4m7tw                  1/1     Running     0          16m
+buildnum-5cbf874c56-4nv4n                          1/1     Running     0          14m
+crier-766b799476-wn672                             1/1     Running     0          14m
+deck-c9f8cd879-9947t                               1/1     Running     1          14m
+deck-c9f8cd879-llntj                               1/1     Running     1          14m
+hook-7bdd7f86c9-mfq7l                              1/1     Running     0          14m
+hook-7bdd7f86c9-wr5ct                              1/1     Running     0          14m
+horologium-7cc979bd5c-hcrl6                        1/1     Running     0          14m
+jenkins-x-chartmuseum-5b6f9fd646-vrw8c             1/1     Running     0          13m
+jenkins-x-controllerbuild-7c6cf884f7-6hbhc         1/1     Running     0          13m
+jenkins-x-controllercommitstatus-bdfb9f7c4-gnpwn   1/1     Running     0          13m
+jenkins-x-controllerrole-66999f4c9c-mhm5g          1/1     Running     0          13m
+jenkins-x-controllerteam-5656449cbf-87vlc          1/1     Running     0          13m
+jenkins-x-controllerworkflow-5f4b8794f6-nfx45      1/1     Running     0          13m
+jenkins-x-docker-registry-fb7878f76-pbqnb          1/1     Running     0          13m
+jenkins-x-heapster-c6d44bc95-sq8zm                 2/2     Running     0          13m
+jenkins-x-mongodb-7dd488d47b-cx45p                 1/1     Running     1          13m
+jenkins-x-monocular-api-6fdbdf79fb-thlh9           1/1     Running     2          13m
+jenkins-x-monocular-prerender-64f989797b-gn8zv     1/1     Running     0          13m
+jenkins-x-monocular-ui-595fb68747-mpzxh            1/1     Running     0          13m
+jenkins-x-nexus-688df8c75f-v2p52                   1/1     Running     0          13m
+plank-554959d957-8q8gq                             1/1     Running     0          14m
+prow-build-6864887c76-gxrgp                        1/1     Running     0          14m
+sinker-6fb9f8dbdd-h6mb4                            1/1     Running     0          14m
+tide-7dcb845485-qb476                              1/1     Running     0          14m
+```
+
+```bash
+DECK_ADDR=$(kubectl -n jx \
+    get ing deck \
+    -o jsonpath="{.spec.rules[0].host}")
+
+open "http://$DECK_ADDR"
+```
+
+NOTE: Use *admin* as both the username and the password
+
+```bash
+cd ../go-demo-6
+
+jx import -b
+```
+
+```
+No username defined for the current Git server!
+performing pack detection in folder /Users/vfarcic/code/go-demo-6
+--> Draft detected YAML (37.310749%)
+--> Could not find a pack for YAML. Trying to find the next likely language match...
+--> Draft detected Go (36.205487%)
+selected pack: /Users/vfarcic/.jx/draft/packs/github.com/jenkins-x-buildpacks/jenkins-x-kubernetes/packs/go
+existing Dockerfile, Jenkinsfile and charts folder found so skipping 'draft create' step
+replacing placeholders in directory /Users/vfarcic/code/go-demo-6
+app name: go-demo-6, git server: github.com, org: vfarcic, Docker registry org: vfarcic
+skipping directory "/Users/vfarcic/code/go-demo-6/.git"
+Creating GitHub webhook for vfarcic/go-demo-6 for url http://hook.jx.35.196.4.10.nip.io/hook
+
+Watch pipeline activity via:    jx get activity -f go-demo-6 -w
+Browse the pipeline log via:    jx get build logs vfarcic/go-demo-6/master
+Open the Jenkins console via    jx console
+You can list the pipelines via: jx get pipelines
+When the pipeline is complete:  jx get applications
+
+For more help on available commands see: https://jenkins-x.io/developing/browsing/
+
+Note that your first pipeline may take a few minutes to start while the necessary images get downloaded!
+```
+
+```bash
+jx get activities -w
+```
+
+```
+STEP                                           STARTED AGO DURATION STATUS
+vfarcic/environment-jx-rocks-staging/master #1      25m51s     2m3s Succeeded 
+  Credential Initializer                            25m51s       0s Succeeded 
+  Git Source 0                                      25m50s       0s Succeeded https://github.com/vfarcic/environment-jx-rocks-staging.git
+  Apply                                             24m45s      57s Succeeded 
+vfarcic/environment-jx-rocks-staging/PR-1 #1        26m15s    1m39s Succeeded 
+  Credential Initializer                            26m15s       1s Succeeded 
+  Git Source 0                                      26m13s       1s Succeeded https://github.com/vfarcic/environment-jx-rocks-staging.git
+  Build                                              25m7s      31s Succeeded 
+vfarcic/go-demo-6/master #1                            54s          Running 
+  Credential Initializer                               54s          Running 
+  Git Source 0                                                      Pending https://github.com/vfarcic/go-demo-6.git
+  Jenkins                                                           Pending 
+vfarcic/jx-go/master #1                             29m20s    3m48s Succeeded Version: 0.0.1
+  Checkout Source                                   29m20s       0s Succeeded 
+  CI Build and push snapshot                        26m43s          NotExecuted https://github.com/vfarcic/jx-go.git
+  Build Release                                     26m43s      16s Succeeded 
+  Promote to Environments                           26m27s      53s Succeeded 
+  Promote: staging                                  26m19s      45s Succeeded 
+    PullRequest                                     26m19s      45s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/1 Merge SHA: 8455c860ec1b5fe975a01216f6fd56d5c93d4999
+    Update                                          25m34s       0s Succeeded 
+  Credential Initializer                            29m20s       0s Succeeded 
+  Git Source 0                                      29m18s       1s Succeeded https://github.com/vfarcic/jx-go.git
+  Jenkins                                           27m20s    1m48s Succeeded 
+```
+
+```bash
+jx get build logs -f go-demo-6
+```
+
+```
+Build logs for vfarcic/go-demo-6/master #1
+Getting the pod log for pod 8e5c4b26-1f67-11e9-b9ab-30230373a07c-pod-b9d859 and init container build-step-credential-initializer
+{"level":"warn","ts":1548286526.3888607,"logger":"fallback-logger","caller":"logging/config.go:65","msg":"Fetch GitHub commit ID from kodata failed: \"ref: refs/heads/test\" is not a valid GitHub commit ID"}
+{"level":"info","ts":1548286526.390118,"logger":"fallback-logger","caller":"creds-init/main.go:40","msg":"Credentials initialized."}
+Getting the pod log for pod 8e5c4b26-1f67-11e9-b9ab-30230373a07c-pod-b9d859 and init container build-step-git-source-0
+{"level":"warn","ts":1548286528.0876548,"logger":"fallback-logger","caller":"logging/config.go:65","msg":"Fetch GitHub commit ID from kodata failed: \"ref: refs/heads/test\" is not a valid GitHub commit ID"}
+{"level":"info","ts":1548286529.2002468,"logger":"fallback-logger","caller":"git-init/main.go:92","msg":"Successfully cloned \"https://github.com/vfarcic/go-demo-6.git\" @ \"master\" in path \"/workspace\""}
+Getting the pod log for pod 8e5c4b26-1f67-11e9-b9ab-30230373a07c-pod-b9d859 and init container build-step-jenkins
+Picked up _JAVA_OPTIONS: -Xmx400m
+Started
+Running in Durability level: PERFORMANCE_OPTIMIZED
+  23.496 [id=35]        WARNING i.f.k.c.i.VersionUsageUtils#alert: The client is using resource type 'customresourcedefinitions' with unstable version 'v1beta1'
+[Pipeline] node
+Still waiting to schedule task
+‘Jenkins’ doesn’t have label ‘jenkins-go’
+```
+
+NOTE: Stop the logs with *ctrl+c*
+
+TODO: Stop the job
+
+```bash
+vim Jenkinsfile
+```
+
+* Change 
+
+```groovy
+  agent {
+    label "jenkins-go"
+  }
+```
+
+to
+
+```groovy
+  agent any
+```
+
+* Remove all `container` blocks
+
+```bash
+vim OWNERS
+
+# Add `vfarcic` to both `approvers` and `reviewers`
+
+git add .
+
+git commit -m "Switched to serverless"
+
+git push
+
+jx get build logs -f go-demo-6
+
+jx get build logs -f environment-jx-rocks-staging
+
+GD6_ADDR=$(kubectl -n jx-staging \
+    get ing go-demo-6 \
+    -o jsonpath="{.spec.rules[0].host}")
+
+echo $GD6_ADDR
+
+curl "http://$GD6_ADDR/demo/hello"
+```
+
+NOTE: Use centralized logging
+
+NOTE: GitHub only (for now)
+
+```bash
+kubectl -n jx describe cm plugins
+
+git checkout -b prow
+
+jx create issue -t "prow" \
+    --body "Test prow support" \
+    -b
+
+ISSUE_ID=[...]
+
+GH_USER=[...]
+
+open "https://github.com/$GH_USER/go-demo-6/issues/$ISSUE_ID"
+
+cat main.go | sed -e "s@hello, PR@hello, prow@g" | tee main_test.go
+
+cat main.go | sed -e "s@hello, PR@hello, prow@g" | tee main.go
+
+git add . && git commit -m "prow #$ISSUE_ID" && git push --set-upstream origin prow
+
+# Create a PR
+
+jx get activities -w
+
+PR_ID=[...]
+
+PR_ADDR=$(kubectl -n jx-$GH_USER-go-demo-6-pr-$PR_ID get ing go-demo-6 -o jsonpath="{.spec.rules[0].host}")
+
+echo $PR_ADDR
+
+curl "http://$PR_ADDR/demo/hello"
+
+# Add `/assign` to the PR
+
+open "https://github.com/$GH_USER/go-demo-6/pull/$PR_ID"
+
+# Type `/meow` as the comment
+
+# Type `/assign @vfarcic` as the comment
+
+# I type `/lgtm` as the comment
+
+# I type `/approve` as the comment
+
+jx get activities -w
+```
+
+TODO: gh-pages branch
 
 ```bash
 # If GKE
@@ -356,8 +596,6 @@ gcloud compute disks delete \
     $(gcloud compute disks list \
     --filter="-users:*" \
     --format="value(id)")
-
-GH_USER=[...]
 
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
