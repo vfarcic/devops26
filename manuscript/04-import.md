@@ -290,8 +290,6 @@ Now, add the `env` section with the `name` set to `DB` and the value `{{ templat
 
 Save the file.
 
-TODO: Rewrite
-
 Next, we need to add MongoDB to the Helm chart that was created for us. Now, we could start writing Helm templates for MongoDB StatefulSet and a Service. We could spend time trying to figure out how to replicate data between its replicas, and probably a few other things that might not be obvious from the start. However, we should know better. We should know that there is already a Helm chart that does just that, and much more. There are quite a few charts we could use, but we'll go with [mongodb from the stable channel](https://github.com/helm/charts/tree/master/stable/mongodb).
 
 So, how can we add MongoDB chart to the one we already have? The answer in dependencies. We can make our application depend on MongoDB chart by creating a `requirements.yml` file.
