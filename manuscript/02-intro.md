@@ -122,6 +122,16 @@ No matter the choice, I will make sure that all four combinations are supported 
 
 Before we proceed, please note that we'll specify most of the options through arguments. We could have skipped them and let `jx` ask us questions (e.g., how many nodes do you want?). Nevertheless, I believe that using arguments is a better way since it results in a documented and reproducible process to create something. Ideally, `jx` should not ask us any questions. We can indeed accomplish that by running in the batch mode. I'll reserve that for the next chapter, and our first attempt will use a combination of arguments and questions.
 
+Also, before we dive into the actual setup, we'll create a file `myvalues.yaml`.
+
+```bash
+echo "nexus:
+  enabled: false
+" | tee myvalues.yaml
+```
+
+Among other things, Jenkins X installs Nexus where we can store our libraries. While that is useful for many projects, we will not need it in the examples that follow. By disabling it, we'll avoid reserving resources we won't use.
+
 For your convenience, bookmarks to the relevant sub-chapters are as follows.
 
 * [Creating A Google Kubernetes Engine (GKE) Cluster With jx](#jx-create-cluster-gke)
@@ -634,7 +644,6 @@ jenkins-x-mongodb-...                1/1   Running 1        7m
 jenkins-x-monocular-api-...          1/1   Running 3        7m
 jenkins-x-monocular-prerender-...    1/1   Running 0        7m
 jenkins-x-monocular-ui-...           1/1   Running 0        7m
-jenkins-x-nexus-...                  1/1   Running 0        7m
 ```
 
 As you can see, there are quite a few tools in that Namespace. We got Jenkins. Now, that's not simply yet-another-Jenkins. It's much more. For now, I'll keep you in suspense. Then, there is ChartMuseum. That's where we'll store our Helm charts. Further on, we got a few controllers that are not relevant to this discussion. What else is there? We got Docker Registry that we'll use to store our container images. Heapster is mostly deprecated, so I'll ignore it. Further on, we have Monocular with its MongoDB. We can use it as a UI that allows us to browse the charts we'll store in ChartMuseum. Finally, there is Nexus, that we can use to store dependencies of our apps.

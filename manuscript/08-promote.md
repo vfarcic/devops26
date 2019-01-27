@@ -22,4 +22,6 @@ PROD_ADDR=$(kubectl -n jx-production get ing go-demo-6 \
     -o jsonpath="{.spec.rules[0].host}")
 
 curl "http://$PROD_ADDR/demo/hello"
+
+# TODO: Increase the number of replicas of the DB and add HPA to the app.
 ```

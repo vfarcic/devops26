@@ -61,7 +61,6 @@ jenkins-x-mongodb-7dd488d47b-hxs9v                 1/1     Running     1        
 jenkins-x-monocular-api-595b688c65-4xgz2           1/1     Running     1          52m
 jenkins-x-monocular-prerender-64f989797b-6v5xv     1/1     Running     0          52m
 jenkins-x-monocular-ui-67dcd5cd57-c4xt2            1/1     Running     0          52m
-jenkins-x-nexus-688df8c75f-4bcj2                   1/1     Running     0          52m
 plank-554959d957-655dh                             1/1     Running     0          53m
 prow-build-78955d585f-9zs57                        1/1     Running     0          53m
 sinker-6fb9f8dbdd-887sk                            1/1     Running     0          53m
@@ -116,7 +115,6 @@ jenkins-x-mongodb-7dd488d47b-hxs9v                 1/1     Running     1        
 jenkins-x-monocular-api-595b688c65-4xgz2           1/1     Running     1          56m
 jenkins-x-monocular-prerender-64f989797b-6v5xv     1/1     Running     0          56m
 jenkins-x-monocular-ui-67dcd5cd57-c4xt2            1/1     Running     0          56m
-jenkins-x-nexus-688df8c75f-4bcj2                   1/1     Running     0          56m
 plank-554959d957-655dh                             1/1     Running     0          57m
 prow-build-78955d585f-9zs57                        1/1     Running     0          57m
 sinker-6fb9f8dbdd-887sk                            1/1     Running     0          57m
@@ -381,7 +379,6 @@ jenkins-x-mongodb-7dd488d47b-cx45p                 1/1     Running     1        
 jenkins-x-monocular-api-6fdbdf79fb-thlh9           1/1     Running     2          13m
 jenkins-x-monocular-prerender-64f989797b-gn8zv     1/1     Running     0          13m
 jenkins-x-monocular-ui-595fb68747-mpzxh            1/1     Running     0          13m
-jenkins-x-nexus-688df8c75f-v2p52                   1/1     Running     0          13m
 plank-554959d957-8q8gq                             1/1     Running     0          14m
 prow-build-6864887c76-gxrgp                        1/1     Running     0          14m
 sinker-6fb9f8dbdd-h6mb4                            1/1     Running     0          14m

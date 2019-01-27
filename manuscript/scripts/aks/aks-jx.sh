@@ -4,6 +4,10 @@
 
 # Install [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) and make sure you have Azure admin permissions
 
+echo "nexus:
+  enabled: false
+" | tee myvalues.yaml
+
 jx create cluster aks \
     -c jxrocks \
     -n jxrocks-group \
