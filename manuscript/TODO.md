@@ -1,17 +1,17 @@
 ## The DevOps 2.6 Toolkit
 
 - [ ] 01-preface.md (add *Overview* amd *Audience*)
-- [X] 02-intro.md (publish "Is Your Existing Cluster Ready For Jenkins X?", and "Installing Jenkins X In An Existing Kubernetes Cluster" sub-chapters)
+- [X] 02-intro.md (publish "What Is Jenkins X?", "Is Your Existing Cluster Ready For Jenkins X?", and "Installing Jenkins X In An Existing Kubernetes Cluster" sub-chapters)
 - [X] 03-quickstart.md
 - [ ] 04-import.md
-- [ ] 99-import-to-buildpacks.md
-- [ ] 05-env.md
-- [ ] 06-skaffold.md
-- [ ] 07-pr.md
-- [ ] 08-promote.md
-- [ ] 09-serverless.md
-- [ ] 10-prow.md
-- [ ] 11-knative-build.md
+- [ ] 05-buildpacks.md
+- [ ] 99-env.md
+- [ ] 99-skaffold.md
+- [ ] 99-pr.md
+- [ ] 99-promote.md
+- [ ] 99-serverless.md
+- [ ] 99-prow.md
+- [ ] 99-knative-build.md
 - [ ] 99-import-serverless.md
 - [ ] 99-knative-build.md
 - [ ] 99-prow.md
@@ -27,7 +27,11 @@
 - [ ] 99-custom-domains.md
 - [ ] 99-issues-in-releases.md
 - [ ] 99-cert-manager.md
+- [ ] 99-teams.md
 - [ ] 99-context.md
+- [ ] 99-upgrade-cluster-and-jx.md
+- [ ] 99-helm-hooks.md
+- [ ] 99-bdd.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -57,7 +61,6 @@
 - [ ] Code review AKS
 - [ ] Code review existing cluster
 - [ ] Text review
-- [ ] Highlights
 - [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles

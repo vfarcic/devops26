@@ -73,4 +73,4 @@ doctl kubernetes cluster \
 
 # TODO: Delete the volumes
 
-# TODO: Delete the L
+# TODO: Delete the LB

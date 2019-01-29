@@ -4,7 +4,6 @@
 - [ ] Write
 - [ ] Code review
 - [ ] Text review
-- [ ] Highlights
 - [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles
