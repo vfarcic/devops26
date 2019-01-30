@@ -1,21 +1,3 @@
-## TODO
-
-- [X] Code
-- [X] Write
-- [X] Code review GKE
-- [X] Code review EKS
-- [X] Code review AKS
-- [X] Code review existing cluster
-- [X] Text review
-- [-] Diagrams
-- [X] Gist
-- [X] Review titles
-- [X] Proofread
-- [X] Add to slides
-- [ ] Publish on TechnologyConversations.com
-- [ ] Add to Book.txt
-- [ ] Publish on LeanPub.com
-
 # Importing Existing Projects Into Jenkins X
 
 We saw how we can fast-track development and continuous delivery of new applications with Jenkins X quickstarts. However, it is likely that your company was not formed yesterday. That means that you already have some apps and hopefully you'd like to move them to Jenkins X.
@@ -401,7 +383,13 @@ This time, liveness and readiness probes are failing. Either the application ins
 
 Now, unless you went through the code, you cannot know that the application does not respond to requests on the root path. If we take a look at the Pod definition, we'll see that `probePath` is set to `/`. Jenkins X could not know which path could be used for the probe of our application. So, it set it to the only sensible default it could, and that's `/`.
 
-We'll have to modify the `probePath` entry.
+We'll have to modify the `probePath` entry. There is already a variable that allows us to do that instead of fiddling with the Deployment template.
+
+```bash
+cat charts/go-demo-6/values.yaml
+```
+
+If you go through the values, you'll notice that one of them is `probePath` and that it is set to `/`.
 
 Please edit the *charts/go-demo-6/values.yaml* file by changing `probePath: /` entry to `probePath: /demo/hello?health=true`. Feel free to use your favorite editor for that and make sure to save the changes once you're done. Next, we'll push the changes to GitHub.
 
