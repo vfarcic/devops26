@@ -82,6 +82,8 @@ Let's us quickly explore the files of the project, before we import it into Jenk
 ls -1
 ```
 
+The output is as follows.
+
 ```
 README.md
 functional_test.go

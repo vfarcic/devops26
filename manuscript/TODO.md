@@ -3,7 +3,7 @@
 - [ ] 01-preface.md (add *Overview* amd *Audience*)
 - [X] 02-intro.md (publish "Is Your Existing Cluster Ready For Jenkins X?", and "Installing Jenkins X In An Existing Kubernetes Cluster" sub-chapters)
 - [X] 03-quickstart.md
-- [ ] 04-import.md
+- [X] 04-import.md
 - [ ] 05-buildpacks.md
 - [ ] 99-env.md
 - [ ] 99-skaffold.md
