@@ -99,3 +99,9 @@ aws iam delete-role-policy \
     --policy-name jx-rocks-AutoScaling
 
 eksctl delete cluster -n jx-rocks
+
+# Delete unused volumes
+for volume in `aws ec2 describe-volumes --output text| grep available | awk '{print $8}'`; do 
+    echo "Deleting volume $volume"
+    aws ec2 delete-volume --volume-id $volume
+done
