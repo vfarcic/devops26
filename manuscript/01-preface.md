@@ -8,7 +8,7 @@ And then it struck me. Jenkins X does all those things and many more. I intentio
 
 So, the decision was made. This book will be dedicated to Jenkins X.
 
-As with other books, the idea is to go deep into the subject. While the first few chapters might (intentionally) seem very basic, we'll explore Jenkins X and many related tools in depth, and we'll try to see the bigger picture. What is it? What does it do and how it does it? How does it affect our processes? How can with combine it with the things we already have, and which tools should be changed? Is it only about continuous delivery? Does it affect local development? Does it change how we operate Kubernetes?
+As with other books, the idea is to go deep into the subject. While the first few chapters might (intentionally) seem very basic, we'll explore Jenkins X and many related tools in depth, and we'll try to see the bigger picture. What is it? What does it do and how it does it? How does it affect our processes? How can we combine it with the things we already have, and which tools should be changed? Is it only about continuous delivery? Does it affect local development? Does it change how we operate Kubernetes?
 
 As with all other books, I do not know in advance where this subject will lead me. I do not plan (much) in advance, and I did not write an index of everything I want to cover. Time will tell what will be the final scope.
 
