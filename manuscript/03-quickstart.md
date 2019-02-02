@@ -50,7 +50,7 @@ Like most other `jx` commands, we can create a quickstart project using through 
 jx create quickstart
 ```
 
-The output is as follows.
+First, we will be asked to confirm our Git user name as well as the organization. Next, we need to type the name of the new repository that `jx` will create for us. After those questions, the output is as follows.
 
 ```
 ? select the quickstart you wish to create  [Use arrows to move, type to filter]
