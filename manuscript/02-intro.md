@@ -18,7 +18,7 @@ I don't want to overwhelm you from the start. There's a lot of ground to cover, 
 
 Before we jump into Jenkins X, we'll need a few tools that will be used throughout this book. I'm sure that you already have most (if not all) of them, but I'll list them anyway.
 
-I'm sure that you already have [git](https://git-scm.com/). If you don't, you and I are not living in the same century. I would not even mention it, if not for GitBash. If you are using Windows, please make sure that you have GitBash (part of the Git setup) and to run all the commands from it. Other shells might work as well. Still, I tested all the commands on Windows with GitBash, so that's your safest bet. If, on the other hand, you are a MacOS or Linux user, just fire up your favorite terminal.
+I'm sure that you already have [git](https://git-scm.com/). If you don't, you and I are not living in the same century. I would not even mention it, if not for GitBash. If you are using Windows, please make sure that you have GitBash (part of the Git setup) and to run all the commands from it. Other shells might work as well. Still, I tested all the commands on Windows with GitBash, so that's your safest bet. If, on the other hand, you are a macOS or Linux user, just fire up your favorite terminal.
 
 Jenkins X CLI (we'll install it soon) will do its best to install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and [Helm](https://docs.helm.sh/using_helm/#installing-helm). However, the number of permutations of what we have on our laptops is close to infinite, and you're better of installing those two yourself.
 
@@ -52,7 +52,7 @@ Now, let's install Jenkins X CLI.
 
 I> All the commands from this chapter are available in the [02-intro.sh](https://gist.github.com/8cef206b4df0b1bbec3060d1d45c2a80) Gist.
 
-If you are a **MacOS** user, please install `jx` using `brew`.
+If you are a **macOS** user, please install `jx` using `brew`.
 
 ```bash
 brew tap jenkins-x/jx
