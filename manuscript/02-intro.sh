@@ -1,20 +1,20 @@
-# If MacOS
+# If macOS
 brew tap jenkins-x/jx
 
-# If MacOS
+# If macOS
 brew install jx
 
-# If Lunux
+# If Linux
 mkdir -p ~/.jx/bin
 
-# If Lunux
+# If Linux
 curl -L https://github.com/jenkins-x/jx/releases/download/v1.3.634/jx-linux-amd64.tar.gz \
     | tar xzv -C ~/.jx/bin
 
-# If Lunux
+# If Linux
 export PATH=$PATH:~/.jx/bin
 
-# If Lunux
+# If Linux
 echo 'export PATH=$PATH:~/.jx/bin' \
     >> ~/.bashrc
 
