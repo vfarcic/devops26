@@ -32,6 +32,7 @@
 - [ ] 99-upgrade-cluster-and-jx.md
 - [ ] 99-helm-hooks.md
 - [ ] 99-bdd.md
+- [ ] 99-progressive-delivery.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
