@@ -5,7 +5,7 @@
 - [X] 03-quickstart.md
 - [X] 04-import.md
 - [ ] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
-- [ ] 99-env.md
+- [ ] 06-env.md
 - [ ] 99-skaffold.md
 - [ ] 99-pr.md
 - [ ] 99-promote.md
@@ -35,6 +35,7 @@
 - [ ] 99-hashi-vault.md
 - [ ] 99-build-notifications.md
 - [ ] 99-bg-with-flagger-addon.md 
+- [ ] 99-custom-build-images.md 
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
