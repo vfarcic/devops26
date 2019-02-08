@@ -398,7 +398,7 @@ Finally, the `kubectl` context was changed to point to the `jx` Namespace, inste
 
 We'll get back to the new cluster and the tools that were installed and configured in the [What Did We Get?](#intro-what-did-we-get) section. Feel free to jump there if you have no interest in how to install Jenkins X inside an existing cluster.
 
-## Is Your Existing Cluster Ready For Jenkins X? {#jx-compliance}
+## Is Your Cluster Ready For Jenkins X? {#jx-compliance}
 
 If you're reading this, the chances are that you do not want to use `jx cluster create` to create a new cluster that will host Jenkins X. That is OK, or even welcome. That likely means that you are already experienced with Kubernetes and that you already have applications running in Kubernetes. That's a sign of maturity and your desire to add Jenkins X to the mix of whichever applications you are already running there. After all, it would be silly to create a new cluster for each set of applications.
 

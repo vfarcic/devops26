@@ -84,4 +84,19 @@ vim Jenkinsfile
 git add . && git commit -m "Added --force=false" && git push
 
 jx get activity -f environment-jx-rocks-production/master -w
+
+# TODO: Add go-demo-6 example
+
+# TODO: Add devops-toolkit
+
+open "https://github.com/vfarcic/devops-toolkit"
+
+# Fork it
+
+cd ..
+
+git clone \
+    "https://github.com/$GH_USER/devops-toolkit"
+
+cd devops-toolkit
 ```
