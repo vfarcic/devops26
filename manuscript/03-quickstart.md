@@ -357,6 +357,8 @@ vfarcic/jx-go/master #1           21m46s    4m17s Succeeded Version: 0.0.1
 
 This time, we used the `-w` flag to tell Jenkins X that we'd like to *watch* the activities. Since there are no pending builds, the output will stay intact, so please press *ctrl+c* to stop the watch and return to the prompt.
 
+I> Internally, Jenkins X activities are stored as Kubernetes Custom Resources (CRDs). If you're curious, you can see them by executing `kubectl -n jx get act`.
+
 Activities provide only a high-level overview of what happened. When everything is successful, that is often all the information we need. However, when things go wrong (e.g., some of the tests fail), we might need to dig deeper into a build by retrieving the logs.
 
 ```bash

@@ -2,7 +2,7 @@
 
 We saw how we can fast-track development and continuous delivery of new applications with Jenkins X quickstarts. However, it is likely that your company was not formed yesterday. That means that you already have some apps and hopefully you'd like to move them to Jenkins X.
 
-From Jenkins X perspective, importing an existing project is relatively straightforward. All we have to do is execute `jx import`, and Jenkins X will do its magic. It will create the files we need. If we do not yet have `skaffold.yml`, it'll generate it for us. If we did not create a Helm chart, it would create that as well. No Dockerfile? No problem. We'll get that as well. Never wrote Jenkins pipeline for that project? Again, that not an issue. We'll get Jenkinsfile. Jenkins X will reuse the things we already have, and create those that we're missing.
+From a Jenkins X perspective, importing an existing project is relatively straightforward. All we have to do is execute `jx import`, and Jenkins X will do its magic. It will create the files we need. If we do not yet have `skaffold.yml`, it'll generate it for us. If we did not create a Helm chart, it would create that as well. No Dockerfile? No problem. We'll get that as well. Never wrote Jenkins pipeline for that project? Again, that is not an issue. We'll get a Jenkinsfile. Jenkins X will reuse the things we already have, and create those that we're missing.
 
 The import process does not limit itself to creating missing files and pushing them to Git. It'll also create a job in Jenkins, webhooks in GitHub, and quite a few other things.
 
@@ -29,9 +29,9 @@ Without further ado, we are about to import a project into Jenkins X.
 
 ## Importing A Project
 
-We'll import the application stored in the [vfarcic/go-demo-6](https://github.com/vfarcic/go-demo-6) repository. We'll use it as a guinea pig for testing the import process as well as to flash out potential problems we might encounter.
+We'll import the application stored in the [vfarcic/go-demo-6](https://github.com/vfarcic/go-demo-6) repository. We'll use it as a guinea pig for testing the import process as well as to flesh out potential problems we might encounter.
 
-But, before we import the repository, you'll have to fork the code. Otherwise, you won't be able to push changes since you are no (yet) collaborator on that specific repository.
+But, before we import the repository, you'll have to fork the code. Otherwise, you won't be able to push changes since you are not (yet) a collaborator on that specific repository.
 
 ```bash
 open "https://github.com/vfarcic/go-demo-6"
@@ -188,7 +188,7 @@ Please stop watching the activities by pressing *ctrl+c*.
 
 So far, the end result looks similar to the one we got when we created a quickstart. Jenkins X created the files it needs, it created a GitHub webhook, it created a job in Jenkins, and it pushed changes to GitHub. As a result, we got our first build and, by the look of it, it was successful.
 
-Since I have a paranoid nature, we'll double check whether everything indeed looks OK.
+Since I have a paranoid nature, we'll double check whether everything indeed looks ok.
 
 Please open the `PullRequest` link from the activity output.
 
@@ -218,7 +218,7 @@ The output is as follows.
 </html>
 ```
 
-Now that was unexpected. Everything looks OK from Jenkins X perspective, but the application is not accessible. Did we fail to do something, or did Jenkins X fail to do the right thing?
+Now that was unexpected. Everything looks ok from Jenkins X perspective, but the application is not accessible. Did we fail to do something, or did Jenkins X fail to do the right thing?
 
 When in doubt, we can always take a look at the logs.
 
@@ -238,7 +238,7 @@ panic: no reachable servers
 
 The problem is in the database. To be more precise, it's missing. The application tried to connect to MongoDB, and it couldn't find it.
 
-In retrospective, that makes sense. While Jenkins X does the right thing most of the time, it could not know that we need a database and especially that we need MongoDB. There is no such information in the repository, except inside the Go code. Excluding the possibility of scanning the whole code and figuring out that MongoDB is needed based on imported libraries, it's normal that Jenkins X did not add it to the Helm chart it generated when we imported the project.
+In retrospect, that makes sense. While Jenkins X does the right thing most of the time, it could not know that we need a database and especially that we need MongoDB. There is no such information in the repository, except inside the Go code. Excluding the possibility of scanning the whole code and figuring out that MongoDB is needed based on imported libraries, it's normal that Jenkins X did not add it to the Helm chart it generated when we imported the project.
 
 The only sensible thing we can do is to modify the Helm chart and add YAML files Kubernetes will need to spin up a database together with the application.
 
@@ -290,7 +290,7 @@ echo "dependencies:
 
 The only thing worth noting in that file is the `alias`. It's set to the value that will create a Service with the same name as the environment variable `DB` that we just added to `deployment.yaml`. 
 
-There's only one more thing missing. We should probably customize MongoDB chart to fit our use case. I won't go through all the values we could set. You can explore them yourself by executing `helm inspect values stable/mongodb` or by visiting [project README](https://github.com/helm/charts/tree/master/stable/mongodb). Instead, we'll define only one, mostly as an exercise how to define values for the dependencies.
+There's only one more thing missing. We should probably customize the MongoDB chart to fit our use case. I won't go through all the values we could set. You can explore them yourself by executing `helm inspect values stable/mongodb` or by visiting [project README](https://github.com/helm/charts/tree/master/stable/mongodb). Instead, we'll define only one, mostly as an exercise how to define values for the dependencies.
 
 So, let's add a few new entries to `values.yaml`.
 
@@ -319,7 +319,7 @@ Next, we need to wait until the new release is deployed to the staging environme
 jx get activity -f go-demo-6 -w
 ```
 
-The output, limited to the new build, is as follows.
+The output, limited to the new build, is as follows:
 
 ```
 STEP                         STARTED AGO DURATION STATUS
@@ -453,7 +453,9 @@ When your project has some of the files, but not all, the import process will ge
 
 Now is a good time for you to take a break.
 
-If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
+You might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just continue on to the next chapter.
+
+However, if you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
 
 If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that. Just remember to replace `[...]` with your GitHub user.
 
@@ -468,5 +470,3 @@ rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
 rm -f ~/.jx/jenkinsAuth.yaml
 ```
-
-Finally, you might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just keep reading.

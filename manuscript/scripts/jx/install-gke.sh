@@ -84,3 +84,17 @@ jx install \
 jx uninstall \
   --context $(kubectl config current-context) \
   -b
+
+#######################
+# Destroy the cluster #
+#######################
+
+gcloud container clusters \
+    delete jx-rocks \
+    --region us-east1 \
+    --quiet
+
+gcloud compute disks delete \
+    $(gcloud compute disks list \
+    --filter="-users:*" \
+    --format="value(id)")

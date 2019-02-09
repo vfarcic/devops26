@@ -18,13 +18,13 @@ mkdir -p cluster
 
 cd cluster
 
-# If MacOS or Linux
+# If macOS or Linux
 curl -L https://git.io/getLatestIstio | sh -
 
-# If MacOS or Linux
+# If macOS or Linux
 mv istio*/bin/istioctl /usr/local/bin
 
-# If MacOS or Linux
+# If macOS or Linux
 chmod +x /usr/local/bin/istioctl
 
 # If Windows, run everything from GitBash
