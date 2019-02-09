@@ -9,6 +9,7 @@
 - [ ] 99-skaffold.md
 - [ ] 99-pr.md
 - [ ] 99-promote.md
+- [ ] 99-progressive-delivery.md
 - [ ] 99-serverless.md
 - [ ] 99-prow.md
 - [ ] 99-knative-build.md
