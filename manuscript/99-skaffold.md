@@ -1,28 +1,62 @@
 ```bash
-# If Docker For Desktop
-# Preferences > Kubernetes > Enable Kubernetes > Apply
+# If not already inside *go-demo-6*
+cd go-demo-6
 
-# If minikube
-minikube start
+# TODO: Restroy from buildpacks branch
 
-# If Docker For Desktop
-kubectl config use-context docker-for-desktop
+# Only if destroyed the cluster in the previous chapter
+jx import --pack go-mongo -b
 
-# If minikube
-kubectl config use-context minikube
+# Only if destroyed the cluster in the previous chapter
+jx get activity -f go-demo-6 -w
 
-cat Dockerfile-dev
+# Requirement: Go
+go get github.com/cespare/reflex
 
-kubectl create \
-    -f https://raw.githubusercontent.com/vfarcic/k8s-specs/master/helm/tiller-rbac.yml \
-    --record --save-config
+make linux
 
-helm init --service-account tiller
+# Requirement: Docker Desktop (macOS or Windows) or Docker Server (Linux)
+docker image build -t go-demo-6 .
 
-kubectl -n kube-system \
-    rollout status deploy tiller-deploy
+# It requires quite a few tools to be installed and it's not continuous (there's no watcher)
+
+jx create devpod --reuse -b
+
+ls -l
+
+make linux
 
 cat skaffold.yaml
+
+echo $DOCKER_REGISTRY
+
+skaffold build -p dev
+
+
+
+jx create devpod --sync --reuse -b
+
+DH_USER=[...]
+
+# docker login -u $DH_USER
+
+kubectl -n jx get ing
+
+export DOCKER_REGISTRY=$(kubectl -n jx \
+    get ing docker-registry \
+    -o jsonpath="{.spec.rules[0].host}")
+
+skaffold build -p dev
+
+cat watch.sh
+
+./watch.sh
+
+skaffold run -p dev
+
+chmod +x watch.sh
+
+./watch.sh
 
 echo '
 - name: local

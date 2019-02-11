@@ -1,6 +1,6 @@
 - [ ] Code
 - [ ] Write
-- [ ] Code review GKE
+- [X] Code review GKE
 - [ ] Code review EKS
 - [ ] Code review AKS
 - [ ] Code review existing cluster
@@ -26,6 +26,10 @@
 ---
 
 ```bash
+jx version
+
+TODO: Output
+
 cd go-demo-6
 
 # Only if you had troubles to follow the previous chapter
@@ -39,9 +43,6 @@ git checkout master
 
 # Only if you had troubles to follow the previous chapter
 git merge orig
-
-# Only if you had troubles to follow the previous chapter
-rm -rf charts
 
 # Only if you had troubles to follow the previous chapter
 git push
@@ -102,7 +103,8 @@ cd ..
 
 GH_USER=[...]
 
-git clone https://github.com/$GH_USER/environment-jx-rocks-staging.git
+git clone \
+    https://github.com/$GH_USER/environment-jx-rocks-staging.git
 
 cd environment-jx-rocks-staging
 
@@ -223,7 +225,9 @@ pipeline {
 
 ```bash
 curl -sSLo Jenkinsfile \
-    https://bit.ly/2TB2Mw5
+    https://bit.ly/2Dr1Kfk
+
+cat Jenkinsfile
 ```
 
 ```bash
@@ -280,7 +284,7 @@ kubectl -n jx-staging get pods
 ```
 
 
-## Changing Prod Environment
+## Exploring And Adapting The Production Environment
 
 ---
 
@@ -320,4 +324,27 @@ jx get activity \
 # It failed because we did not deploy *go-demo-6* to production
 
 # Explain what happens when there are multiple applications
+```
+
+## What Now?
+
+
+```bash
+# New
+cd ..
+
+# New
+rm -rf environment-jx-rocks-*
+
+GH_USER=[...]
+
+hub delete -y \
+  $GH_USER/environment-jx-rocks-staging
+
+hub delete -y \
+  $GH_USER/environment-jx-rocks-production
+
+rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
+
+rm -f ~/.jx/jenkinsAuth.yaml
 ```

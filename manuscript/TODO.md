@@ -6,6 +6,7 @@
 - [X] 04-import.md
 - [ ] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
 - [ ] 06-env.md
+- [ ] 07-local-dev.md
 - [ ] 99-skaffold.md
 - [ ] 99-pr.md
 - [ ] 99-promote.md
