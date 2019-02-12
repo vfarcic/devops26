@@ -57,8 +57,6 @@ docker image build -t go-demo-6 .
 chmod +x watch.sh
 
 ./watch.sh
-
-GH_USER=[...]
 ```
 
 ## Present Time
@@ -204,8 +202,6 @@ ADDR=$(kubectl -n jx-edit-$GH_USER \
 curl "http://$ADDR/demo/hello"
 
 cd go-demo-6
-
-# Open main.go in your favorite editor
 
 cat main.go \
     | sed -e \

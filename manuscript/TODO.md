@@ -4,11 +4,10 @@
 - [X] 02-intro.md (publish "Installing Jenkins X In An Existing Kubernetes Cluster")
 - [X] 03-quickstart.md
 - [X] 04-import.md
-- [ ] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
+- [X] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
 - [ ] 06-env.md
 - [ ] 07-local-dev.md
-- [ ] 99-skaffold.md
-- [ ] 99-pr.md
+- [ ] 08-pr.md
 - [ ] 99-promote.md
 - [ ] 99-progressive-delivery.md
 - [ ] 99-serverless.md
@@ -17,6 +16,7 @@
 - [ ] 99-import-serverless.md
 - [ ] 99-knative-build.md
 - [ ] 99-prow.md
+- [ ] 99-skaffold.md
 - [ ] 99-kaniko.md
 - [ ] 99-teams.md
 - [ ] 99-security-scanning.md
