@@ -169,7 +169,7 @@ echo "REPLACE_ME_APP_NAME-db:
 " | tee -a packs/go-mongo/charts/values.yaml
 ```
 
-Just as with `requirements.yaml`, we used the "magic" string`REPLACE_ME_APP_NAME` that will be replaced with the name of the application during the import or the quickstart process. The `replicaSet.enabled` entry will make sure that the database is deployed as a multi-replica StatefulSet.
+Just as with `requirements.yaml`, we used the "magic" string `REPLACE_ME_APP_NAME` that will be replaced with the name of the application during the import or the quickstart process. The `replicaSet.enabled` entry will make sure that the database is deployed as a multi-replica StatefulSet.
 
 I> If you're interested in all the values available in the `mongodb` chart, please visit the [project README](https://github.com/helm/charts/tree/master/stable/mongodb).
 
@@ -383,7 +383,7 @@ kubectl -n jx-staging \
     -l app=jx-staging-go-demo-6
 ```
 
-We can see from the events that the probes are failing. That was to be expected since we decided that hard-coding `probePath` to `/demo/hello?health=true` is likely not going to be useful to anyone but the *go-demo-6* application. So, we left it as `/`. Owners of the applications that will use our new buildpack should change it if needed. Therefore, we'll need to modify the application to accommodate the "special" probe path.
+We can see from the events that the probes are failing. That was to be expected since we decided that hard-coding `probePath` to `/demo/hello?health=true` is likely not going to be useful to anyone but the *go-demo-6* application. So, we left it as `/` in our `go-mongo` buildpack. Owners of the applications that will use our new buildpack should change it if needed. Therefore, we'll need to modify the application to accommodate the "special" probe path.
 
 As a refresher, let's take another look at the `values.yaml` file.
 
