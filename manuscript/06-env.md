@@ -14,7 +14,7 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Undestranding GitOps Principles
+# Undestanding GitOps Principles
 
 Git is the de-facto code repository standard. That's where we keep our code. Hardly anyone argues against that statement today. Where we might disagree is whether Git is the only source of truth.
 
@@ -22,7 +22,7 @@ When I speak with teams and ask them whether Git is their only source of truth, 
 
 GitOps is a way to do Continuous Delivery. It assumes that Git is a single source of truth and that both infrastructure and applications are defined using declarative syntax (e.g., YAML). Changes to infrastructure or applications are made by pushing changes to Git, not by clicking buttons in Jenkins.
 
-Developers understood the need for having a single source of truth for their applications a while back. Nobody argues any more that eveerything an application needs must be stored in the repository of that application. That's where the code is, that's where the tests are, that's where build scripts are located, and that's where the pipeline of that application is defined. The part that is not yet that common is to apply the same principles to infrastructure. We can think of an environment (e.g., production) as an application. As such, everything we need related to an environment must be stored in a single Git repository. As such, we should be able to recreate the whole environment, from nothing to everything, by executing a single process based only on information in that repository. We can also leverage development principles we apply to applications. A rollback is done by reverting the code to one of the Git revisions. Accepting a change to an environment is a process that starts with a pull request. And so on, and so forth.
+Developers understood the need for having a single source of truth for their applications a while back. Nobody argues any more that everything an application needs must be stored in the repository of that application. That's where the code is, that's where the tests are, that's where build scripts are located, and that's where the pipeline of that application is defined. The part that is not yet that common is to apply the same principles to infrastructure. We can think of an environment (e.g., production) as an application. As such, everything we need related to an environment must be stored in a single Git repository. As such, we should be able to recreate the whole environment, from nothing to everything, by executing a single process based only on information in that repository. We can also leverage development principles we apply to applications. A rollback is done by reverting the code to one of the Git revisions. Accepting a change to an environment is a process that starts with a pull request. And so on, and so forth.
 
 The major challenge in applying GitOps principles is to unify the steps specific to an application with those related to creation of the whole environment. At some moment, pipeline dedicated to our application needs to push a change to the repository that contains an environment. In turn, since every process is initiated through a Git webhook fired when there is a change, pushing something to an environment repo should initiate another pipeline.
 
@@ -37,9 +37,9 @@ Where many diverge from "Git as the only source of truth" is in the release phas
 
 TODO: Diagram
 
-Having everything defined in code and stored in Git is not enough. We need those definitions and that code to be used reliably. Reproducibility is one of the key features we're loiking for. Unfortunatelly, we (humans) are not good at performing reproducible actions. We make mistakes and we are incapable of doing the exactly the same thing twice. We are not reliable. Machines are. Given that the conditions did not change, a script will do exactly the same thing every time we run it. A declarative approach to define things gives us idempotency. Where we do excel is creativity. We are good at writing scripts and configurations, but not are running them. Ideally, every single action performed anywhere inside our systems should be executed by a machine, not by us. We accimplish those things by storing the code in a repository, and letting all the actions execute as a result of a webhook firing an event on every push of a change.
+Having everything defined in code and stored in Git is not enough. We need those definitions and that code to be used reliably. Reproducibility is one of the key features we're looking for. Unfortunately, we (humans) are not good at performing reproducible actions. We make mistakes and we are incapable of doing the exactly the same thing twice. We are not reliable. Machines are. Given that the conditions did not change, a script will do exactly the same thing every time we run it. A declarative approach to define things gives us idempotency. Where we do excel is creativity. We are good at writing scripts and configurations, but not are running them. Ideally, every single action performed anywhere inside our systems should be executed by a machine, not by us. We accimplish those things by storing the code in a repository, and letting all the actions execute as a result of a webhook firing an event on every push of a change.
 
-But why do we want to use declarative syntax to describe our systems? The main reason is in idempotency provided through our experssion of a desire, instead of an imperative statement. If we say create ten servers. We might end up with fifteen if there are already five nodes running. On the other hand, if we declaratively expess that there should be tend servers, we can have a system that will check how many do we have, and increase or decrease the
+But why do we want to use declarative syntax to describe our systems? The main reason is in idempotency provided through our expression of a desire, instead of an imperative statement. If we say create ten servers. We might end up with fifteen if there are already five nodes running. On the other hand, if we declaratively express that there should be ten servers, we can have a system that will check how many do we have, and increase or decrease the
 
 Was that explanation confusing? Are you wondering whether it makes sense and if it does how to do that? Worry not. Our next mission is to put GitOps into practice and use practical examples to explain GitOps principles and implementation. Everything will become much clearer soon. But, as in the previous chapters, we need to create the cluster first.
 
@@ -80,7 +80,7 @@ git merge orig
 git push
 ```
 
-I> If you destroyed the cluster at the end of the previous chapter, we'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specificaly for the execises we'll perform next.
+I> If you destroyed the cluster at the end of the previous chapter, we'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises we'll perform next.
 
 ```bash
 jx import -b

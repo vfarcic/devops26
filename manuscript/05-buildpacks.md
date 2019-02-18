@@ -1,18 +1,18 @@
-# Creating Custom Buildpacks
+# Creating Custom Build Packs
 
-I stand by my claim that "you do not need to understand Kubernetes to **use Jenkins X**." To be more precise, those who do not want to know Kubernetes and its ecosystem in detail can benefit from Jenkins X ability to simplify the processes around software development lifecycle. That's the promise or, at least, one of the driving ideas behind the project. Nevertheless, for that goal to reach as wide of an audience as possible, we need a variety of buildpacks. The more we have, the more use cases can be covered with a single `jx import` or `jx quickstart` command. The problem is that there is an infinite number of types of applications and combinations we might have. Not all can be covered with community-based packs. No matter how much effort the community puts into creating buildpacks, they will always be a fraction of what we might need. That's where you come in.
+I stand by my claim that "you do not need to understand Kubernetes to **use Jenkins X**." To be more precise, those who do not want to know Kubernetes and its ecosystem in detail can benefit from Jenkins X ability to simplify the processes around software development lifecycle. That's the promise or, at least, one of the driving ideas behind the project. Nevertheless, for that goal to reach as wide of an audience as possible, we need a variety of build packs. The more we have, the more use cases can be covered with a single `jx import` or `jx quickstart` command. The problem is that there is an infinite number of types of applications and combinations we might have. Not all can be covered with community-based packs. No matter how much effort the community puts into creating build packs, they will always be a fraction of what we might need. That's where you come in.
 
-The fact that Jenkins X buildpacks cannot fully cover all our use cases does not mean that we shouldn't work on reducing the gap. Some of our applications will have a perfect match with one of the buildpacks. Others will require only slight modifications. Still, no matter how many packs we create, there will always be a case when the gap between what we need and what buildpacks offer is more significant.
+The fact that Jenkins X build packs cannot fully cover all our use cases does not mean that we shouldn't work on reducing the gap. Some of our applications will have a perfect match with one of the build packs. Others will require only slight modifications. Still, no matter how many packs we create, there will always be a case when the gap between what we need and what build packs offer is more significant.
 
-Given the diversity in languages and frameworks we use to develop our applications, it is hard to avoid the need for understanding how to create new buildpacks. Those who want to expand the available buildpacks need to know at least basics behind Helm and a few other tools. Still, that does not mean that everyone needs to possess that knowledge. What we do not want is for different teams to reinvent the wheel and we do not wish for every developer to spend endless hours trying to figure out all the details behind the ever-growing Kubernetes ecosystem. It would be a waste of time for everyone to go through steps of importing their applications into Jenkins X, only to discover that they need to perform a set of changes to adapt the result to their own needs.
+Given the diversity in languages and frameworks we use to develop our applications, it is hard to avoid the need for understanding how to create new build packs. Those who want to expand the available build packs need to know at least basics behind Helm and a few other tools. Still, that does not mean that everyone needs to possess that knowledge. What we do not want is for different teams to reinvent the wheel and we do not wish for every developer to spend endless hours trying to figure out all the details behind the ever-growing Kubernetes ecosystem. It would be a waste of time for everyone to go through steps of importing their applications into Jenkins X, only to discover that they need to perform a set of changes to adapt the result to their own needs.
 
-Our next mission is to streamline the process of importing projects for all those teams in charge of applications that share some common design choices and yet do not have a buildpack that matches all their needs.
+Our next mission is to streamline the process of importing projects for all those teams in charge of applications that share some common design choices and yet do not have a build pack that matches all their needs.
 
-We'll explore how to create a custom buildpack that could be highly beneficial for a (fictional) company. We'll imagine that there are multiple applications written in Go that depend on MongoDB and that there is a high probability that new ones based on the same stack will be created in the future. We'll explore how to create such a buildpack with the least possible effort. 
+We'll explore how to create a custom build pack that could be highly beneficial for a (fictional) company. We'll imagine that there are multiple applications written in Go that depend on MongoDB and that there is a high probability that new ones based on the same stack will be created in the future. We'll explore how to create such a build pack with the least possible effort. 
 
-We'll need to make a decision what should be included in the buildpack, and what should be left to developers (owners of an application) to add after importing their applications or after creating new ones through Jenkins X quickstart. Finally, we'll need to brainstorm whether the result of our work might be useful to others outside of our organization, or whether what we did is helpful only to our teams. If we conclude that the fruits of our work are useful to the community, we should contribute back by creating a pull request.
+We'll need to make a decision what should be included in the build pack, and what should be left to developers (owners of an application) to add after importing their applications or after creating new ones through Jenkins X quickstart. Finally, we'll need to brainstorm whether the result of our work might be useful to others outside of our organization, or whether what we did is helpful only to our teams. If we conclude that the fruits of our work are useful to the community, we should contribute back by creating a pull request.
 
-To do all that, we'll continue using the *go-demo-6* application since we are already familiar with it and since we already went through the exercise of discovering which changes are required to the `go` buildpack.
+To do all that, we'll continue using the *go-demo-6* application since we are already familiar with it and since we already went through the exercise of discovering which changes are required to the `go` build pack.
 
 ## Creating A Kubernetes Cluster With Jenkins X
 
@@ -29,25 +29,25 @@ For your convenience, the Gists from the previous chapter are available below as
 
 Let's get started.
 
-## Choosing What To Include In A Buildpack
+## Choosing What To Include In A Build Pack
 
-We might be tempted to create buildpacks that contemplate all the variations present in our applications. That is often a bad idea. Buildpacks should provide everything we need, within reason. Or, to be more precise, they should provide the things that are repeatable across projects, but they should not contemplate so many combinations that buildpacks themselves would become hard to maintain, and complicated to use. Simplicity is the key, without sacrificing fulfillment of our needs. When in doubt, it is often better to create a new buildpack than to extend an existing one by adding endless `if/else` statements.
+We might be tempted to create build packs that contemplate all the variations present in our applications. That is often a bad idea. Build packs should provide everything we need, within reason. Or, to be more precise, they should provide the things that are repeatable across projects, but they should not contemplate so many combinations that build packs themselves would become hard to maintain, and complicated to use. Simplicity is the key, without sacrificing fulfillment of our needs. When in doubt, it is often better to create a new build pack than to extend an existing one by adding endless `if/else` statements.
 
-If we take the *go-demo-6* application as an example, we can assume that other projects are written in Go and that use MongoDB. Even if that's not the case right now, that is such a common combination that we can guess that someone will create a similar application in the future. Even if that is not true within our organization, surely there are many other teams doing something similar. The popularity of Go is on the constant rise, and MongoDB is one of the most popular databases. There must be many using that combination. All in all, a buildpack for an application written in Go and with MongoDB as a backend is potentially an excellent candidate both for the internal use within our organization, as well as a contribution to the Jenkins X community.
+If we take the *go-demo-6* application as an example, we can assume that other projects are written in Go and that use MongoDB. Even if that's not the case right now, that is such a common combination that we can guess that someone will create a similar application in the future. Even if that is not true within our organization, surely there are many other teams doing something similar. The popularity of Go is on the constant rise, and MongoDB is one of the most popular databases. There must be many using that combination. All in all, a build pack for an application written in Go and with MongoDB as a backend is potentially an excellent candidate both for the internal use within our organization, as well as a contribution to the Jenkins X community.
 
-MongoDB was not the only thing that we had to add when we imported *go-demo-6* based on the `go` template. We also had to change the `probePath` value from `/` to `/demo/hello?health=true`. Should we add that to the buildpack? The answer is no. It is highly unlikely that a similar application from a different team will use the same path for health checks. We should leave that part outside of the soon-to-create buildpack and let it continue having root as the default path. We'll let the developers, those that will use our buildpack, modify the `values.yaml` file after importing their project to Jenkins X. It will be up to them to design their applications to use the root path for health checks or to choose to change it by modifying `values.yaml` after they import their projects.
+MongoDB was not the only thing that we had to add when we imported *go-demo-6* based on the `go` template. We also had to change the `probePath` value from `/` to `/demo/hello?health=true`. Should we add that to the build pack? The answer is no. It is highly unlikely that a similar application from a different team will use the same path for health checks. We should leave that part outside of the soon-to-create build pack and let it continue having root as the default path. We'll let the developers, those that will use our build pack, modify the `values.yaml` file after importing their project to Jenkins X. It will be up to them to design their applications to use the root path for health checks or to choose to change it by modifying `values.yaml` after they import their projects.
 
 All in all, we'll keep `probePath` value intact, even though our *go-demo-6* application will have to change it. That part of the app is unique, and others are not likely to have the same value.
 
-## Creating A Buildpack For Go Applications With MongoDB Datastore
+## Creating A Build Pack For Go Applications With MongoDB Datastore
 
-We are going to create a buildpack that will facilitate the development and delivery of applications written in Go and with MongoDB as datastore. Given that there is already a pack for applications written in Go (without the DB), the easiest way to create what we need is by extending it. We'll make a copy of the `go` buildpack and add the things we're missing.
+We are going to create a build pack that will facilitate the development and delivery of applications written in Go and with MongoDB as datastore. Given that there is already a pack for applications written in Go (without the DB), the easiest way to create what we need is by extending it. We'll make a copy of the `go` build pack and add the things we're missing.
 
-The community-based packs are located in `~/.jx/draft/packs/github.com/jenkins-x-buildpacks/jenkins-x-kubernetes`. Or, to be more precise, that's where those used with *Kubernetes Workloads* types are stored. Should we make a copy of the local `packs/go` directory? If we did that, our new pack would be available only on our laptop, and we would need to zip it and send it to others if they are to benefit from it. Since we are engineers, we should know better. All code goes to Git and buildpacks are not an exception.
+The community-based packs are located in `~/.jx/draft/packs/github.com/jenkins-x-buildpacks/jenkins-x-kubernetes`. Or, to be more precise, that's where those used with *Kubernetes Workloads* types are stored. Should we make a copy of the local `packs/go` directory? If we did that, our new pack would be available only on our laptop, and we would need to zip it and send it to others if they are to benefit from it. Since we are engineers, we should know better. All code goes to Git and build packs are not an exception.
 
-If right now you are muttering to yourself something like "I don't use Go, I don't care", just remember that the same principles apply if you use a different buildpack as the base that will be extended to suit your needs. Think of this as a learning experience that can be applied to any buildpack.
+If right now you are muttering to yourself something like "I don't use Go, I don't care", just remember that the same principles apply if you use a different build pack as the base that will be extended to suit your needs. Think of this as a learning experience that can be applied to any build pack.
 
-We'll fork the repository with community buildpacks. That way, we'll store our new pack safely to our repo. If we choose to, we'll be able to make a pull request back to where we forked it from, and we'll be able to tell Jenkins X to add that repository as the source of buildpacks. For now, we'll concentrate on forking the repository.
+We'll fork the repository with community build packs. That way, we'll store our new pack safely to our repo. If we choose to, we'll be able to make a pull request back to where we forked it from, and we'll be able to tell Jenkins X to add that repository as the source of build packs. For now, we'll concentrate on forking the repository.
 
 ```bash
 open "https://github.com/jenkins-x-buildpacks/jenkins-x-kubernetes"
@@ -125,7 +125,7 @@ watch.sh
 
 Those are the files Jenkins X uses to configure all the tools involved in the process that ultimately results in the deployment of a new release. We won't dive into them just now. Instead, we'll concentrate on the `charts` directory that contains the Helm chart that defines everything related to installation and updates of an application. I'll let you explore it on your own. If you're familiar with Helm, it should take you only a few minutes to understand the files it contains.
 
-Since we'll use `go` buildpack as our baseline, our next step is to copy it.
+Since we'll use `go` build pack as our baseline, our next step is to copy it.
 
 ```bash
 cp -R packs/go packs/go-mongo
@@ -158,7 +158,7 @@ echo "dependencies:
 " | tee packs/go-mongo/charts/requirements.yaml
 ```
 
-Please note the usage of the `REPLACE_ME_APP_NAME` string. Today (February 2019), that is still one of the features that are not documented. When the buildpack is applied, it'll replace that string with the actual name of the application. After all, it would be silly to hard-code the name of the application since this pack should be reusable across many.
+Please note the usage of the `REPLACE_ME_APP_NAME` string. Today (February 2019), that is still one of the features that are not documented. When the build pack is applied, it'll replace that string with the actual name of the application. After all, it would be silly to hard-code the name of the application since this pack should be reusable across many.
 
 Now that we created the `mongodb` dependency, we should add the values that will customize MongoDB chart so that the database is deployed as a MongoDB replica set (a Kubernetes StatefulSet with two or more replicas). The place where we change variables used with a chart is `values.yaml`. But, since we want to redefine values of dependency, we need to add it inside the name or, in our case, the alias of that dependency.
 
@@ -245,12 +245,12 @@ Now we can push our changes to the forked repository.
 ```bash
 git add .
 
-git commit -m "Added go-mongo buildpack"
+git commit -m "Added go-mongo build pack"
 
 git push
 ```
 
-With the new buildpack safely stored, we should let Jenkins X know that we want to use the forked repository.
+With the new build pack safely stored, we should let Jenkins X know that we want to use the forked repository.
 
 We can use `jx edit buildpack` to change the location of our `kubernetes-workloads` packs. However, at the time of this writing (February 2019), there is a bug that prevents us from doing that ([issue 2955](https://github.com/jenkins-x/jx/issues/2955)). The good news is that there is a workaround. If we omit the name (`-n` or `--name`), Jenkins X will add the new packs location, instead of editing the one dedicated to `kubernetes-workloads` packs.
 
@@ -265,9 +265,9 @@ From now on, whenever we decide to create a new quickstart or to import a projec
 
 Go ahead and try it out if you have a Go application with MongoDB at hand.
 
-## Testing The New Buildpack
+## Testing The New Build Pack
 
-Let's check whether our new buildpack works as expected.
+Let's check whether our new build pack works as expected.
 
 ```bash
 cd ..
@@ -291,7 +291,7 @@ kubectl -n jx delete act \
   -l sourcerepository=go-demo-6
 ```
 
-To make sure that our new buildpack is indeed working as expected, we'll undo all the commits we made to the `master` branch in the previous chapter and start over.
+To make sure that our new build pack is indeed working as expected, we'll undo all the commits we made to the `master` branch in the previous chapter and start over.
 
 ```bash
 git checkout orig
@@ -317,7 +317,7 @@ jx import --pack go-mongo -b
 
 The output should be almost the same as the one we saw when we imported the project based on the `go` pack. The only significant difference is that this time we can see in the output that it used the pack `go-mongo`.
 
-Before it imported the *go-demo-6* project, Jenkins X cloned the buildpacks repository locally to the `.jx` directory. The next time we import a project or create a new one based on a quickstart, it will pull the latest version of the repository, thus keeping it always in sync with what we have in GitHub.
+Before it imported the *go-demo-6* project, Jenkins X cloned the build packs repository locally to the `.jx` directory. The next time we import a project or create a new one based on a quickstart, it will pull the latest version of the repository, thus keeping it always in sync with what we have in GitHub.
 
 We can confirm that the repository was indeed cloned to `.jx` and that `go-mongo` is there, by listing the local files.
 
@@ -383,7 +383,7 @@ kubectl -n jx-staging \
     -l app=jx-staging-go-demo-6
 ```
 
-We can see from the events that the probes are failing. That was to be expected since we decided that hard-coding `probePath` to `/demo/hello?health=true` is likely not going to be useful to anyone but the *go-demo-6* application. So, we left it as `/` in our `go-mongo` buildpack. Owners of the applications that will use our new buildpack should change it if needed. Therefore, we'll need to modify the application to accommodate the "special" probe path.
+We can see from the events that the probes are failing. That was to be expected since we decided that hard-coding `probePath` to `/demo/hello?health=true` is likely not going to be useful to anyone but the *go-demo-6* application. So, we left it as `/` in our `go-mongo` build pack. Owners of the applications that will use our new build pack should change it if needed. Therefore, we'll need to modify the application to accommodate the "special" probe path.
 
 As a refresher, let's take another look at the `values.yaml` file.
 
@@ -448,11 +448,11 @@ The first command should show that all the Pods are now running, while the last 
 
 ## Giving Back To The Community
 
-As you saw, creating new buildpacks is relatively straightforward. In most cases, all we have to do is find the one that is closest to our needs, make a copy, and change a few files. For your internal use, you can configure Jenkins X to use buildpacks from your own repository. That way you can apply the same workflow to your packs as to any other code you're working on. Moreover, you can import the repository with buildpacks to Jenkins X and run tests that will validate your changes.
+As you saw, creating new build packs is relatively straightforward. In most cases, all we have to do is find the one that is closest to our needs, make a copy, and change a few files. For your internal use, you can configure Jenkins X to use build packs from your own repository. That way you can apply the same workflow to your packs as to any other code you're working on. Moreover, you can import the repository with build packs to Jenkins X and run tests that will validate your changes.
 
-Sometimes you will create packs that are useful only within the context of your company. Most of us think that we have "special" needs and so we tend to have processes and conventions that likely do not fit other organizations. However, more often than not, there is an illusion of being different. The truth is that most of us do employ similar, if not the same tools, processes, and conventions. The way different companies work and the technologies they use are more alike than many think. By now, you might be wondering why am I telling you this? The reason is simple. If you created a buildpack, contribute it to the community. You might be thinking that it is too specific for your company and that it would not be useful to others. That might be true, or it might not. What is true is that it only takes a few moments to create a pull request. No significant time will be lost if it gets rejected, but if it is merged, many others will benefit from your work, just as you benefit from buildpacks made by others.
+Sometimes you will create packs that are useful only within the context of your company. Most of us think that we have "special" needs and so we tend to have processes and conventions that likely do not fit other organizations. However, more often than not, there is an illusion of being different. The truth is that most of us do employ similar, if not the same tools, processes, and conventions. The way different companies work and the technologies they use are more alike than many think. By now, you might be wondering why am I telling you this? The reason is simple. If you created a build pack, contribute it to the community. You might be thinking that it is too specific for your company and that it would not be useful to others. That might be true, or it might not. What is true is that it only takes a few moments to create a pull request. No significant time will be lost if it gets rejected, but if it is merged, many others will benefit from your work, just as you benefit from build packs made by others.
 
-All that apparently does not matter if the policy of your company does not permit you to make public anything done during your working hours, or if your buildpack contains proprietary information.
+All that apparently does not matter if the policy of your company does not permit you to make public anything done during your working hours, or if your build pack contains proprietary information.
 
 ## What Now?
 

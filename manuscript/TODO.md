@@ -52,7 +52,7 @@
 
 ## Outputs
 
-- [ ] Docker For Desktop
+- [ ] Docker for Desktop
 - [ ] minikube
 - [ ] GKE
 - [ ] EKS
