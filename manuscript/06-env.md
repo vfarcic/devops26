@@ -14,7 +14,7 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Undestanding GitOps Principles
+# Understanding GitOps Principles
 
 Git is the de-facto code repository standard. That's where we keep our code. Hardly anyone argues against that statement today. Where we might disagree is whether Git is the only source of truth.
 
