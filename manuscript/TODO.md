@@ -38,6 +38,7 @@
 - [ ] 99-build-notifications.md
 - [ ] 99-bg-with-flagger-addon.md 
 - [ ] 99-custom-build-images.md 
+- [ ] 99-terraform.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
