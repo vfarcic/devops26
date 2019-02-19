@@ -2,7 +2,7 @@
 # Create a cluster #
 ####################
 
-# Install [minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
+# Install [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
 
 jx create cluster minikube \
     -m 8192 \

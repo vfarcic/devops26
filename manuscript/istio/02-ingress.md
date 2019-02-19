@@ -47,12 +47,12 @@ kubectl -n go-demo-7 \
 kubectl -n istio-system \
     get svc istio-ingressgateway
 
-# If minikube
+# If Minikube
 export IP=$(minikube ip)
 
 echo $IP
 
-# If minikube
+# If Minikube
 export PORT=$(kubectl \
     -n istio-system \
     get svc istio-ingressgateway \
@@ -84,7 +84,7 @@ curl -i -H "Host:go-demo-7.com" \
 curl -i -H "Host:go-demo-7.com" \
     http://$IP:$PORT/something/else
 
-# If minikube
+# If Minikube
 export SECURE_PORT=$(kubectl \
     -n istio-system \
     get svc istio-ingressgateway \
