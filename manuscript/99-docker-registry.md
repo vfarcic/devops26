@@ -1,12 +1,12 @@
 ## Docker Registry
 
-So far, we used [Docker Hub](https://hub.docker.com/) to store our images. If your are allowed to store images in the Cloud, that is probably the best option. You would need to make your repositories private and pay a fee for that to Docker. Paying for a service is often worth the money. You'll be saving your time by letting others take care of one of the third-party applications (Docker Registry). Each hour we save from doing mundane work on maintaining third-part applications, is an hour we can dedicate to our applications. After all, applications we develop are applications we hope to give us a competitive advantage. Third-party applications are there mostly to support ours.
+So far, we have used [Docker Hub](https://hub.docker.com/) to store our images. If you are allowed to store images in the cloud, that is probably the best option. You would need to make your repositories private and pay a fee for that to Docker. Paying for a service is often worth the money. You'll be saving your time by letting others take care of one of the third-party applications (Docker Registry). Each hour we save from doing mundane work on maintaining third-party applications is an hour we can dedicate to our applications. After all, applications we develop are applications we hope to give us a competitive advantage. Third-party applications are there mostly to support ours.
 
-Even though using container registry as a service (e.g., Docker Hub) means that we have one thing less to worry about, sometimes the price is too high. We might make a calculation that the total price we'd need to pay is higher than the cost if we'd do it alone. If a sum of the cost of underlying infrastructure together with the cost of the time required for setting up and maintaining the registry is still lower than what we'd pay to Docker, running your own registry might be a better option. On top of that we need to contemplate the situation in which the motivation for running a self-hosted registry is not financial, but driven by regulations or security. You might not be allowed to push your images to Docker Hub, or any other third-party managed registry. Such a restriction might be imposed by regulations of the country where your business operates, specifics of the industry you're in, or simply an internal top-level decision you cannot change (just yet). No matter the reasons, you might opt for the option to run your own registry.
+Even though using a container registry as a service (e.g., Docker Hub) means that we have one thing less to worry about, sometimes the price is too high. We might make a calculation that the total price we'd need to pay is higher than the cost if we'd do it ourselves. If the sum of the cost of underlying infrastructure together with the cost of the time required for setting up and maintaining the registry is still lower than what we'd pay to Docker, running your own registry might be a better option. On top of that we need to contemplate the situation in which the motivation for running a self-hosted registry is not financial, but driven by regulations or security. You might not be allowed to push your images to Docker Hub, or any other third-party managed registry. Such a restriction might be imposed by regulations of the country where your business operates, specifics of the industry you're in, or simply an internal top-level decision you cannot change (just yet). No matter the reasons, you might opt for the option to run your own registry.
 
 There is one more important thing to take into account when evaluating whether to use third-party services or host them yourself. Kubernetes makes many of the tasks related to running and maintaining applications easier and more reliable than before. Container registry is not an exception. We can easily spin up our own registry. Helm will help us with the definition of the resources required for running a registry and Kubernetes will make sure that it is always up and running. Our effort will be relatively small.
 
-This short discourse does not aim to convince to use registry-as-a-service, nor it tries to convince you to run it yourself. The choice is yours and it will depend on your specific use case. We'll choose to self-host a container registry only because I want to make you self-sufficient. Switching from self-hosted to a service maintained by others is always easier than the other way around.
+This short discourse does not aim to convince to use a registry-as-a-service, nor is it trying to convince you to run it yourself. The choice is yours and it will depend on your specific use case. We'll choose to self-host a container registry only because I want to make you self-sufficient. Switching from self-hosted to a service maintained by others is always easier than the other way around.
 
 We already know how to use Helm to search for Charts, so let's check whether a container registry is available in the official repository.
 
@@ -22,9 +22,9 @@ stable/docker-registry 1.4.2         2.6.2       A Helm chart for Docker Registr
 ...
 ```
 
-Only one solution for container registry is available. Even though there are others in the market, [Docker Registry](https://docs.docker.com/registry/) is the most widely used free one. Most of the other solutions, like [Docker Trusted Registry](https://docs.docker.com/ee/dtr/) and JFrog' [Artifactory](https://www.jfrog.com/confluence/display/RTF/Docker+Registry), are commercial products. You should check them out since they, and many others, provide additional features that might be worth the investment. We, on the other hand, will stick with the free option and install Docker Registry.
+Only one solution for a container registry is available. Even though there are others in the market, [Docker Registry](https://docs.docker.com/registry/) is the most widely used free one. Most of the other solutions, like [Docker Trusted Registry](https://docs.docker.com/ee/dtr/) and JFrog's [Artifactory](https://www.jfrog.com/confluence/display/RTF/Docker+Registry), are commercial products. You should check them out since they, and many others, provide additional features that might be worth the investment. We, on the other hand, will stick with the free option and install Docker Registry.
 
-You already used at least one Docker Registry. Even if this book is your first contact with containers, you used [Docker Hub](https://hub.docker.com/). Docker Registry is not much different from Docker Hub. The only significant difference is that the latter does not come with a UI. You'd need to install it separately. We won't need "pretty colors" on top of the registry, so we'll ignore UI altogether.
+You already used at least one Docker Registry. Even if this book is your first contact with containers, you used [Docker Hub](https://hub.docker.com/). Docker Registry is not much different from Docker Hub. The only significant difference is that the latter does not come with a UI. You'd need to install it separately. We won't need "pretty colors" on top of the registry, so we'll ignore the UI altogether.
 
 The primary purpose of any container registry is to store and distribute images. Anything else is a bonus built on those two requirements.
 
@@ -68,13 +68,13 @@ secrets:
 ...
 ```
 
-We should use a specific tag of the Registry, instead of relying on whatever is set in the Chart. So, we'll overwrite the `image.tag` variable and thus control the `registry` image we are about to install. Also, we'll have to make the registry accessible outside of the cluster. We can do that either through Ingress or by setting the `service.type` value to `NodePort`. We'll to the latter.
+We should use a specific tag of the Registry, instead of relying on whatever is set in the Chart. So, we'll overwrite the `image.tag` variable and thus control the `registry` image we are about to install. Also, we'll have to make the registry accessible outside of the cluster. We can do that either through Ingress or by setting the `service.type` value to `NodePort`. We'll do the latter.
 
 This Chart, just like most of the others, does not specify the `resources`, leaving it as a conscious choice users should make. We will specify both the `requests` and the `limits`.
 
 We should persist Registry's state on disk by setting `persistence.enabled` to `true`. Assuming that your cluster has a default StorageClass, there's no need to change anything else related to persistence.
 
-Finally, the last thing we should assue is authentication. We should set the `secrets.htpasswd` value. For the obvious security concerns, the value cannot be plain text username and password but it must be encrypted. The problem is to find out how to do that.
+Finally, the last thing we should configure is authentication. We should set the `secrets.htpasswd` value. For the obvious security concerns, the value cannot be plain text username and password but it must be encrypted. The problem is to find out how to do that.
 
 Let's `inspect` the whole Chart, instead of only the values.
 
@@ -105,7 +105,7 @@ HTPASSWR=$(kubectl run --rm -it \
 echo $HTPASSWR
 ```
 
-The first command encrypted the credentials and stored the result in the `HTPASSWR` variable. We used `admin` as both the username and the password.
+The first command encrypts the credentials and stored the result in the `HTPASSWR` variable. We used `admin` as both the username and the password.
 
 On my laptop, the output of the latter command is as follows.
 
@@ -155,7 +155,7 @@ kubectl -n registry \
     registry-docker-registry
 ```
 
-The latter command waited until the Deployment of the registry is rolled out.
+The latter command waits until the Deployment of the registry is rolled out.
 
 The only thing left before we test whether we can indeed push and pull from the registry is to find out the address through which we can access it.
 
@@ -184,7 +184,7 @@ Now we can try to push the image we built in the previous chapter. We want to co
 
 I> Please consider commercial registries if you need a more elaborate authentication mechanism.
 
-Please make sure that the commands that the `docker image` and `docker login` commands that follow require a Docker server. For your convenience, you can use Docker For Mac or Windows, unless you are using Linux as your desktop OS. Also, you'll have to replace `[...]` with your Docker Hub user.
+Please make sure that the commands that the `docker image` and `docker login` commands that follow require a Docker server. For your convenience, you can use Docker for Mac or Windows, unless you are using Linux as your desktop OS. Also, you'll have to replace `[...]` with your Docker Hub user.
 
 ```bash
 DH_USER=[...]
@@ -211,6 +211,6 @@ docker image push \
     $REGISTRY_ADDR/go-demo-3:1.0
 ```
 
-That was easy. Assuming that you are already familiar to Docker and, to some extent, to Kubernetes, the usage of a registry should come naturally. Even if you never used one hosted by yourself, the principles are the same as when using Docker Hub. The only noticeable difference is that this time we're using registry address as the image prefix instead of our Docker Hub user.
+That was easy. Assuming that you are already familiar with Docker and, to some extent, with Kubernetes, the usage of a registry should come naturally. Even if you never used one hosted by yourself, the principles are the same as when using Docker Hub. The only noticeable difference is that this time we're using registry address as the image prefix instead of our Docker Hub user.
 
 Let's turn our attention to the need to have our Charts available in a repository.

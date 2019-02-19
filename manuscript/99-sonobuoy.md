@@ -7,7 +7,7 @@ open "https://github.com/heptio/sonobuoy/releases/tag/v0.13.0"
 
 # Must be k8s v1.11+
 
-# Docker For Desktop k8s version is currently (December 2018) on k8s v1.10.
+# Docker for Desktop k8s version is currently (December 2018) on k8s v1.10.
 ```
 
 * [gke-sonobuoy.sh](https://gist.github.com/658dc48a87ac4f9f7232a7e2a65886ce): **GKE** with 3 **n1-standard-1** worker nodes and Kubernetes version **v1.11.5** (or higher).
@@ -16,7 +16,7 @@ open "https://github.com/heptio/sonobuoy/releases/tag/v0.13.0"
 * [minikube-sonobuoy.sh](https://gist.github.com/6d3d10babf1be772f23c6942a7e3811e): **minikube** with **2 CPUs** and **2 GB RAM** and Kubernetes version **v1.11.5** (or higher).
 
 ```bash
-# Defined a specific k8s version in minikube and GKE
+# Defined a specific k8s version in Minikube and GKE
 
 # eksctl must be version 0.1.15+ (it introduced k8s version 1.11)
 

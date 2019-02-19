@@ -18,13 +18,15 @@ I don't want to overwhelm you from the start. There's a lot of ground to cover, 
 
 Before we jump into Jenkins X, we'll need a few tools that will be used throughout this book. I'm sure that you already have most (if not all) of them, but I'll list them anyway.
 
-I'm sure that you already have [git](https://git-scm.com/). If you don't, you and I are not living in the same century. I would not even mention it, if not for GitBash. If you are using Windows, please make sure that you have GitBash (part of the Git setup) and to run all the commands from it. Other shells might work as well. Still, I tested all the commands on Windows with GitBash, so that's your safest bet. If, on the other hand, you are a macOS or Linux user, just fire up your favorite terminal.
+I'm sure that you already have [Git](https://git-scm.com/). If you don't, you and I are not living in the same century. I would not even mention it, if not for GitBash. If you are using Windows, please make sure that you have GitBash (part of the Git setup) and to run all the commands from it. Other shells might work as well. Still, I tested all the commands on Windows with GitBash, so that's your safest bet. If, on the other hand, you are a macOS or Linux user, just fire up your favorite terminal.
 
-Jenkins X CLI (we'll install it soon) will do its best to install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and [Helm](https://docs.helm.sh/using_helm/#installing-helm). However, the number of permutations of what we have on our laptops is close to infinite, and you're better of installing those two yourself.
+Jenkins X CLI (we'll install it soon) will do its best to install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and [Helm](https://docs.helm.sh/using_helm/#installing-helm). However, the number of permutations of what we have on our laptops is close to infinite, and you're better off installing those two yourself.
 
-We'll need a Kubernetes cluster, and I'll assume that you already have CLIs provided by your hosting vendor. You should be able to use (almost) any Kubernetes flavor to run Jenkins X, so the choice is up to you. I won't force you to use a particular vendor. Just as with kubectl and Helm, Jenkins X will try to install appropriate CLI, but you might be better off installing it yourself. If you're planning to use AWS EKS cluster, you probably already have [AWS CLI](https://aws.amazon.com/cli/) and [eksctl](https://github.com/weaveworks/eksctl). If your preference is with Google GKE, I'm sure that you have [gcloud](https://cloud.google.com/sdk/docs/quickstarts). Similarly, if you prefer Azure, you likely have [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) on your laptop. Finally, if you prefer something else, I'm sure you know which CLI fits your situation.
+We'll need a Kubernetes cluster. I'll assume that you already have CLIs provided by your hosting vendor. You should be able to use (almost) any Kubernetes flavor to run Jenkins X, so the choice is up to you. I won't force you to use a particular vendor. Just as with kubectl and Helm, Jenkins X will try to install the appropriate CLI, but you might be better off installing it yourself. If you're planning on using an AWS EKS cluster, you probably already have the [AWS CLI](https://aws.amazon.com/cli/) and [eksctl](https://github.com/weaveworks/eksctl). If your preference is Google GKE, I'm sure that you have [gcloud](https://cloud.google.com/sdk/docs/quickstarts). Similarly, if you prefer Azure, you likely have [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) on your laptop. Finally, if you prefer something else, I'm sure you know which CLI fits your situation.
 
-There is one restriction though. You can use (almost) any Kubernetes cluster, but it needs to be publicly accessible. The main reason for that lies in GitHub triggers. Jenkins X relies heavily on GitOps principles. Most of the events will be triggered by GitHub webhooks. If your cluster cannot be accessed from GitHub, you won't be able to trigger those events, and you will have difficulty following the examples. Now, that might pose two significant issues. You might prefer to practice locally using minikube or Docker Desktop. Neither of the two is accessible from outside your laptop. Or you might have a corporate cluster that is inaccessible to the outside world. In those cases, I suggest you use a service from AWS, GCP, Azure, or from anywhere else. Each chapter will start with the instructions to create a new cluster, and it will end with instructions on how to destroy it (if you choose to do so). That way, the costs will be kept to a bare minimum. If you sign up to one of the Cloud providers, they will give you much more credit than what you will spend on the exercises from this book, even if you are the slowest reader in the world. If you're not sure which one to pick, I suggest [Google Cloud Platform (GCP)](https://console.cloud.google.com). At the time of this writing, their managed Kubernetes offering called Google Kubernetes Engine (GKE) is the best cluster on the market.
+There is one restriction though. You can use (almost) any Kubernetes cluster, but it needs to be publicly accessible. The main reason for that lies in GitHub triggers. Jenkins X relies heavily on GitOps principles. Most of the events will be triggered by GitHub webhooks. If your cluster cannot be accessed from GitHub, you won't be able to trigger those events, and you will have difficulty following the examples. 
+
+Now, that might pose two significant issues. You might prefer to practice locally using Minikube or Docker Desktop. Neither of the two is accessible from outside your laptop. You might have a corporate cluster that is inaccessible from the outside world. In those cases, I suggest you use a service from AWS, GCP, Azure, or from anywhere else. Each chapter will start with the instructions to create a new cluster, and it will end with instructions on how to destroy it (if you choose to do so). That way, the costs will be kept to a bare minimum. If you sign up with one of the Cloud providers, they will give you much more credit than what you will spend on the exercises from this book, even if you are the slowest reader in the world. If you're not sure which one to pick, I suggest [Google Cloud Platform (GCP)](https://console.cloud.google.com). At the time of this writing, their managed Kubernetes offering called Google Kubernetes Engine (GKE) is the best cluster on the market.
 
 Moving on to the final set of requirements...
 
@@ -36,7 +38,7 @@ That's it. I'm not forcing you to use anything but the tools you should have any
 
 For your convenience, the list of all the tools we'll use is as follows.
 
-* [git](https://git-scm.com/)
+* [Git](https://git-scm.com/)
 * GitBash (if using Windows)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * [Helm](https://docs.helm.sh/using_helm/#installing-helm)
@@ -84,7 +86,11 @@ Now we are ready to install Jenkins X.
 
 ## To Create A Cluster Or Not To Create A Cluster
 
-I already mentioned that Jenkins X is much more than a tool for continuous integration or continuous delivery. One of the many features it has is to create a fully operational Kubernetes cluster and install the tools we might need to operate it efficiently. On the other hand, `jx` allows us to install Jenkins X inside an existing Kubernetes cluster as well. So, we need to make a choice. Do we want to let `jx` create a cluster for us, or are we going to install Jenkins X inside an existing cluster? The decision will largely depend on your current situation, as well as the purpose of the cluster.
+I already mentioned that Jenkins X is much more than a tool for continuous integration or continuous delivery. One of the many features it has is to create a fully operational Kubernetes cluster and install the tools we might need to operate it efficiently. On the other hand, `jx` allows us to install Jenkins X inside an existing Kubernetes cluster as well.
+
+So, we need to make a choice.
+
+Do we want to let `jx` create a cluster for us, or are we going to install Jenkins X inside an existing cluster? The decision will largely depend on your current situation, as well as the purpose of the cluster.
 
 If you plan to create a cluster only for the purpose of the exercises in this book, I recommend using `jx` to create a cluster, assuming that your favorite hosting vendor is one of the supported ones. Another reason for letting `jx` handle creation of the cluster lies in potential desire to have a dedicated cluster for continuous delivery. In both cases, we can use `jx create cluster` command.
 
@@ -96,7 +102,7 @@ Let's go through the help of both `jx create cluster` and `jx install` commands 
 jx create cluster help
 ```
 
-Judging from the output, we can see that Jenkins X works with quite a few different providers. We can use it inside Azure AKS, AWS with kops, AWS EKS, Google GKE, Oracle OKE, IBM ICP, IBM IKS, minikube, minishift, OpenShift, and Kubernetes. Now, the last provider I mentioned is curious. Aren't all other providers just different flavors of Kubernetes? If they are, why do we have a provider called `kubernetes` on top of more specific providers (e.g., GKE)? The `kubernetes` provider allows us to run Jenkins X in (almost) any Kubernetes flavor. The difference between the `kubernetes` provider and all the others lies in additions that are useful only for those providers. Nevertheless, you can run Jenkins X in (almost) any Kubernetes flavor. If your provider is on the list, use it. Otherwise, pick `kubernetes` provider instead.
+Judging from the output, we can see that Jenkins X works with quite a few different providers. We can use it inside Azure AKS, AWS with kops, AWS EKS, Google GKE, Oracle OKE, IBM ICP, IBM IKS, Minikube, Minishift, OpenShift, and Kubernetes. Now, the last provider I mentioned is curious. Aren't all other providers just different flavors of Kubernetes? If they are, why do we have a provider called `kubernetes` on top of more specific providers (e.g., GKE)? The `kubernetes` provider allows us to run Jenkins X in (almost) any Kubernetes flavor. The difference between the `kubernetes` provider and all the others lies in additions that are useful only for those providers. Nevertheless, you can run Jenkins X in (almost) any Kubernetes flavor. If your provider is on the list, use it. Otherwise, pick `kubernetes` provider instead.
 
 As a side note, do not trust the list I presented as being final. By the time you read this, Jenkins X might have added more providers to the list.
 
@@ -404,9 +410,9 @@ If you're reading this, the chances are that you do not want to use `jx cluster 
 
 However, using an existing Kubernetes cluster is risky. Many people think that they are so smart that they will assemble their Kubernetes cluster from scratch. "We're so awesome that we don't need tools like Rancher to create a cluster for us." "We'll do it with `kubeadm`." Then, after a lot of sweat, we announce that the cluster is operational, only to discover that there is no StorageClass or that networking does not work. So, if you assembled your own cluster and you want to use Jenkins X inside it, you need to ask yourself whether that cluster is set up correctly. Does it have everything we need? Does it comply with standards, or did you tweak it to meet your corporate restrictions? Did you choose to remove StorageClass because all your applications are stateless? Were you forced by your security department to restrict communication between Namespaces? Is the Kubernetes version too old? We can answer those and many other questions by running compliance tests.
 
-Before we proceed, we'll verify whether the cluster we're hoping to use meets the requirements. Fortunately, `jx` has a command that can help us. We can run compliance tests and check whether there is anything "suspicious" in the results. Among many other things, `jx` has its own implementation of the [sonobuoy](https://github.com/heptio/sonobuoy) SDK.
+Before we proceed, we'll verify whether the cluster we're hoping to use meets the requirements. Fortunately, `jx` has a command that can help us. We can run compliance tests and check whether there is anything "suspicious" in the results. Among many other things, `jx` has its own implementation of the [Sonobuoy](https://github.com/heptio/sonobuoy) SDK.
 
-So, what is sonobuoy? It is a diagnostic tool that makes it easier to understand the state of a Kubernetes cluster by running a set of Kubernetes conformance tests in an accessible and non-destructive manner.
+So, what is Sonobuoy? It is a diagnostic tool that makes it easier to understand the state of a Kubernetes cluster by running a set of Kubernetes conformance tests in an accessible and non-destructive manner.
 
 Sonobuoy supports Kubernetes versions 1.11, 1.12 and 1.13, so bear that in mind before running it in your cluster. As a matter a fact, if your Kubernetes cluster is older than that, you likely think that creating a cluster is a one-time deal and that there is nothing to maintain or upgrade.
 
@@ -472,13 +478,13 @@ jx compliance delete
 
 ## Installing Jenkins X In An Existing Kubernetes Cluster {#jx-install}
 
-I will assume that your cluster passed compliance tests or, in case you did not execute them, that you are confident that it works according to Kubernetes specifications and best practices. Also, I hope that it is accessible from outside. To be more precise, the cluster needs to be reachable from GitHub, so that it can send webhook notifications whenever we push some code changes. Please note that the accessibility requirement is valid only for the purpose of the exercises. In a "real world" situation you might use a Git server that is inside your network (e.g., GitLab, BitBucket, GitHub Enterprise, etc.).
+I will assume that your cluster passed compliance tests or, in case you did not execute them, that you are confident that it works according to Kubernetes specifications and best practices. Also, I'm assuming that it is accessible from the outside world. To be more precise, the cluster needs to be reachable from GitHub, so that it can send webhook notifications whenever we push some code changes. Please note that the accessibility requirement is valid only for the purpose of the exercises. In a "real world" situation you might use a Git server that is inside your network (e.g., GitLab, BitBucket, GitHub Enterprise, etc.).
 
 Now that we (might have) run the compliance tests and that they showed that our cluster complies with Kubernetes, we can proceed and install Jenkins X.
 
 We'll need a few pieces of information before we install the tools we need. The first in line is the IP.
 
-Typically, your cluster should be accessible through an external load balancer. Assuming that we can guarantee its availability, an external load balancer provides a stable entry point (IP) to the cluster. At the same time, its job is to ensure that the requests are forwarded to one of the healthy nodes of the cluster. That's, more or less, all we need an external load balancer for.
+Typically, your cluster should be accessible through an external load balancer. Assuming that we can guarantee its availability, an external load balancer provides a stable entry point (IP) to the cluster. At the same time, its job is to ensure that the requests are forwarded to one of the healthy nodes of the cluster. That is, more or less, all we need an external load balancer for.
 
 If you do have an external LB, please get its IP. If you don't, you can use the IP of one of the worker nodes of the cluster, as long as you understand that a failure of that node would make everything inaccessible.
 
@@ -512,9 +518,9 @@ The output is as follows.
 --provider='': Cloud service providing the Kubernetes cluster.  Supported providers: aks, aws, eks, gke, icp, iks, jx-infra, kubernetes, minikube, minishift, oke, openshift, pks
 ```
 
-As you can see, we can install Jenkins in AKS, AWS (created with kops), EKS, GKE, ICP, IKS, minikube, minishift, OKE, OpenShift, and PKS. The two I skipped from that list are `jx-infra` and `kubernetes`. The former is used mostly internally by the maintainers of the project, while the latter (`kubernetes`) is a kind of a wildcard provider. We can use it if our Kubernetes cluster does not match any of the available providers (e.g., Rancher, DigitalOcean, etc.).
+As you can see, we can install Jenkins in AKS, AWS (created with kops), EKS, GKE, ICP, IKS, Minikube, Minishift, OKE, OpenShift, and PKS. The two I skipped from that list are `jx-infra` and `kubernetes`. The former is used mostly internally by the maintainers of the project, while the latter (`kubernetes`) is a kind of a wildcard provider. We can use it if our Kubernetes cluster does not match any of the available providers (e.g., Rancher, Digital Ocean, etc.).
 
-All in all, if your Kubernetes is among one of the supported providers, use it. Otherwise, choose the `kubernetes` provider. There are two exceptions though. Minikube and minishift run locally and are not accessible from GitHub. Please avoid them since some of the features will not be available. The main ones missing are GitHub webhook notifications. While that might sound like a minor issue, they are a crucial element of the system we're trying to build. Jenkins X relies heavily on GitOps which assumes that any change is stored in Git and that every push might potentially initiate some processes (e.g., deployment to the staging environment).
+All in all, if your Kubernetes is among one of the supported providers, use it. Otherwise, choose the `kubernetes` provider. There are two exceptions though. Minikube and Minishift run locally and are not accessible from GitHub. Please avoid them since some of the features will not be available. The main ones missing are GitHub webhook notifications. While that might sound like a minor issue, they are a crucial element of the system we're trying to build. Jenkins X relies heavily on GitOps which assumes that any change is stored in Git and that every push might potentially initiate some processes (e.g., deployment to the staging environment).
 
 Please replace `[...]` with the selected provider in the command that follows.
 
@@ -522,9 +528,9 @@ Please replace `[...]` with the selected provider in the command that follows.
 PROVIDER=[...]
 ```
 
-You do have an nginx Ingress running in your cluster? If you don't, `jx` will install it for you. In that case, feel free to skip the commands that declare the `INGRESS_*` variables. Also, when we come to the `jx install` command, remove the arguments `--ingress-namespace` and `--ingress-deployment`.
+Do you have a NGINX Ingress controller running in your cluster? If you don't, `jx` will install it for you. In that case, feel free to skip the commands that declare the `INGRESS_*` variables. Also, when we come to the `jx install` command, remove the arguments `--ingress-namespace` and `--ingress-deployment`.
 
-On the other hand, if you do have nginx Ingress, we need to find out in which Namespace you installed it. Let's list them and see which one hosts Ingress.
+On the other hand, if you do have a NGINX Ingress controller, we need to find out in which Namespace you installed it. Let's list them and see which one hosts Ingress.
 
 ```bash
 kubectl get ns
@@ -577,7 +583,7 @@ So, if you do have `tiller`, replace `[...]` with the Namespace where it's runni
 TILLER_NS=[...]
 ```
 
-Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have nginx Ingress in your cluster and you want `jx` to install it. Similarly, remove `--tiller-namespace` if you do not have tiller and you prefer `jx` to set it up for you.
+Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it. Similarly, remove `--tiller-namespace` if you do not have tiller and you prefer `jx` to set it up for you.
 
 ```bash
 jx install \
@@ -597,7 +603,7 @@ The process will create a `jx` Namespace. It will also modify your local `kubect
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
-Further on, if you did not specify `--tiller-namespace`, `jx` will install `tiller` (Helm server), since that is the default mechanism for installing and upgrading applications in Kubernetes.
+Also, if you did not specify `--tiller-namespace`, `jx` will install `tiller` (Helm server), since that is the default mechanism for installing and upgrading applications in Kubernetes.
 
 The next in line is Ingress. The process will try to find it inside the Namespace specified as `--ingress-namespace`. If you did not set that argument, it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
 
@@ -605,13 +611,25 @@ If we did choose to install Ingress, the process proceeded and installed it thro
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
-Further on, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Master Jenkins` (the default value). We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few more questions. 
+
+* Which kind do we want to install? Static or serverless? 
+
+Please answer with `Static Master Jenkins` (the default value). We'll explore the serverless option later. 
+
+The next question is:
+
+* `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. 
+
+Choose the default value (Kubernetes Workloads).
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
-The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. When, for example, you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push a change to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment. That's GitOps. Nothing is done without recording a change in Git. Of course, for that process to work, we need new jobs in Jenkins, so the process created two that correspond to those repositories. We'll discuss the environments in greater detail later.
+The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. When, for example, you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push a change to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment. 
+
+That's GitOps. Nothing is done without recording a change in Git. Of course, for that process to work, we need new jobs in Jenkins, so the process created two jobs that correspond to those repositories. We'll discuss the environments in greater detail later.
 
 Finally, the `kubectl` context was changed to point to the `jx` Namespace, instead of the `default`.
 
@@ -621,7 +639,7 @@ Now you're ready to use Jenkins X.
 
 No matter whether you executed `jx cluster create` or `jx install`, it was a single command (Cluster Autoscaler in AWS is an exception). With that single command, we accomplished a lot.
 
-We create a Kubernetes cluster (unless you executed `jx install`). We got a few Namespaces, a few GitHub repositories. We got Ingress (unless it already existed in the cluster). We got a bunch of ConfigMaps and Secrets that are essential for what we're trying to accomplish, and yet we will not discuss them just yet. Most importantly, we got quite a few applications that are essential for our yet-to-be-discovered goals. What are those applications? Let's check it out.
+We created a Kubernetes cluster (unless you executed `jx install`). We got a few Namespaces, a few GitHub repositories. We got Ingress (unless it already existed in the cluster). We got a bunch of ConfigMaps and Secrets that are essential for what we're trying to accomplish, and yet we will not discuss them just yet. Most importantly, we got quite a few applications that are essential for our yet-to-be-discovered goals. What are those applications? Let's check it out.
 
 ```bash
 kubectl -n jx get pods
@@ -646,7 +664,7 @@ jenkins-x-monocular-prerender-...    1/1   Running 0        7m
 jenkins-x-monocular-ui-...           1/1   Running 0        7m
 ```
 
-As you can see, there are quite a few tools in that Namespace. We got Jenkins. Now, that's not simply yet-another-Jenkins. It's much more. For now, I'll keep you in suspense. Then, there is ChartMuseum. That's where we'll store our Helm charts. Further on, we got a few controllers that are not relevant to this discussion. What else is there? We got Docker Registry that we'll use to store our container images. Heapster is mostly deprecated, so I'll ignore it. Further on, we have Monocular with its MongoDB. We can use it as a UI that allows us to browse the charts we'll store in ChartMuseum. Finally, there is Nexus, that we can use to store dependencies of our apps.
+As you can see, there are quite a few tools in that Namespace. We have Jenkins. Now, that's not simply yet-another-Jenkins. It's much more. For now, I'll keep you in suspense. Then, there is ChartMuseum. That's where we'll store our Helm charts. Further on, we got a few controllers that are not relevant to this discussion. What else is there? We got Docker Registry that we'll use to store our container images. Heapster is mostly deprecated, so I'll ignore it. Further on, we have Monocular with its MongoDB. We can use it as a UI that allows us to browse the charts we'll store in ChartMuseum. Finally, there is Nexus, that we can use to store dependencies of our apps.
 
 Is that all? Not even close. But, it should be enough until we get into actual usage and more advanced topics. What matters for now is that we got everything we need to manage a full lifecycle of our applications. More importantly, we got a process to guide us through that lifecycle. We'll explore the tools and the process in the follow-up chapters. For now, let's just say that this is awesome. We got a lot (much more than what I shared with you so far) from the execution of a single command.
 

@@ -94,16 +94,16 @@ skaffold dev -p local
 ```bash
 kubectl get pods
 
-# If Docker For Desktop
+# If Docker for Desktop
 ADDR=localhost
 
-# If minikube
+# If Minikube
 ADDR=$(minikube ip)
 
-# If Docker For Desktop
+# If Docker for Desktop
 PORT=8080
 
-# If minikube
+# If Minikube
 PORT=$(kubectl get svc go-demo-6 \
     -o jsonpath="{.spec.ports[0].nodePort}")
 
@@ -120,7 +120,7 @@ kubectl get pods
 # If Docker Desktop
 # Quit Docker Desktop
 
-# If minikube
+# If Minikube
 minikube delete
 ```
 

@@ -16,9 +16,9 @@ kubectl config use do-nyc1-jx-rocks
 
 # TODO: CA
 
-#########################
-# Install nginx Ingress #
-#########################
+####################################
+# Install NGINX Ingress controller #
+####################################
 
 kubectl apply \
     -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml

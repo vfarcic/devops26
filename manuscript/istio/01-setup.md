@@ -54,7 +54,7 @@ BuildStatus: Clean
 ```
 
 ```bash
-# If minikube or Docker For Desktop
+# If Minikube or Docker for Desktop
 helm upgrade -i istio \
     cluster/istio-*/install/kubernetes/helm/istio \
     --namespace istio-system \
@@ -62,7 +62,7 @@ helm upgrade -i istio \
     --set gateways.istio-egressgateway.type=NodePort \
     --wait
 
-# If NOT minikube or Docker For Desktop
+# If NOT Minikube or Docker for Desktop
 helm upgrade -i istio \
     cluster/istio-*/install/kubernetes/helm/istio \
     --version 1.1.0 \
