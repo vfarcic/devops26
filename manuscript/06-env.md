@@ -6,7 +6,7 @@
 - [ ] Code review EKS
 - [ ] Code review AKS
 - [ ] Code review existing cluster
-- [ ] Text review
+- [X] Text review
 - [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles
@@ -78,33 +78,33 @@ In most cases, our pipelines will generate some binaries. Those can be libraries
 
 TODO: Continue review
 
-We already established that all code and configurations (excluding secrets) must be stored in Git as well as that Git is the only entity that should trigger pipelines. We also argued that any change must be recorded. A typical example is a new release. It is way too common to simply create a new release, but not to store that information in Git. Tags do not count because we cannot recreate a whole environment from them. We'd need to go fromo tag to tag to do that. The same is true for release notes. While they are very useful and we should create them, we cannot diff them, nor we can use them to recreate an environment. What we need is a place that defines a full environment. It also needs to allow us to track changes, review them, approve them, and so on. In other words, what we need from an environment definition is not conceptually different from what we expect from an application. We need to store it in a Git repository. There is very little doubt about that. What is less clear is which repository should have the information about an environment.
+We already established that all code and configurations (excluding secrets) must be stored in Git as well as that Git is the only entity that should trigger pipelines. We also argued that any change must be recorded. A typical example is a new release. It is way too common to deploy a new release, but not to store that information in Git. Tags do not count because we cannot recreate a whole environment from them. We'd need to go from tag to tag to do that. The same is true for release notes. While they are very useful and we should create them, we cannot diff them, nor we can use them to recreate an environment. What we need is a place that defines a full environment. It also needs to allow us to track changes, to review them, to approve them, and so on. In other words, what we need from an environment definition is not conceptually different from what we expect from an application. We need to store it in a Git repository. There is very little doubt about that. What is less clear is which repository should have the information about an environment.
 
-We should be able to respond not only to a question "which release of an application is running in production?" but also "what is production?" and "what are the releases of all the applications running there?" If we would store information about a release in the repository of the application we just released, that would allow us only to answer to the first question. We would be able to know which release of our app is in an environment. What we could not answer easily is the same question but referred to the whole environment, not only one application. Or, to be more precise, we could not do that easily. We'd need to go from one repository to another.
+We should be able to respond not only to a question "which release of an application is running in production?" but also "what is production?" and "what are the releases of all the applications running there?" If we would store information about a release in the repository of the application we just deployed, we would be able to answer only to the first question. We would know which release of our app is in an environment. What we could not answer easily answer is the same question but referred to the whole environment, not only to one application. Or, to be more precise, we could not do that easily. We'd need to go from one repository to another.
 
-Another important thing we need to have in mind is the ability to easily recreate an environment (e.g., staging or production). That also cannot be done if the information about the releases is spread across many repositories.
+Another important thing we need to have in mind is the ability to recreate an environment (e.g., staging or production). That cannot be done easily if the information about the releases is spread across many repositories.
 
-All those requirements lead us to only one solution. Our environments need to be in separate repositories or, at least, in separate branches within the same repository. Given that we agreed that information is first stored in Git which triggers processes that do something with it, we cannot deploy a release to an environment directly from a build of an application. Such a build would need to push a change to the repository dedicated to an environment. In turn, such a push would trigger a webhook that would result in yet another build of a pipeline.
+All those requirements lead us to only one solution. Our environments need to be in separate repositories or, at least, in separate branches within the same repository. Given that we agreed that information is first pushed in Git which, in turn, triggers processes that do something with it, we cannot deploy a release to an environment directly from a build of an application. Such a build would need to push a change to the repository dedicated to an environment. In turn, such a push would trigger a webhook that would result in yet another build of a pipeline.
 
-When we write new code, we tend not to push directly to the master branch, but to create pull requests. Even if we do not need approval from others (e.g., code review) and plan to push it to the master branch directly, having a pull request is still very useful. It provides an easy way to track changes and intentions behind them. Now, that does not mean that I am against pushing directly to master. Quite the contrary. But, such practice requires discipline and technical and process mastery that is still out of reach of many.
+When we write new code, we tend not to push directly to the master branch, but to create pull requests. Even if we do not need approval from others (e.g., code review) and plan to push it to the master branch directly, having a pull request is still very useful. It provides an easy way to track changes and intentions behind them. Now, that does not mean that I am against pushing directly to master. Quite the contrary. But, such practice requires discipline and technical and process mastery that is still out of reach of many. So, I will suppose that you do work with pull requests.
 
-If we are supposed to create pull requests of things we want to push to master branches of our applications, there is no reason why we would not treat environments the same. What that means is not only that our application builds should push releases to environment-specific branches, but that they should do that by making pull requests.
+If we are supposed to create pull requests of things we want to push to master branches of our applications, there is no reason why we shouldn't treat environments the same. What that means is not only that our application builds should push releases to environment-specific branches, but that they should do that by making pull requests.
 
 Having all that into account, the next twoo rules should state that **information about all the releases must be stored in environment-specific repositories or branches** and that **everything must follow the same coding practices** (environments included).
 
 ![Figure 6-TODO: Any change to source code (new release to an environment) is stored in environment-specific Git repositories](images/ch06/gitops-env.png)
 
-The correct way to execute the flow while adhering to the rules we mentioned so far would be to have as many pipelines as there are applications, plus a pipeline for deployment to each of the environments. A push to the application repository should initiate a pipeline that builds, tests, and packages the application. It should end by pushing a change to the repository that defines a whole environment (e.g., staging, production, etc.). In turn, that should initiate a different pipeline that (re)deploys the whole environment, not only the new release of the application in question. That way, we always have a single source of truth. Nothing is done without pushing code to a code repository.
+The correct way to execute the flow while adhering to the rules we mentioned so far would be to have as many pipelines as there are applications, plus a pipeline for deployment to each of the environments. A push to the application repository should initiate a pipeline that builds, tests, and packages the application. It should end by pushing a change to the repository that defines a whole environment (e.g., staging, production, etc.). In turn, that should initiate a different pipeline that (re)deploys the whole environment. That way, we always have a single source of truth. Nothing is done without pushing code to a code repository.
 
 Always deploying the whole environment would not work without idempotency. Fortunatelly, Kubernetes as well as Helm already provide that. Even though we always deploy all the applications and the releases that constitute an environment, only the pieces that changed will be updated. That brings us to a new rule. **All deployments must be idempotent**.
 
 Having everything defined in code and stored in Git is not enough. We need those definitions and that code to be used reliably. Reproducibility is one of the key features we're looking for. Unfortunately, we (humans) are not good at performing reproducible actions. We make mistakes and we are incapable of doing exactly the same thing twice. We are not reliable. Machines are. If conditions do not change, a script will do exactly the same thing every time we run it. While scripts provide repetition, declarative approach gives us idempotency.
 
-But why do we want to use declarative syntax to describe our systems? The main reason is in idempotency provided through our expression of a desire, instead of imperative statements. If we have a script that, for example, creates ten servers, we might end up with fifteen if there are already five nodes running. On the other hand, if we declaratively express that there should be ten servers, we can have a system that will check how many do we have, and increase or decrease the number in order to comply with our desire. We need to let machines not only too do the manual labour, but also to comply with our desires. We are the masters and they are slaves, at least until their uprising and AI takeover of the world.
+But why do we want to use declarative syntax to describe our systems? The main reason is in idempotency provided through our expression of a desire, instead of imperative statements. If we have a script that, for example, creates ten servers, we might end up with fifteen if there are already five nodes running. On the other hand, if we declaratively express that there should be ten servers, we can have a system that will check how many do we already have, and increase or decrease the number in order to comply with our desire. We need to let machines not only do the manual labour, but also to comply with our desires. We are the masters and they are slaves, at least until their uprising and AI takeover of the world.
 
-Where we do excel is creativity. We are good at writing scripts and configurations, but not at running them. Ideally, every single action performed anywhere inside our systems should be executed by a machine, not by us. We accomplish that by storing the code in a repository, and letting all the actions execute as a result of a webhook firing an event on every push of a change. Given that we already agreed that Git is the only source of truth and that we need to push a change in order to see it reflected in the system, we can define the rule that **Git webhooks are the only ones allowed to initiate a change that will be applied to system**. That might result in many changes in the way we operate. It means that noone is allowed to execute a script from a laptop that will, for example, increase the number of nodes. There is no need to have SSH access to the servers if we are not allowed to do anything without pushing something to Git first. Similarly, there should be no need even to have admin permissions to access Kubernetes API through `kubectl`. All those privileges should be delegated to machines and our (human) job should be to create or update code, configurations, and definitions, to push the changes to Git, and to let the machines do the rest. That is hard to do and we might require conosiderable investment to get there. But, even if we cannot get there in a short period, we should still strive for such a process and delegation of tasks. Our designs and our processes should be created with that goal in mind, no matter whether we can accomplish them today, tomorrow, or next year.
+Where we do excel is creativity. We are good at writing scripts and configurations, but not at running them. Ideally, every single action performed anywhere inside our systems should be executed by a machine, not by us. We accomplish that by storing the code in a repository, and letting all the actions execute as a result of a webhook firing an event on every push of a change. Given that we already agreed that Git is the only source of truth and that we need to push a change in order to see it reflected in the system, we can define the rule that **Git webhooks are the only ones allowed to initiate a change that will be applied to system**. That might result in many changes in the way we operate. It means that noone is allowed to execute a script from a laptop that will, for example, increase the number of nodes. There is no need to have SSH access to the servers if we are not allowed to do anything without pushing something to Git first. Similarly, there should be no need even to have admin permissions to access Kubernetes API through `kubectl`. All those privileges should be delegated to machines and our (human) job should be to create or update code, configurations, and definitions, to push the changes to Git, and to let the machines do the rest. That is hard to do and we might require conosiderable investment to accomplish that. But, even if we cannot get there in a short period, we should still strive for such a process and delegation of tasks. Our designs and our processes should be created with that goal in mind, no matter whether we can accomplish them today, tomorrow, or next year.
 
-Finally, there is one more thing we're missing. Automation relies on APIs and CLIs (they are extensions of APIs), not on UIs and editors. While I do not think that the usage of APIs is mandatory for humans, they certainly are for automation. The tools must be build to be API first, UI (and everything else) second. Without APIs, there is no reliable automation, and without us knowing how to write scripts, we cannot provide the things the machines need.
+Finally, there is one more thing we're missing. Automation relies on APIs and CLIs (they are extensions of APIs), not on UIs and editors. While I do not think that the usage of APIs is mandatory for humans, they certainly are for automation. The tools must be designed to be API first, UI (and everything else) second. Without APIs, there is no reliable automation, and without us knowing how to write scripts, we cannot provide the things the machines need.
 
 That leads us to the last rule. **All the tools must be able to speak with each other through APIs**.
 
@@ -121,13 +121,13 @@ Which rules did we define?
 9. Git webhooks are the only ones allowed to initiate a change that will be applied to system.
 10. All the tools must be able to speak with each other through APIs.
 
-The rules are not like those we can choose to follow or to ignore. The are all important. Without any of them, everything will fall apart. They are the commandments that must be obeyed both in our processes as well as in the architecture of our applications. The shape our culture, and define our processes. We will not change those rules, they will change us, until we come up with a better way to deliver software.
+The rules are not like those we can choose to follow or to ignore. The are all important. Without any of them, everything will fall apart. They are the commandments that must be obeyed both in our processes as well as in the architecture of our applications. They shape our culture, and they define our processes. We will not change those rules, they will change us, until we come up with a better way to deliver software.
 
 Were all those rules (commandments) confusing? Are you wondering whether they make sense and, if they do, how do we implement them? Worry not. Our next mission is to put GitOps into practice and use practical examples to explain the principles and implementation. We might not be able to explore everything in this chapter, but we should be able to get a good base that we can extend later. However, as in the previous chapters, we need to create the cluster first.
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
-You know what comes next. We need a cluster with Jenkins X up-and-running, unless you kept the one from the before.
+You know what comes next. We need a cluster with Jenkins X up-and-running, unless you kept the one from before.
 
 I> All the commands from this chapter are available in the [06-env.sh](TODO:) Gist.
 
@@ -138,7 +138,7 @@ For your convenience, the Gists from the previous chapter are available below as
 * Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
 * Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 
-No matter whether you spin up a new cluster or you're reusing the one from before, it might be a good idea to update `jx`. The project usually makes quite a few releases every day and you might beneefit from a bug fix or a new feature introduced since the release you're currently running.
+No matter whether you spin up a new cluster or you're reusing the one from before, it might be a good idea to update `jx`. The project usually makes quite a few releases every day and you might benefit from a bug fix or a new feature introduced since the release you're currently running.
 
 ```bash
 jx version
@@ -152,7 +152,7 @@ A new jx version is available: 1.3.872
 ? Would you like to upgrade to the new jx version? Yes
 ```
 
-If there is a newer release, you will be asked whether you `would you like to upgrade`. The default answer is `Y` so all you have to do is to click the enter button.
+If there is a newer release, you will be asked you would like to upgrade. The default answer is `Y` so all you have to do is to press the enter button.
 
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
@@ -184,11 +184,13 @@ jx get activity -f go-demo-6 -w
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
 
-Now we can explore GitOps through Jenkins X environment.
+Now we can explore GitOps through Jenkins X environments.
 
 ## Exploring Jenkins X Environments
 
-We'll continue using the *go-demo-6* application. This time, we'll dive deeper into the role of the staging environment and how it relates to the process executed when we push a change to an application. So, let's take a look at the environments we currently have.
+We'll continue using the *go-demo-6* application. This time, we'll dive deeper into the role of the staging environment and how it relates to the process executed when we push a change to an application.
+
+So, let's take a look at the environments we currently have.
 
 ```bash
 jx get env
@@ -203,13 +205,15 @@ staging    Staging     Permanent   Auto    jx-staging    100           https://g
 production Production  Permanent   Manual  jx-production 200           https://github.com/vfarcic/environment-jx-rocks-production.git     
 ```
 
-We already experienced the usage of the `staging` environment, while the other two might be new. The `dev` environment is where Jenkins X and all the other applications that are involved in continuous delivery are running. That's also where agend Pods are created and live during duration of builds. Even if we were not aware of it, we already used that environment or, to be more precise, the applications running there. The `production` environment is still unused and it will remain like that for a while longer. That's where we'll deploy our production releases. But, before we do that, we need to learn how Jenkins X treats pull requests first.
+We already experienced the usage of the `staging` environment, while the other two might be new. The `dev` environment is where Jenkins X and all the other applications that are involved in continuous delivery are running. That's also where agent Pods are created and live during duration of builds. Even if we were not aware of it, we already used that environment or, to be more precise, the applications running there.
+
+The `production` environment is still unused and it will remain like that for a while longer. That's where we'll deploy our production releases. But, before we do that, we need to learn how Jenkins X treats pull requests.
 
 Besides the name of an environment, you'll notice a few other potentially important pieces of information in that output.
 
 Our current environments are split between the `Development` and `Permanent` kinds. The former is where the action (building, testing, etc) is happening. Permanent environments, on the other hand, are those where our releases should run indefinitely. Normally, we don't remove applications from those environments, but rather upgrade them to newer releases. The staging environment is where we install (or upgrade) new releases for the final round of testing. The current setup will automatically deploy an application there every time we push a change to the master branch. We can see that through the `PROMOTE` column.
 
-The `dev` environment is set to `Never` receive promotions. New releases of our applications will not run there. The `staging` environment, on the other hand, is set to `Auto` promotion. What that means is that if a pipeline (described in Jenkinsfile) has a command `jx promote --all-auto`, a new release will be deployed to all the environments with promotion set to `Auto`.
+The `dev` environment is set to `Never` receive promotions. New releases of our applications will not run there. The `staging` environment, on the other hand, is set to `Auto` promotion. What that means is that if a pipeline (defined in Jenkinsfile) has a command `jx promote --all-auto`, a new release will be deployed to all the environments with promotion set to `Auto`.
 
 The `production` environment has the promotion set to `Manual`. As a result, new releases will not be deployed there through a pipeline. Instead, we'll need to make a decision which release will be deployed to production and when that should happen. We'll explore how promotions work soon. For now, we're focusing only on the purpose of the environments, not the mechanism that allows us to promote a release.
 
@@ -219,11 +223,11 @@ Finally, the `SOURCE` column tells us which Git repository is related to an envi
 
 Needless to say, we can change behavior of any of the environments and we can create new ones.
 
-We did not yet explore the `preview` environoments simply because we did not yet create a PR that would trigger creation of such an environment. We'll dive into pull requests soon. For now, we'll focus on the environments we have so far.
+We did not yet explore the `preview` environments simply because we did not yet create a PR that would trigger creation of such an environment. We'll dive into pull requests soon. For now, we'll focus on the environments we have so far.
 
-We have only three environments. With such a low number, we probably do not need to use filters when listing them. But, that number can soon increase. Depending on how we're organized, we might give each team a separate environment, or even a separate Jenkins X instance. If we do that, we can expect the number of environments to increase and we'll be in need to filter the output. 
+We have only three environments. With such a low number, we probably do not need to use filters when listing them. But, that number can soon increase. Depending on how we're organized, we might give each team a separate environment. Jenkins X implements a concept called teams which we'll explore later. The important thing to note is that we can expect the number of environments to increase and that might create a need to filter the output. 
 
-I> When running the commands that follow, please imagine that the size of our operations is much bigger and that we have tens or hundreds of environments.
+I> When running the commands that follow, please imagine that the size of our operations is much bigger and that we have tens or even hundreds of environments.
 
 Let's see which environments are configured to receive promotions automatically.
 
@@ -235,17 +239,17 @@ The output should show that we have only one environment (`staging`) with automa
 
 Similarly, we could have used `Manual` or `Never` as the filters applied to the `promote` field (`-p`).
 
-Before we move further, we'll have to go through a very quick discussino of the types of tests we might need to run. That will set the scene for the changes we'll apply to one of our environments.
+Before we move further, we'll have to go through a very quick discussion about the types of tests we might need to run. That will set the scene for the changes we'll apply to one of our environments.
 
 ## Which Types Of Tests Should We Execute When Deploying To The Staging Environment
 
-I often see the team I work with get confused as to the objectives of each types of tests and that naturally leads to them being run in wrong locations, at the wrong time. Now, if you think that I will give you the precise definition of each types of tests, you're wrong. Instead, I'll split them into three groups.
+I often see that teams I work with get confused about the objectives of each types of tests and that naturally leads to those tests being run in wrong locations and at the wrong time. But, do not get your hopes too high. If you think that I will give you the precise definition of each types of tests, you're wrong. Instead, I'll simplify things by splitting them into three groups.
 
-The first group of tests are those that do not rely on live application. I'll call them *static validation* and they can be unit tests, static analysis, or any other type that needs only code. Given that we do no need to install our application for those types of tests, we can run them as soon as we checkout the code and before we even build our binaries.
+The first group of tests consists of those that do not rely on live applications. I'll call them *static validation* and they can be unit tests, static analysis, or any other type that needs only code. Given that we do no need to install our application for those types of tests, we can run them as soon as we checkout the code and before we even build our binaries.
 
-The second group are *application-specific tests*. For those, we do need to deploy a new release first, but we do not need the whole system. Those tests tend to rely heavily on mocks and stubs. In some cases, that is not possible or practical and we might need to deploy a few other applications to make the tests work. While I could argue that mocks should replace all "real" application in this phase, I am also aware that not all applicatioons are designed to support that. Nevertheless, the important thing to note is that the application-specific tests do not need the whole system. Their goal is not to validate whether the system works as a whole, but whether the features of an application behave as expected. Given that containers are immutable, we can expect an application to behave the same no matter the environment it's running in. Given that definition, those types of tests are run inside the pipeline of that application, just after the step that deploys the new release.
+The second group are *application-specific tests*. For those, we do need to deploy a new release first, but we do not need the whole system. Those tests tend to rely heavily on mocks and stubs. In some cases, that is not possible or practical and we might need to deploy a few other applications to make the tests work. While I could argue that mocks should replace all "real" application dependencies in this phase, I am also aware that not all applicatioons are designed to support that. Nevertheless, the important thing to note is that the application-specific tests do not need the whole system. Their goal is not to validate whether the system works as a whole, but whether the features of an application behave as expected. Since containers are immutable, we can expect an application to behave the same no matter the environment it's running in. Given that definition, those types of tests are run inside the pipeline of that application, just after the step that deploys the new release.
 
-The third group of tests are *system-wide validations*. We might want to check whether one live application integrates with other live applications. We might want to confirm that performance of the system as a whole is within established thresholds. There can be many other things we might want to validate on the level of the whole system. What matters is that the tests in this phase are expensive. They tend to be slower than others and they tend to need more resources. What we should not do while running system-wide validations is to repeat the checks we already did. We do not run the tests that already passed, and we try to keep those in thise phase limited to what really matters (mostly integration and performance).
+The third group of tests are *system-wide validations*. We might want to check whether one live application integrates with other live applications. We might want to confirm that performance of the system as a whole is within established thresholds. There can be many other things we might want to validate on the level of the whole system. What matters is that the tests in this phase are expensive. They tend to be slower than others and they tend to need more resources. What we should not do while running system-wide validations is to repeat the checks we already did. We do not run the tests that already passed, and we try to keep those in this phase limited to what really matters (mostly integration and performance).
 
 Why am I explaining the groups of tests we should run? The answer lies in the *system-wide validations*. Those are the tests that do no belong to an application, but to the pipelines in charge of deploying new releases to environments. We are about to explore one such pipeline and we might need to add some tests.
 
@@ -268,7 +272,7 @@ git clone \
 cd environment-jx-rocks-staging
 ```
 
-What do we have in that repository?
+What do we have there?
 
 ```bash
 ls -1
@@ -290,9 +294,9 @@ As you can see, there aren't many files in that repository. So, we should be abl
 cat Makefile
 ```
 
-As you can probably guess by reading the code, the Makefile has targets used to build, install, and delete Helm charts. What is missing are tests. Jenkins X could not know whether we will run tests against applications in the staging environment and, if we are, which tests that will be.
+As you can probably guess by reading the code, the Makefile has targets used to build, install, and delete Helm charts. Tests are missing. Jenkins X could not know whether we want to run tests against applications in the staging environment and, if we are, which tests will be executed.
 
-Staging environment is the place where all interconnected applications reside. That's the place where we deploy new releases in a production-like setting and we'll see soon where is that information about new releases stored. For now, we'll focus on adding tests that will validate that a new release of any of the applications to the staging environment meets our quality requirements.
+Staging environment is the place where all interconnected applications reside. That's the place where we deploy new releases in a production-like setting and we'll see soon where that information about new releases is stored. For now, we'll focus on adding tests that will validate that a new release of any of the applications meets our system-wide  quality requirements.
 
 While you can run any type of tests when deploying to the staging environment, I recommend to keep them light. We'll have all sorts of tests specific to applications inside their pipelines. For example, we'll run unit tests, functional tests, and whichever other types of application-specific tests we might have. We should assume that the application works on the functional level long before it is deployed to staging. Having that in mind, all that's left to test in staging are cases that can be validated only when the whole system (or a logical and independent part of it) is up and running. Those can be integration, performance, or any other type of system-wide validations.
 
@@ -317,7 +321,7 @@ We echoed the `test` target that contains the command that retrieves the host of
 
 The fact that we just added a target that we can execute when we want to run our validations will do us no good if we do not have any tests.
 
-I will save you from writing the code, even though it's only around twenty lines, by downloading it from a Gists.
+I will save you from writing the code, even though it's only around twenty lines, by downloading it from a Gist.
 
 ```bash
 curl -sSLo integration_test.go \
@@ -385,9 +389,11 @@ At this point, you might wonder how to know which images are available. We'll go
 
 TODO: Link to Kubernetes cloud and to https://github.com/jenkins-x/jenkins-x-builders
 
-Further on in that Jenkinsfile, we can see that the `steps` are executed inside the `maven` container. Since we replaced Maven for Go agent, we should change `container` from `maven` to `go`.
+Further on in that Jenkinsfile, we can see that the `steps` are executed inside the `maven` container. Since we switched to the Go agent, we should change `container` from `maven` to `go`.
 
-Finally, we should add a step that will execute the tests. We could do that inside one of the two stages we already have, or add a new one. The only important thing to note is that the step that runs the tests must be after the deployment (e.g., `jx step helm apply`). Otherwise, our tests would validate the old, not the new release. To make things clearer, we'll create a new stage dedicated to testing. That code could be the one from the snippet that follows.
+Finally, we should add a step that will execute the tests. We could do that inside one of the two stages we already have, or add a new one. The only important thing to note is that the step that runs the tests must be executed after the deployment (e.g., `jx step helm apply`). Otherwise, our tests would validate the old, not the new release.
+
+To make things clearer, we'll create a new stage dedicated to testing. That code could be the one from the snippet that follows.
 
 ```groovy
     stage('Test') {
@@ -417,7 +423,7 @@ The only thing left to explore is the `env` directory.
 ls -1 env
 ```
 
-As you can see by the names of the files, the `env` directory contains files of a Helm chart. The only file that matters in our case is `requirements.yml`.
+As you can see by the names of the files, the `env` directory contains a Helm chart. The only file that matters in our case is `requirements.yml`.
 
 Normally, the real action in most of the charts is inside the `templates` directory. That's not our case, simply because the main purpose of that chart is not to define details of a specific application. That's done in repositories of those applications. Instead, the purpose of the environment chart is to tie application charts together as Helm dependencies.
 
@@ -446,7 +452,7 @@ dependencies:
 
 The first two entries (`expose` and `cleanup`) existed since the begining. Jenkins X created them when we installed it inside our cluster. Both are based on the `exposecontroller` that is used to create Ingress resources automatically whenever we deploy something in the same Namespace.
 
-The last entry (`go-demo-6`) is new. Or, to be more precise, it did not exist from the start. It was added through the builds of the *go-demo-6* application. We'll explore that flow later. For now, we'll push the changes to the staging environment repo to GitHub and confirm that they work correctly.
+The last entry (`go-demo-6`) is new. Or, to be more precise, it did not exist from the start. It was added through the builds of the *go-demo-6* application. We'll explore that flow later. For now, we'll push the changes to the staging environment repo in GitHub and confirm that they work correctly.
 
 ```bash
 git add .
@@ -476,27 +482,29 @@ I already mentioned that Helm (just as Kubernetes) is idempotent. Since we did n
 kubectl -n jx-staging get pods
 ```
 
-If you observe the age of the Pods, you'll notice that they are all older than the execution of the build, meaning that none of them changed as the result of the last build. That's the expected result of idempotency.
+If you observe the age of the Pods, you'll notice that they are all older than the execution of the build, meaning that none of them changed as the result of the last last execution of the staging pipeline. That's the expected result of idempotency.
 
 Now that we run a few times application builds, as well as those related to the staging envinment, we might want to discuss the relation between the two.
 
 ## Understanding The Relation Between Application And Environment Pipelines
 
-Now that we experienced from the high level both an application and an environment pipeline, we might want to explore the relation to the two. Keep in mind that I am aware that we did not yet go into details of the application pipeline (that's coming soon). Right now, we'll focus on the overal flow between the two.
+We experienced from the high level both an application and an environment pipeline. Now we might want to explore the relation to the two.
+
+Keep in mind that I am aware that we did not yet go into details of the application pipeline (that's coming soon). Right now, we'll focus on the overal flow between the two.
 
 Everything starts with a push into the master branch of an application repository (e.g., *go-demo-6*). That push might be direct, or through a pull request. For now, what matters is that something is pushed to the master branch.
 
-A push to any branch initiates a webhook request to Jenkins X. It does not matter much whether the destination is Jenkins itself, KNative build, or something else. We did not yet go through different ways we can define webhook endpoints. What matters is that the webhook might intiates a Jenkins build which performs a set of steps defined in application's Jenkinsfile. Such a build might do nothing if Jenkinsfile ignores that branch, it might execute only a fraction of the steps, or it might run all of them. It all depends on the `branch` filters. In this case, we're concerned with the the steps defined to run when a push is done on the master branch of an application.
+A push to any branch initiates a webhook request to Jenkins X. It does not matter much whether the destination is Jenkins itself, prow, or something else. We did not yet go through different ways we can define webhook endpoints. What matters is that the webhook might intiate a Jenkins build which performs a set of steps defined in Jenkinsfile residing in the repository that initiated the process. Such a build might do nothing if Jenkinsfile ignores that branch, it might execute only a fraction of the steps, or it might run all of them. It all depends on the `branch` filters. In this case, we're concerned with the steps defined to run when a push is done on the master branch of an application.
 
-From a very high level, a push from the master branch of an application initiates a build that checks out the code, builds binaries (e.g., ), makes a release and pushes it to registries (e.g., container registry, Helm charts registry, etc.), and promotes the release. This last step is where GitOps principless are more likely to classh with what you're used to do. More often than note, promotion would simply deploy a new release to an environment. We're not doing that because we'd break at least four of the rules we defined.
+From a very high level, a push from the master branch of an application initiates a build that checks out the code, builds binaries (e.g., container image, Helm chart), makes a release and pushes it to registries (e.g., container registry, Helm charts registry, etc.), and promotes the release. This last step is where GitOps principless are more likely to clash with what you're used to do. More often than not, promotion would simply deploy a new release to an environment. We're not doing that because we'd break at least four of the rules we defined.
 
 If the build initiated through a Webhook of an application repository results in deployment, that change would not be stored in Git and we could not say that **Git is the only source of truth.** Also, that deployment would **not be tracked**, the operation **would not be reproducible**, and everything **would not be idempotent**. Finally, we would also break the rule that **information about all the releases must be stored in environment-specific repositories or branches.** Truth be told, we could fix all those issues by simply pushing a change to the environment-specific repository after the deployment, but that would break the rule that **everything must follow the same coding practices.** Such a course of action would result in an action that was not initiated by a push of a change to Git and we would not follow whichever coding practices we decided to follow (e.g., there would be no pull request). What matters is not only that we have to follow all the rules, but that the order matters as well. Simply put, we push a change to Git, and that ends with a change of the system, not the other way around.
 
-Having all that into account, the only logical course of action is for the promotion steps in the application pipeline to make a push to a branch of the environment-specific repoository. Given that we choose to promote to the staging environment automatically, that pull request is approved and merged to the master branch automatically. That is a good example when we follow a process, even when humans are not involved.
+Having all that into account, the only logical course of action is for the promotion steps in the application pipeline to make a push to a branch of the environment-specific repoository. Given that we choose to promote to the staging environment automatically, it should also create a pull request, it should approve it, and it should merge it to the master branch automatically. That is a good example of following a process, even when humans are not involved.
 
-If we take a look at Jenkinsfile in the *go-demo-6* repository, we'll see that the last step of the `Promote to Environment` stage is `sh "jx promote -b --all-auto ..."`. That's the step that promotes the new release to all the environment with the promotion policy set to `Auto`. That's the one that changes the contents of environment-specific  repositories and pushes them to GitHub.
+If we take a look at Jenkinsfile in the *go-demo-6* repository, we'll see that the last step of the `Promote to Environment` stage is `sh "jx promote -b --all-auto ..."`. That's the step that promotes the new release to all the environment with the promotion policy set to `Auto`. That's the one that changes the contents of environment-specific repositories and pushes them to GitHub.
 
-At this point, you might be asking yourself "what is the change to the environment-specific repository pushed by the application-specific build?" If you paid attention to the contents of the `requirements.yaml` file, you should already know the answer. Let's list it one more time as a refresher.
+At this point, you might be asking yourself "what is the change to the environment-specific repository pushed by the application-specific build?" If you paid attention to the contents of the `requirements.yaml` file, you should already know the answer. Let's output it one more time as a refresher.
 
 
 ```bash
@@ -513,11 +521,11 @@ dependencies:
   version: 0.0.131
 ```
 
-So, a promotion of a release from an application-specific build results in one of two things. If this is the first time we're promoting an application, Jenkins X will add a new entry to `requirements.yaml` inside the environment-specific repository. Otherwise, if a previous release of that application already runs in that environment, it'll update the `version` entry to the new release version. As a result, `requirements.yaml` will always contain the complete and accurate definition of the whole environment and each change will be a new commit. That way, we're complying with GitOps principles. We can track changes, we have a single point of truth for the whole environment, we can follow our coding principles (e.g., pull requests), and so on and so forth. The long story short, we're treating an environment in the same way we're treating an application. The only important difference is that we are not pushing changes to the repository dedicated to the staging environment. Builds of application-specific pipelines are doing that for us, simply because we decided to have automatic promotion to the staging environment.
+So, a promotion of a release from an application-specific build results in one of two things. If this is the first time we're promoting an application, Jenkins X will add a new entry to `requirements.yaml` inside the environment-specific repository. Otherwise, if a previous release of that application already runs in that environment, it'll update the `version` entry to the new release. As a result, `requirements.yaml` will always contain the complete and accurate definition of the whole environment and each change will be a new commit. That way, we're complying with GitOps principles. We are tracking changes, we have a single point of truth for the whole environment, we are following our coding principles (e.g., pull requests), and so on and so forth. Long story short, we're treating an environment in the same way we're treating an application. The only important difference is that we are not pushing changes to the repository dedicated to the staging environment. Builds of application-specific pipelines are doing that for us, simply because we decided to have automatic promotion to the staging environment.
 
-What happens when we push something to the master branch of a repository? Git sends a webhoko request which initiates yet another build. Actually, even the pull request initiates a build, so the whole process of automatically promoting a release to the staging environment results in two new builds, one for the PR, and the other after merging it to the master branch.
+What happens when we push something to the master branch of a repository? Git sends a webhook request which initiates yet another build. Actually, even the pull request initiates a build, so the whole process of automatically promoting a release to the staging environment results in two new builds; one for the PR, and the other after merging it to the master branch.
 
-So, a pull request to the repository of the staging environment initiates a build that results in automatic approval and merge of the pull request to the master branch. That initiates a new build that deploys the release to the staging environment.
+So, a pull request to the repository of the staging environment initiates a build that results in automatic approval and merge of the pull request to the master branch. That initiates another build that deploys the release to the staging environment.
 
 With that process, we are fulfilling quite a few of the rules (commandments), and we are a step closer to have a "real" GitOps continuous delivery processes that is, so far, fully automated. The only human interaction is a push to the application repository. That will change later on when we reach deployments to the production environment but, so far, we can say that we are fully automated.
 
@@ -529,11 +537,11 @@ I'll leave it to you to add tests there as well. The steps should be the same an
 
 Actually, we might even argue that we do not need tests in the production environment. If that statement confuses you or if you do not believe that's true, you'll have to wait a few more chapters when we'll explore promotions to production.
 
-What we did not yet explore is what happens when we have multiple applications. I believe there is no need for exercises that will prove that all the applications are automatically deployed to the staging environment. The process is the same no matter whether we have one, tens, or hundreds of applications. The `requirements.yaml` file will contain an entry to each application running in the environment. No more, no less. On the other hand, we do not necessarily have to deploy all the applications to the same environment. That can vary from case to case and often depends on our Jenkins X team structure which we'll explore later.
+What we did not yet explore is what happens when we have multiple applications. I believe there is no need for exercises that will prove that all the applications are automatically deployed to the staging environment. The process is the same no matter whether we have only one, or we have tens or hundreds of applications. The `requirements.yaml` file will contain an entry to each application running in the environment. No more, no less. On the other hand, we do not necessarily have to deploy all the applications to the same environment. That can vary from case to case and it often depends on our Jenkins X team structure which we'll explore later.
 
 ## Controlling The Environments
 
-So far, we saw that Jenkins X created three environments during its installation process. We got the development environment that runs the tools we need for continuous delivery as well as temporary Pods used during builds. We also got the staging environment where all the applications are promoted automatically, whenever we push a change to the master branch. Finally, we got the production environment that is still a mistery. Does all that mean that we are forced to use those three environments in exactly the way Jenkins X imagined? The short answer is no. We can create as many environments we need, we can update the existing environments, and we can delete them. So, let's start with creation of a new environment.
+So far, we saw that Jenkins X created three environments during its installation process. We got the development environment that runs the tools we need for continuous delivery as well as temporary Pods used during builds. We also got the staging environment where all the applications are promoted automatically whenever we push a change to the master branch. Finally, we got the production environment that is still a mistery. Does all that mean that we are forced to use those three environments in exactly the way Jenkins X imagined? The short answer is no. We can create as many environments as we need, we can update the existing one, and we can delete them. So, let's start with creation of a new environment.
 
 ```bash
 jx create env \
@@ -544,7 +552,7 @@ jx create env \
     -b
 ```
 
-The arguments of the command should be self-explanatory. We just created a new Jenkins X environment called `pre-production` and inside the Kubernetes Namespace `jx-pre-production`. We set its promotion policy to `Manual`, so new releases will not be installed there on every push to the master branch, but rather when we choose to promote it there.
+The arguments of the command should be self-explanatory. We just created a new Jenkins X environment called `pre-production` inside the Kubernetes Namespace `jx-pre-production`. We set its promotion policy to `Manual`, so new releases will not be installed there on every push of the master branch of an application repository, but rather when we choose to promote it there.
 
 If you take a closer look at the output, you'll see that the command also created a new GitHub repository, that it pushed the initial set of files, and that it created a webhook that will notify the system whenever we or the system pushes a change.
 
@@ -564,7 +572,7 @@ staging        Staging        Permanent   Auto    jx-staging        100         
 production     Production     Permanent   Manual  jx-production     200           ...
 ```
 
-As you might have guessed, we can change the behavior of an environment. For example, we can change the promotion policy of the `pre-production` environment from `Manual` to `Auto`.
+As you might have guessed, we can modify the behavior of an environment. For example, we can change the promotion policy of the `pre-production` environment from `Manual` to `Auto`.
 
 ```bash
 jx edit env \
@@ -582,9 +590,9 @@ Finally, we can also delete an environment.
 jx delete env pre-production
 ```
 
-As you can see from the output, that command did not remove the associated Namespace. But, it gives us the `kubectl delete` command we can execute to finish the job.
+As you can see from the output, that command did not remove the associated Namespace. But, it did output the `kubectl delete` command we can execute to finish the job.
 
-So, the `jx delete env` command will remove the references of the environment in Jenkins X and it will delete the applications deployed in the associated Namespace. But, it does not remove the Namespace itself. But, that's not the only thing that it did not remove. The repository is still in GitHub. By now, you should already be used to the `hub` CLI. We'll use it to remove the last trace of now non-existent environment.
+So, the `jx delete env` command will remove the references of the environment in Jenkins X and it will delete the applications deployed in the associated Namespace. But, it does not remove the Namespace itself. That's not the only thing that it did not remove. The repository is still in GitHub. By now, you should already be used to the `hub` CLI. We'll use it to remove the last trace of now non-existent environment.
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
@@ -599,13 +607,15 @@ That's it. We're done with the exploration of the environment. Or, to be more pr
 
 ## Are We Already Following All The Commandments?
 
-Before we take a break, let's see how many of the ten commandments did we fullfil so far. Everything we did on both the application and the environment level started with a push of a change to a Git repository. Therefore, **Git is our only source of truth**. Since we everything is stored as code throuygh commits and pushes, everything we do is **tracked** and **reproducible** due to **idempotency** of Helm and other tools. Changes to Git fire webhook requests that spin up one or more parallel processes in charge of performing the steps of our pipelines. Hence, the communication between processes is **asynchronous**.
+Before we take a break, let's see how many of the ten commandments are we following so far.
 
-One rule that we do not yet follow fully is that **processes should run for as long as needed, but not longer**. We are only half-way there. Some of the processes, like pipeline builds, run in short-lived Pods that are destroyed when we're finish with our tasks. However, we still have some processes running even when nothing's happening. A good example is Jenkins. It is running while you're reading this, even though it is not doing anything. Not a single build is running there at this moment and yet Jenkins is wasting memory and CPU. It's using resources for nothing and, as a result, we're paying for those resources for no obvious reason. We'll solve that problem later. For not, just remember that we are running some processes longer than they are needed.
+Everything we did on both the application and the environment level started with a push of a change to a Git repository. Therefore, **Git is our only source of truth**. Since everything is stored as code throuygh commits and pushes, everything we do is **tracked** and **reproducible** due to **idempotency** of Helm and other tools. Changes to Git fire webhook requests that spin up one or more parallel processes in charge of performing the steps of our pipelines. Hence, the communication between processes is **asynchronous**.
 
-The commandment number five says that **all binaries should be stored in registries**. We're already doing that. Similarly, **information about all the releases is stored in environment-specific repositories** and we are **following the same coding practices** no mater whether we are making chnages to one repository or the other, and no matter whether the changes are done by us or the machines.
+One rule that we do not yet follow fully is that **processes should run for as long as needed, but not longer**. We are only half-way there. Some of the processes, like pipeline builds, run in short-lived Pods that are destroyed when we're finished with our tasks. However, we still have some processes running even when nothing is happening. A good example is Jenkins. It is running while you're reading this, even though it is not doing anything. Not a single build is running there at this moment and yet Jenkins is wasting memory and CPU. It's using resources for nothing and, as a result, we're paying for those resources for no obvious reason. We'll solve that problem later. For not, just remember that we are running some processes longer than they are needed.
 
-Furthermore, all our **deployments are idempotent** and we did NOT make any change to the system ourselves. **Only webhooks are notifying the system that the desired state should change**. That state is expressed through code we're pushing to Git repositories.
+The commandment number five says that **all binaries should be stored in registries**. We're already doing that. Similarly, **information about all the releases is stored in environment-specific repositories** and we are **following the same coding practices** no mater whether we are making changes to one repository or the other, and no matter whether the changes are done by us or the machines.
+
+Furthermore, all our **deployments are idempotent** and we did NOT make any change to the system ourselves. **Only webhooks are notifying the system that the desired state should change**. That state is expressed through code pushed to Git repositories, sometimes by us, and sometimes by Jenkins X.
 
 Finally, all the tools we used so far are **speaking with each other through APIs**.
 
@@ -620,11 +630,11 @@ Finally, all the tools we used so far are **speaking with each other through API
 - [X] Git webhooks are the only ones allowed to initiate a change that will be applied to system.
 - [X] All the tools must be able to speak with each other through APIs.
 
-We're fullfilling all but one of the commandments. But, that does not mean that we will be done as soon as we can find the solution to make our Jenkins run only when needed. Therer are many more topics we need to explore, there are many new things to do. The commandments will only add pressure. Whatever we do next, we cannot break any of the rules. Our missing is to contrinue employing GitOps principles in parallel with exploring processes that will allow us to have a cloud-native Kubernetes-first continuous delivery processes.
+We're fullfilling all but one of the commandments. But, that does not mean that we will be done as soon as we can find the solution to make our Jenkins run only when needed. There are many more topics we need to explore, there are many new things to do. The commandments will only add pressure. Whatever we do next, we cannot break any of the rules. Our mission is to continue employing GitOps principles in parallel with exploring processes that will allow us to have a cloud-native Kubernetes-first continuous delivery processes.
 
 ## What Now?
 
-That's it. Now you know the purpose of the environment and how they fit into GitOps principles. We're yet to explore environment with the `Manual` promotion. As you'll see soon, the only important difference between the `Auto` and `Manual` promotions is in actors.
+That's it. Now you know the purpose of the environments and how they fit into GitOps principles. We're yet to explore environments with the `Manual` promotion. As you'll see soon, the only important difference between the `Auto` and `Manual` promotions is in actors.
 
 By now, you should be familiar with what's comming next.
 
