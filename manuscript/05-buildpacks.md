@@ -59,7 +59,7 @@ Next, we'll clone the newly forked repo.
 
 W> If you moved into this chapter straight after you finished reading the previous, you might still be in the local clone of the *go-demo-6* repository. If that's the case, please go one directory back before cloning `jenkins-x-kubernetes`. Please execute `cd ..` first.
 
-Make sure to replace `[...]` with your GitHub username before executing the commands that follow.
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
 GH_USER=[...]
@@ -462,7 +462,9 @@ You might be planning to move into the next chapter right away. If that's the ca
 
 However, if you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
 
-If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that. Just remember to replace `[...]` with your GitHub user.
+If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that.
+
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
 GH_USER=[...]

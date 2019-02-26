@@ -688,7 +688,7 @@ In other words, if you are not planning to jump into the next chapter right away
 
 If you do plan to delete the cluster or to uninstall Jenkins X, you should probably remove the GitHub repositories and a few local files. When we install Jenkins X again, those repositories and files will be recreated.
 
-Please replace `[...]` with your GitHub user before executing the commands that follow.
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
 GH_USER=[...]

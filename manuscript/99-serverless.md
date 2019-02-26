@@ -329,7 +329,7 @@ jx get build logs \
 NOTE: Select [GITHUB_USER]/environment-jx-rocks-staging/master
 
 ```bash
-jx get apps
+jx get applications
 ```
 
 ```

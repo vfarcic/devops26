@@ -396,7 +396,7 @@ The output should show that there are three pipelines, two related to the enviro
 Similarly, we can also retrieve the list of applications currently managed by Jenkins X.
 
 ```bash
-jx get apps
+jx get applications
 ``` 
 
 The output is as follows.
@@ -428,7 +428,7 @@ As you can see, there is the third environment called `dev`. We'll explore it la
 Now that we know which environments we have, we can combine that information and list only the applications in one of them. Let's see which ones are running in the staging environment.
 
 ```bash
-jx get apps -e staging
+jx get applications -e staging
 ```
 
 The output is as follows.
@@ -441,7 +441,7 @@ jx-go       0.0.1   1/1  http://jx-go.jx-staging.jenkinx.34.73.64.91.nip.io
 We already knew from before that the *jx-go* application is running in staging and we already know that nothing is installed in production. Nevertheless, we can confirm that with the command that follows.
 
 ```bash
-jx get apps -e production
+jx get applications -e production
 ```
 
 It should come as no surprise that the output states that `no applications` were `found in environments production`. We did not yet promote anything to production. We'll do that later.

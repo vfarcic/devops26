@@ -41,7 +41,7 @@ Please make sure that you are logged in and click the *Fork* button located in t
 
 Next, we need to clone the repository you just forked.
 
-Please replace `[...]` with your GitHub user before executing the commands that follow.
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
 GH_USER=[...]

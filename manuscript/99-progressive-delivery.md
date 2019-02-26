@@ -155,7 +155,7 @@ spec:
 Once we commit and push this canary file in our repo master branch Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash
-jx get apps -e staging
+jx get applications -e staging
 
 VERSION=[...]
 
@@ -187,7 +187,7 @@ kubectl -n istio-system -f deploy/flagger
 Get the applications running
 
 ```
-jx get apps
+jx get applications
 ```
 
 Promote to production the new version
