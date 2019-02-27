@@ -1,11 +1,11 @@
 ## The DevOps 2.6 Toolkit
 
 - [ ] 01-preface.md (add *Overview* amd *Audience*)
-- [X] 02-intro.md (publish "Installing Jenkins X In An Existing Kubernetes Cluster")
+- [X] 02-intro.md
 - [X] 03-quickstart.md
 - [X] 04-import.md
 - [X] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
-- [ ] 06-env.md
+- [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
 - [ ] 07-local-dev.md
 - [ ] 08-pr.md
 - [ ] 99-promote.md
@@ -22,7 +22,6 @@
 - [ ] 99-security-scanning.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
-- [ ] 99-custom-quickstart-buildpacks.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-preview-chart.md
 - [ ] 99-dev-environment.md
@@ -37,11 +36,13 @@
 - [ ] 99-hashi-vault.md
 - [ ] 99-build-notifications.md
 - [ ] 99-bg-with-flagger-addon.md 
+- [ ] 99-custom-apps.md
 - [ ] 99-custom-build-images.md 
 - [ ] 99-terraform.md
 - [ ] 99-change-versioning.md
 - [ ] 99-rbac.md
 - [ ] 99-custom-jenkins-servers.md
+- [ ] 99-notifications-to-slack.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
