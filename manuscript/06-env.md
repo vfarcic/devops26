@@ -617,16 +617,16 @@ Furthermore, all our **deployments are idempotent**, and we did NOT make any cha
 
 Finally, all the tools we used so far are **speaking with each other through APIs**.
 
-- [X] Git is the only source of truth.
-- [X] Everything must be tracked, every action must be reproducible, and everything must be idempotent.
-- [X] Communication between processes must be asynchronous.
-- [ ] Processes should run for as long as needed, but not longer.
-- [X] All binaries must be stored in registries.
-- [X] Information about all the releases must be stored in environment-specific repositories or branches.
-- [X] Everything must follow the same coding practices.
-- [X] All deployments must be idempotent.
-- [X] Git webhooks are the only ones allowed to initiate a change that will be applied to the system.
-- [X] All the tools must be able to speak with each other through APIs.
+1. ~~Git is the only source of truth.~~
+2. ~~Everything must be tracked, every action must be reproducible, and everything must be idempotent.~~
+3. ~~Communication between processes must be asynchronous.~~
+4. Processes should run for as long as needed, but not longer.
+5. ~~All binaries must be stored in registries.~~
+6. ~~Information about all the releases must be stored in environment-specific repositories or branches.~~
+7. ~~Everything must follow the same coding practices.~~
+8. ~~All deployments must be idempotent.~~
+9. ~~Git webhooks are the only ones allowed to initiate a change that will be applied to the system.~~
+10. ~~All the tools must be able to speak with each other through APIs.~~
 
 We're fulfilling all but one of the commandments. But, that does not mean that we will be done as soon as we can find the solution to make our Jenkins run only when needed. There are many more topics we need to explore, there are many new things to do. The commandments will only add pressure. Whatever we do next, we cannot break any of the rules. Our mission is to continue employing GitOps principles in parallel with exploring processes that will allow us to have a cloud-native Kubernetes-first continuous delivery processes.
 
