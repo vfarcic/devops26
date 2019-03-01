@@ -14,7 +14,7 @@ git merge -s ours master --no-edit
 
 git checkout master
 
-git merge orig
+git merge buildpack
 
 git push
 

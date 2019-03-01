@@ -12,7 +12,7 @@ The major challenge in applying GitOps principles is to unify the steps specific
 
 Where many diverge from "Git as the only source of truth" is in the deploy phase. Teams often build a Docker image and use it to run containers inside a cluster without storing the information about the specific release to Git. Stating that the information about the release is stored in Jenkins breaks the principle of having a single source of truth. It prevents us from being able to recreate the whole production system through information from a single Git repository. Similarly, saying that the data about the release is stored as a Git tag breaks the principle of having everything stored in a declarative format that allows us to recreate the whole system from a single repository.
 
-Many things might need to change for us to make the ideas behind GitOps a reality. For the changes to be successful, we need to define a few rules that we'll use as must-follow commandments. Given that the easiest way to understand something is through vivid examples, I will argue that **the processes employed in Continuous Delivery and DevOps are similar to how Buckingham Palace operates and very different from Hogwarts School of Witchcraft and Wizardry**. If that did not spark your imagination, nothing will. But, since humans like to justify their actions with rules and commandments, we'll define a few of those as well.
+Many things might need to change for us to make the ideas behind GitOps a reality. For the changes to be successful, we need to define a few rules that we'll use as must-follow commandments. Given that the easiest way to understand something is through vivid examples, I will argue that **the processes employed in Continuous Delivery and DevOps are similar to how Buckingham Palace operates and are very different from Hogwarts School of Witchcraft and Wizardry**. If that did not spark your imagination, nothing will. But, since humans like to justify their actions with rules and commandments, we'll define a few of those as well.
 
 ## Ten Commandments Of GitOps Applied To Continuous Delivery
 
@@ -159,7 +159,7 @@ git merge -s ours master --no-edit
 
 git checkout master
 
-git merge orig
+git merge buildpack
 
 git push
 ```
