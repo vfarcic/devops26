@@ -1,6 +1,13 @@
 # Exploring Quickstart Projects
 
-Starting a new Jenkins X project is easy. The first time we create one, it looks and feels like magic. All we have to do is answer a few questions, and a few moments later we have a full-blown continuous delivery pipeline, GitHub webhook that triggers it, a mechanism to promote a release to different environments, a way to preview pull requests, and quite a few other things. However, that "magic" might be overwhelming if we accept it without understanding what's going on behind the scene. Our goal is to leverage the power we're given. We need to get a grip on the tools involved in the process, and we need to understand the intricacies of the flow that will ultimately lead to a fast, reliable, and (mostly) hands-free approach to delivering our applications.
+Starting a new Jenkins X project is easy. The first time we create one, it looks and feels like magic. All we have to do is answer a few questions, and a few moments later we have:
+
+* a full-blown continuous delivery pipeline
+* GitHub webhook that triggers the pipeline
+* a mechanism to promote a release to different environments
+* a way to preview pull requests
+
+and quite a few other things. However, that "magic" might be overwhelming if we accept it without understanding what's going on behind the scenes. Our goal is to leverage the power we're given. We need to get a grip on the tools involved in the process, and we need to understand the intricacies of the flow that will ultimately lead to a fast, reliable, and (mostly) hands-free approach to delivering our applications.
 
 We'll create a new cluster with Jenkins X (unless you already have one) and create a quickstart project. We'll use it as an enabler that will allow us to explore some of the essential components provided by Jenkins X. That will give us base knowledge we'll need later (in the next chapters) when we examine how to set up projects that will perform exactly what we need. We will not go into details of the process and the tools involved just yet. For now, the objective is to get a very high-level overview and an overall understanding of how Jenkins X works. More detailed descriptions will follow.
 
@@ -12,9 +19,9 @@ Jenkins X runs on (almost) any Kubernetes cluster, so I'll let you choose whethe
 
 I> All the commands from this chapter are available in the [03-quickstart.sh](https://gist.github.com/a6a6ebc16f75e2cd8902f7695cbce5a5) Gist.
 
-For your convenience, I created a few Gists. Feel free to use them as they are, adapt them to your own needs, or skip them altogether and create your cluster and install Jenkins X on your own.
+For your convenience, I have created a few Gists that you can use. Feel free to use them as they are, adapt them to your own needs, or skip them altogether and create your cluster and install Jenkins X on your own.
 
-W> The gists that follow use `-b` to run in the batch mode and they assume that this is not the first time you create a cluster with `jx`. If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user, and the installation might fail.
+W> The gists that follow use `-b` to run in the batch mode and they assume that this is not the first time you have created a cluster with `jx`. If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user, and the installation might fail.
 W> Make sure to remove `-b` from the `jx create cluster` command inside the Gists if this is NOT the first time you're creating a cluster with `jx`.
 
 * Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
@@ -148,7 +155,7 @@ skaffold.yaml
 watch.sh
 ```
 
-I'll let you explore those files on your own. Just remember that they are not used as-is, but rather serve as templates that are processed by `jx create quickstart` command in an attempt to create usable, yet customized projects. Later on, we'll also learn how to create custom quickstart packs.
+I'll let you explore those files on your own. Just remember that they are not used as-is, but rather serve as templates that are processed by `jx create quickstart` command in an attempt to create usable, yet customized, projects. Later on, we'll also learn how to create custom quickstart packs.
 
 ## Exploring Quickstart Project Files
 
@@ -217,7 +224,7 @@ In the case of Go, there's not much needed. It uses a very lightweight base imag
 
 Unlike Dockerfile that I'm sure you're already familiar with, [Skaffold](https://github.com/GoogleContainerTools/skaffold) might be one of the tools you haven't used before.
 
-Skaffold handles the workflow for building, pushing and deploying applications to Kubernetes clusters as well as for local development. We'll explore it in more detail later. For now, we'll take a brief look at the *skaffold.yaml* file.
+Skaffold handles the workflow for building, pushing, and deploying applications to Kubernetes clusters, as well as for local development. We'll explore it in more detail later. For now, we'll take a brief look at the *skaffold.yaml* file.
 
 ```bash
 cat skaffold.yaml
@@ -225,7 +232,7 @@ cat skaffold.yaml
 
 What matters, for now, is the `build` section that defines the `template` with the tag of the image we'll build in our pipelines. It consists of variables `DOCKER_REGISTRY` and `VERSION` whose values will be set by our pipeline at runtime.
 
-Next, we got the *charts* directory that contains Helm definitions that will be used to deploy our application to Kubernetes. We won't go into much detail about Helm, but only the bits necessary to understand what Jenkins X does. If you never used Helm, I recommend consulting the [official documentation](https://helm.sh/) or read **The DevOps 2.4 Toolkit: Continuous Deployment To Kubernetes** book I published previously. For now, I'll only summarize it by stating that Helm is a package manager for Kubernetes.
+Next, we have the *charts* directory that contains Helm definitions that will be used to deploy our application to Kubernetes. We won't go into much detail about Helm, but only the bits necessary to understand what Jenkins X does. If you never used Helm, I recommend consulting the [official documentation](https://helm.sh/) or read **The DevOps 2.4 Toolkit: Continuous Deployment To Kubernetes** book I published previously. For now, I'll only summarize it by stating that Helm is a package manager for Kubernetes.
 
 Let's take a look at what's inside the *charts* folder.
 
@@ -240,7 +247,7 @@ jx-go
 preview
 ```
 
-There are two subdirectories. The one with the name of the application (`jx-go`) contains Helm definition of the application we'll deploy to different environments (e.g., staging, production). Preview, on the other hand, is mostly used with pull requests. The reason for such separation lies in the ability to differentiate one from the other. We might need to customize preview with different variables or to add temporary dependencies. We'll explore preview charts in more depth later. Right now, we'll focus on the `jx-go` chart.
+There are two subdirectories. The one with the name of the application (`jx-go`) contains Helm definition of the application we'll deploy to different environments (e.g., staging, production). `preview`, on the other hand, is mostly used with pull requests. The reason for such separation lies in the ability to differentiate one from the other. We might need to customize `preview` with different variables or to add temporary dependencies. We'll explore the `preview` charts in more depth later. Right now, we'll focus on the `jx-go` chart.
 
 ```bash
 ls -1 charts/jx-go
@@ -267,7 +274,7 @@ Just as with the other files generated with Jenkins X quickstart, we'll go into 
 
 The `CI Build and push snapshot` stage is used only with pull requests. Its job is to validate each PR and provider us with sufficient information to decide whether to merge it or not. It also deploys the application so that we can preview it manually if needed.
 
-The `Build Release` stage is limited to commits to the `master` branch with the assumption that all others will become pull requests. As the name indicates, this stage builds the release. That, in this case, means building the binary, building a container image, pushing it to the registry, and performing post-build actions.
+The `Build Release` stage is limited to commits to the `master` branch with the assumption that all others will become pull requests. As the name indicates, this stage builds the release. In this case, that means building the binary, building a container image, pushing it to the registry, and performing post-build actions.
 
 The last stage is `Promote to Environments`. It creates GitHub release notes, and it deploys the application to the staging environment (namespace).
 
@@ -283,7 +290,7 @@ From now on, every time we push a change to the repository, that webhook will tr
 
 ## Retrieving Jenkins X Activities, Logs, Pipelines, Applications, And Environments
 
-Now that we created a new quickstart project and explored the files `jx` created for us, we should check the jobs we have in Jenkins.
+Now that we have created a new quickstart project and explored the files `jx` created for us, we should check the jobs we have in Jenkins.
 
 ```bash
 jx console
@@ -334,7 +341,7 @@ We can see that there were activities with each of the three jobs. We had one de
 
 The last activity is of the *jx-go* pipeline. So far, we did not push any change to the repository, so we have only one build that was run when the job itself was generated through the quickstart process.
 
-While listing the most recent activities is very useful now that we have only a few pipelines, when their number grows we'll need to be more specific. For example, we might want to retrieve only the activities related to the *jx-go* pipeline.
+While listing the most recent activities is very useful since we have only a few pipelines, when their number grows, we'll need to be more specific. For example, we might want to retrieve only the activities related to the *jx-go* pipeline.
 
 ```bash
 jx get activities -f jx-go -w
@@ -423,7 +430,7 @@ staging    Staging     Permanent   Auto    jx-staging    100           https://g
 production Production  Permanent   Manual  jx-production 200           https://github.com/vfarcic/environment-jx-rocks-production.git
 ```
 
-As you can see, there is the third environment called `dev`. We'll explore it later. For now, remember that its purpose is true to its name. Its meant to facilitate development.
+As you can see, there is the third environment named `dev`. We'll explore it later. For now, remember that its purpose is true to its name. It is meant to facilitate development.
 
 Now that we know which environments we have, we can combine that information and list only the applications in one of them. Let's see which ones are running in the staging environment.
 
@@ -444,7 +451,7 @@ We already knew from before that the *jx-go* application is running in staging a
 jx get applications -e production
 ```
 
-It should come as no surprise that the output states that `no applications` were `found in environments production`. We did not yet promote anything to production. We'll do that later.
+It should come as no surprise that the output states that `no applications` were `found in environments production`. We did not promote anything to production yet. We'll do that later.
 
 Finally, Jenkins X also created a GitHub release for us. We can confirm that by going to project releases.
 
