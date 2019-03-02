@@ -35,6 +35,7 @@
 - [ ] 99-bdd.md
 - [ ] 99-hashi-vault.md
 - [ ] 99-build-notifications.md
+- [ ] 99-addons.md 
 - [ ] 99-bg-with-flagger-addon.md 
 - [ ] 99-custom-apps.md
 - [ ] 99-custom-build-images.md 

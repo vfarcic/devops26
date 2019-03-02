@@ -7,7 +7,9 @@ Starting a new Jenkins X project is easy. The first time we create one, it looks
 * a mechanism to promote a release to different environments
 * a way to preview pull requests
 
-and quite a few other things. However, that "magic" might be overwhelming if we accept it without understanding what's going on behind the scenes. Our goal is to leverage the power we're given. We need to get a grip on the tools involved in the process, and we need to understand the intricacies of the flow that will ultimately lead to a fast, reliable, and (mostly) hands-free approach to delivering our applications.
+...and quite a few other things.
+
+However, that "magic" might be overwhelming if we accept it without understanding what's going on behind the scenes. Our goal is to leverage the power we're given. We need to get a grip on the tools involved in the process, and we need to understand the intricacies of the flow that will ultimately lead to a fast, reliable, and (mostly) hands-free approach to delivering our applications.
 
 We'll create a new cluster with Jenkins X (unless you already have one) and create a quickstart project. We'll use it as an enabler that will allow us to explore some of the essential components provided by Jenkins X. That will give us base knowledge we'll need later (in the next chapters) when we examine how to set up projects that will perform exactly what we need. We will not go into details of the process and the tools involved just yet. For now, the objective is to get a very high-level overview and an overall understanding of how Jenkins X works. More detailed descriptions will follow.
 
