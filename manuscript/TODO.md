@@ -6,7 +6,7 @@
 - [X] 04-import.md
 - [X] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
 - [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
-- [ ] 07-local-dev.md
+- [ ] 07-dev.md
 - [ ] 08-pr.md
 - [ ] 99-promote.md
 - [ ] 99-progressive-delivery.md
