@@ -6,8 +6,8 @@
 - [X] Code review EKS
 - [X] Code review AKS
 - [-] Code review existing cluster
-- [ ] Text review
 - [ ] Diagrams
+- [ ] Text review
 - [ ] Gist
 - [ ] Review titles
 - [ ] Proofread
@@ -18,27 +18,29 @@
 
 # Software Development
 
-Software developement is hard. It takes years to become a proficient developer, and the tech and the processes change ever so often. What was effective yesterday, is not necessarily effective today. The number of languages we code in is increasing. While in the past, most developers would work in the same language throughouot their whole carrier, today it is not uncommon for a developer to work on multiple projects written in different languages. We might, for example, start working on a new project and choooose to code in Go, while we still need to maintain somee other project written in Java. For us to be efficient, we need to install compilers, heelper libraries, and quite a few other things.
+Software developement is hard. It takes years to become a proficient developer and we are never done learning and exploring better and more efficient ways to do our work. The tech and the processes change ever so often. What was effective yesterday, is not necessarily effective today. The number of languages we use when coding is increasing. While in the past most developers would work in the same language throughouot their whole carrier, today it is not uncommon for a developer to work on multiple projects written in different languages. We might, for example, start working on a new project and choose to code in Go, while we still need to maintain some other project written in Java. For us to be efficient we need to install compilers, helper libraries, supporting tools, and quite a few other things.
 
-No matter whether wee write all the code in a single language or not, our applications will have different depenedencies. One might need mySQL, while the other might use MongoDB as the data storage. We might also depend on applications developed by other teams working in parallel with us. No matter how good we become at writing mocks and stubs that replace those dependencies, sooner or later we'll need them running and accessible from our laptops. Historically, we've been solving those problems by having a common development environment, but that proved to be inefficient. Sharing development environments results is too much overhead. We'd need to coordinate changes and those that we make would ofteen break something and cause everyone to suffer. Instead, we need each developer to have the option to have its own environment where dependencies required for an application are running.
+No matter whether we write all the code in a single language or not, our applications will have different depenedencies. One might need mySQL, while the other might use MongoDB as the data storage. We might also depend on applications developed by other teams working in parallel with us. No matter how good we become at writing mocks and stubs that replace those dependencies, sooner or later we'll need them running and accessible from our laptops. Historically, we've been solving those problems by having a common development environment, but that proved to be inefficient. Sharing development environments results is too much overhead. We'd need to coordinate changes and those that we make would often break something and cause everyone to suffer. Instead, we need each developer to have the option to have its own environment where dependencies required for an application are running.
 
-For the dependencies to be truly useful, we should run them in (almost) the same way wee're running them in production, that means that we should deploy them to Kubernetes as well. For that, we can choose minikube or Docker Desktop if we prefer a local cluster, or get a segment (Namespace) of a remote cluster.
+For the dependencies to be truly useful, we should run them in (almost) the same way wee're running them in production. That means that we should deploy them to Kubernetes as well. For that, we can choose minikube or Docker Desktop if we prefer a local cluster, or get a segment (Namespace) of a remote cluster.
 
-Unfortunately, compilers and dependencies are not everything we need to develop efficiently. We also need tools. Today, that means that we need Docker or kaniko to build images. We need `helm` and `kubectl` to deploy applications to Kubernetes. We need `skaffold` that combines the process of building images with deployment. There are quite a few other tools specific to a language and a framework that would need to be installed and configured as well.
+Unfortunately, compilers and dependencies are not everything we need to develop efficiently. We also need tools. Today, that means that we need Docker or kaniko to build container images. We need `helm` and `kubectl` to deploy applications to Kubernetes. We need `skaffold` that combines the process of building images with deployment. There are quite a few other tools specific to a language and a framework that would need to be installed and configured as well.
 
 Even if we do set up all those things, we are still missing more. We need to be able to push and pull artifacts from container registry, ChartMuseum, Nexus, or any other registry that might be in use in our organization.
 
 As you can imagine, installing and cconfiguring all that is not trivial. It is not uncommon for a new hire to spend a week, or even more, on setting up its own development environment. And what happens if that person should move to a different project or if he should work on multiple projects in parallel?
 
-We can continue with business as usual and install all the compilers and the tools on our laptops. We can dedicate time setting them up and connecting them with the system (e.g., with the registries). We can continue giving new hires long Word documents that walk them through all the actions they need to perform to be able to develop our applications. Or, we can take a different approach. We might be able to create a full-blown develpoment environment on demand and for each person. We can even make those environments be application specific. And we might be able to make it so simple and fast that anyone can do it with a single command and in only a couple of minutes.
+We can continue with business as usual and install all the compilers and the tools on our laptops. We can dedicate time setting them up and connecting them with the system (e.g., with the registries). We can continue giving new hires long Word documents that walk them through all the actions they need to perform to be able to develop our applications. Or we can take a different approach. We might be able to create a full-blown develpoment environment on demand and for each person. We can even make those environments be application specific. And we might be able to make it so simple and fast that anyone can do it with a single command and in only a couple of minutes.
 
-Let's take a step back and explore what we truly need from a development environment.
+But, before we do all that, we'll take a step back and explore what we need from a development environment.
 
 ## Exploring The Requirements For Efficient Development Environment
 
-Let's discuss what do we need from a development environment, while taking into account the technology we have at our disposal.
+Let's discuss what we need from a development environment, while taking into account the technology we have at our disposal.
 
-In an idea situation, we should be able to clone a repository of a project and execute a single command that would set up everything we need. That setup should be as close to the production environment as possible. Otherwise, we'd risk discrepancies between local results and those deployed to staging, production, and other permanent environments. Since we need to cooperate with other people in our team, as well as with those working on other projects, such an environment would need to be connected with the registries from which we could pull container images and Helm charts. Finally, the development environment would need to have a compiler of the language used in the project, as well as all the tools we need (e.g., skaffold, Helm, Docker, etc). As a bonus, it would be great if we would not need to run any commands. Every time we change a file, the environment itself should build a binary, runs the tests, and deploy a new version. That way, we could concentrate on coding, while letting everything else happen in the background.
+In an ideal situation, we should be able to clone a repository of a project and execute a single command that would set up everything we need. That setup should be as close to the production environment as possible. Otherwise, we'd risk discrepancies between local results and those deployed to staging, production, and other permanent environments. Since we need to cooperate with other people in our team, as well as with those working on other projects, such an environment would need to be connected with the registries from which we could pull container images and Helm charts. Finally, the development environment would need to have a compiler of the language used in the project, as well as all the tools we need (e.g., skaffold, Helm, Docker, etc). As a bonus, it would be great if we would not need to run commands that build, test, and deploy our application. Every time we change a file, the environment itself should build a binary, run the tests, and deploy a new version. That way, we could concentrate on coding, while letting everything else happenning in the background.
+
+TODO: Continue review
 
 All in all, we need to be able to create a project-specific environment easily (with a single command) and fast and such an environment needs to have everything we might need, without us installing or configuring (almost) anything on our laptop. The environment should automatically do all the tedious work like compilation, testing, and deployment. Wouldn't that be a very productive setup?
 
@@ -46,13 +48,13 @@ Here's how my development environment for the *go-demo-6* project looks like.
 
 ![Figure 7-TODO: Visual Studio Code With Jenkins X extension](images/ch07/vs-code-jx.png)
 
-Everything I need is inside the Visual Studio Code IDE. On the top-left side is the list of the project files. The bottom-left side contains all the Jenkins X activities related to the project. By clicking on a specific step, I can view the logs, open the application, open Jenkins, and so on.
+Everything I need is inside Visual Studio Code IDE. On the top-left side is the list of the project files. The bottom-left side contains all the Jenkins X activities related to the project. By clicking on a specific step, I can view the logs, open the application, open Jenkins, and so on.
 
 The top-right corner contains the code, while the bottom-right is the terminal screen with the useful output. Every time I make a change to any file of the project, the process in the terminal will build a new binary, execute tests, build container image, and deploy the new relaese. All that is happening inside the cluster and the only tools I use are Visual Studio Code and `jx`.
 
 To create such a development environment, we'll need a Jenkins X cluster.
 
-## Cluster
+## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
 You know what to do. Create a new Jenkins X cluster unless you kept the one from before.
 
@@ -101,31 +103,35 @@ Now we can explore how to leverage Jenkins X for our development environments.
 
 ## Creating a Remote Development Environment
 
-Let's say that we want to change the *go-demo-6* code. To begin with, we'd need an IDE. That's easy since you likely already have one. We'd also need a Go compiler. If that's not your favorite language, the chances are that you do not have it. Or, maybe, you do not even want to have it if you do not plan to dedicate your career to Go. What else do we need?
+Let's say that we want to change the *go-demo-6* code.
 
-Once we finish making changes to the code, we'll need to compile it and test it, and that might require additional installations as well as configuration. Once our code is compiled, we'd need to run the application to confirm that it behaves as expected. For that we need Docker to build a container image and we need Helm to deploy it. We'd also need to create a personal Namespace in our cluster, or create a local one. Given that we adopted skaffold as a tool that builds images and deploys them, we'd need to install it as well. But that's not the end of our troubles. Before we deploy our application, we'll need to push the new container image, as well as the Helm chart, to the registries running inside our cluster. To do that, we need to know their addresses and we need creadentials with sufficient permissions.
+To begin with, we'd need an IDE or an editor. That's easy since you likely already have one. We'd also need a Go compiler. If that's not your favorite language, the chances are that you do not have it. Or, maybe, you do not even want to have it if you do not plan to dedicate your career to Go. What else do we need?
+
+Once our code is compiled, we'd need to run the application to confirm that it behaves as expected. For that we need Docker to build a container image and we need Helm to deploy it. We'd also need to create a personal Namespace in our cluster, or to use a local Kubernetes. Given that we adopted skaffold as a tool that builds images and deploys them, we'd need to install it as well. But that's not the end of our troubles. Before we deploy our application, we'll need to push the new container image, as well as the Helm chart, to the registries running inside our cluster. To do that, we need to know their addresses and we need credentials with sufficient permissions.
 
 Even when we do all that, we need a repeatable process that will build, test, release, and deploy our work whenever we make a significant change. Or, even better, whenever we make any change.
 
 Here's the task for you. Change anything in the code, compile it, build an image, release it together with the Helm chart, deploy it inside the cluster, and confirm that the result is what you expect it to be. I urge you to stop reading and do all those things. Come back when you're done.
 
-How much did it take you to have a new feature up-and-running? The chances are that you failed. Or, maybe, you used Jenkins X and the knowledge from the previous chapters to do all that. If that's the case, was it really efficient? I bet that it took more than a few minutes to set up the whole environemnt. Now, make another change to the code and do not touch anything else. Did you change compile? Were your tests executed? Was your change rolled out? Did that take more than a few seconds?
+How much did it take you to have a new feature up-and-running? The chances are that you failed. Or, maybe, you used Jenkins X and the knowledge from the previous chapters to do all that. If that's the case, was it really efficient? I bet that it took more than a few minutes to set up the whole environemnt. Now, make another change to the code and do not touch anything else. Did your change compile? Were your tests executed? Was your change rolled out? Did that take more than a few seconds?
 
-If you failed, we'll explore how to make you succeed the next time. If you didn't, we'll explore how to make the processes much eaesier, more efficient, and faster. We'll use Jenkins X, but not in the way you expect.
+If you failed, we'll explore how to make you succeed the next time. If you didn't, we'll explore how to make the processes much easier, more efficient, and faster. We'll use Jenkins X, but not in the way you expect.
 
-Please enter into *go-demo-6* directory, if you're not already there.
+Please enter into the *go-demo-6* directory, if you're not already there.
 
 ```bash
 cd go-demo-6
 ```
 
-We'll create a whole development environment in your cluster with a single command.
+We'll create a whole development environment that will be custom tailored for the *go-demo-6* project. It will be the environment for a single user (a developer, you), and it will run inside our cluster. And we'll do that through a single command.
 
 ```bash
 jx create devpod -b
 ```
 
 Right now, a Jenkins X DevPod is being created in the batch mode (no questions asked), and we can deduce what's happening from the output.
+
+TODO: Continue review
 
 First, Jenkins X created the `jx-edit-YOUR_USER` Namespace in your cluster. That'll be your personal piece of cluster where we'll deploy your changes to *go-demo-6*. It's your personal temporary space where we'll deploy new development releases of the application.
 

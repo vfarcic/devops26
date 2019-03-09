@@ -72,8 +72,8 @@
 - [ ] Code review EKS
 - [ ] Code review AKS
 - [ ] Code review existing cluster
-- [ ] Text review
 - [ ] Diagrams
+- [ ] Text review
 - [ ] Gist
 - [ ] Review titles
 - [ ] Proofread
