@@ -6,17 +6,17 @@
 - [X] Code review EKS
 - [X] Code review AKS
 - [-] Code review existing cluster
-- [ ] Diagrams
-- [ ] Text review
-- [ ] Gist
-- [ ] Review titles
+- [X] Diagrams
+- [X] Text review
+- [X] Gist
+- [X] Review titles
 - [ ] Proofread
 - [ ] Add to slides
 - [ ] Publish on TechnologyConversations.com
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Software Development
+# Improving Software Development
 
 Software development is hard. It takes years to become a proficient developer, and the tech and the processes change every so often. What was effective yesterday, is not necessarily effective today. The number of languages we code in is increasing. While in the past, most developers would work in the same language throughout their whole carrier, today it is not uncommon for a developer to work on multiple projects written in different languages. We might, for example, work on a new project and code in Go, while we still need to maintain some other project written in Java. For us to be efficient, we need to install compilers, helper libraries, and quite a few other things.
 
@@ -34,7 +34,7 @@ We can continue with business as usual and install all the compilers and the too
 
 But, before we do all that, we'll take a step back and explore what we need from a development environment.
 
-## Exploring The Requirements For Efficient Development Environment
+## Exploring The Requirements Of Efficient Development Environment
 
 Let's discuss what we need from a development environment, while taking into account the technology we have at our disposal.
 
@@ -44,7 +44,7 @@ All in all, we need to be able to create a project-specific environment easily (
 
 Here's how my development environment for the *go-demo-6* project looks like.
 
-![Figure 7-TODO: Visual Studio Code With Jenkins X extension](images/ch07/vs-code-jx.png)
+![Figure 7-1: Visual Studio Code With Jenkins X extension](images/ch07/vs-code-jx.png)
 
 Everything I need is inside Visual Studio Code IDE. On the top-left side is the list of the project files. The bottom-left side contains all the Jenkins X activities related to the project. By clicking on a specific step, I can view the logs, open the application, open Jenkins, and so on.
 
@@ -56,7 +56,7 @@ To create such a development environment, we'll need a Jenkins X cluster.
 
 You know what to do. Create a new Jenkins X cluster unless you kept the one from before.
 
-I> All the commands from this chapter are available in the [07-dev.sh](TODO:) Gist.
+I> All the commands from this chapter are available in the [07-dev.sh](https://gist.github.com/39c3fe9bbe693f9072e9e41980b9337e) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -367,19 +367,17 @@ The result of the `curl` command should output `hello, world!` thus confirming t
 
 I> If the output is HTML with `503 Service Temporarily Unavailable`, you were too fast and you did not give the process enough time. Please wait for a few moments until the application is up-and-running, and repeat the `curl` command.
 
-![Figure 7-TODO: The process of creating a DevPod and building and deploying applications from inside it](images/ch07/devpod.png)
+![Figure 7-2: The process of creating a DevPod and building and deploying applications from inside it](images/ch07/devpod.png)
 
 Now we need to figure out how to change the source code running inside the DevPod so that the process of building and deploying is repeated. As you will soon see, there is more than one way to do that.
 
 ## Working With The Code In The DevPod Using Browser-Based IDE
 
-TODO: Continue review
+We could go back to the DevPod and modify the code from a terminal. We could use `vi` or a similar editor for that. While I do use terminal editors quite often, I find them sub-optimum when working on a project. I believe that `vi`, `emacs`, `nano` and similar editors are useful when working on individual scripts, but not that great when working on a full-fledged project. Call me lazy, but I need an IDE like Visual Studio Code, IntelliJ, Eclipse, or something similar. I need syntax highlighting, code complete, the ability to jump into a function with a single click, and other goodies provided by IDEs.
 
-We could go back to the DevPod and modify the code from the terminal. We could use `vi` or a similar editor for that. While I do use terminal editors quite often, I find them sub-optimum when working on a project. I believe that `vi`, `emacs`, `nano` and similar editors are useful when working on individual scripts, but not that great when working on a full-fledged project. Call me lazy, but I need an IDE like Visual Studio Code, IntelliJ, Eclipse, or something similar. I need syntax highlighting, code complete, the ability to jump into a function with a single click, and other goodies provided by IDEs.
+The problem is that the code we're interested is in a DevPod running inside our cluster. That means that we can either need to synchronize our local files from a laptop to the DevPod, or we can work with the code remotely. For now, we're interested in the latter option (we'll explore the former later). If we are to work with remote files, and we are not (yet) going to synchronize files between our laptop and the DevPod, the only available option is to use a remote IDE (unless you want to stick to `vi` or some other terminal-based editor).
 
-The problem is that the code we're interested is in a DevPod running inside our cluster. That means that we can either need to synchronize our local files from a laptop to the DevPod, or we can work with the code remotely. For now, we're interested in the latter option (we'll explore the former later). If we are to work with remote files, and we are not (yet) going to synchronize files between our laptop and the DevPod, the only available option is to use a remote IDE (unless you want to stick to `vi` or some other terminal editor).
-
-If you remember, I already stated a couple of times that Jenkins X hopes to give yu everything you might need to develop your applications. That even included an IDE. We only need to figure out where it is or, to be more precise, how to access it. We'll do that by introducing yet another `jx` command.
+If you remember, I already stated a couple of times that Jenkins X hopes to give yu everything you might need to develop your applications. That even includes an IDE. We only need to figure out where it is or, to be more precise, how to access it. We'll do that by introducing yet another `jx` command.
 
 ```bash
 jx open
@@ -399,27 +397,25 @@ vfarcic-go-port-8080      http://vfarcic-go-port-8080.jx.34.73.126.76.nip.io
 vfarcic-go-theia          http://vfarcic-go-theia.jx.34.73.126.76.nip.io
 ```
 
-The `open` command lists all the applications running inside the cluster and managed by Jenkins X. We can see that one of them is `theia` prefixed with our username and the programming language we're using. In my case that's `vfarcic-go-theia`.
+The `open` command lists all the applications managed by Jenkins X and running inside our cluster. We can see that one of them is `theia` prefixed with our username and the programming language we're using. In my case that's `vfarcic-go-theia`.
 
-If we add the name of the application as an argument to the `jx open` command, it'll (surprise surprise) open that application in browser. Let's try it out.
+If we add the name of the application as an argument to the `jx open` command, it'll (surprise, surprise) open that application in the default browser. Let's try it out.
 
 Please replace `[...]` with the name of the `*-theia` application before executing the command that follows.
 
 ```bash
-jx open [...] # e.g., vfarcic-go-theia
+jx open [...]
 ```
 
 What you see in front of you is Theia. It is a browser-based IDE (it can run as desktop app as well) and it is inspired and partially powered by Visual Studio Code. It is, in my experience, the best browser-based IDE today (March 2019). If you've already used Visual Studio Code, Theia should feel familiar. If you haven't, it's simple and intuitive and have you'll have no problem adopting it (if you think it's useful).
 
-TODO: Screenshot
-
 Let's give Theia a spin.
 
-Our next mission is to modify a few Go files and observe that the changes are build and deployed without us executing any additional commands.
+Our next mission is to modify a few Go files and observe that the changes are build and deployed without us executing any additional commands. Remember that the watcher (`watch.sh`) is still running.
 
-Please open the *Files* section located in the left-hand menu, expand the *go-demo-6* directory, and double-click *main.go* to open it in the main body of the IDE. Next, change `hello, world` (or whatever else you changed it to previously) to `hello, devpod`.
+Please open the *Files* section located in the left-hand menu, expand the *go-demo-6* directory, and double-click the *main.go* file to open it in the main body of the IDE. Next, change `hello, world` (or whatever else you changed it to previously) to `hello, devpod`.
 
-Since we have tests that validate that the correct message is returned, we'll need to change them as well. Open *main_test.go* file next, search for `hello, world` (or whatever else you changed it to previously), and change it to `hello, devpod`.
+Since we have tests that validate that the correct message is returned, we'll need to change them as well. Open the *main_test.go* file next, search for `hello, world` (or whatever else you changed it to previously), and change it to `hello, devpod`.
 
 Now we can confirm that our changes are automatically built and deployed every time we change a Go source code.
 
@@ -429,9 +425,11 @@ curl "$URL/demo/hello"
 
 The output should be `hello, devpod!`
 
-TODO: Diagram
+![Figure 7-3: The process of using theia to modify files inside a DevPod and building and deploying applications](images/ch07/devpod-theia.png)
 
-We saw how we can work using personal development environments using only a browser. I used Theia quite a few times. It is very useful when we do not have anything running in our laptops (except `jx` CLI). But, browser-based editor might not be your cup of tea. You might find a desktop IDE easier and faster. Or, maybe you are emotionally attached to desktop version of, let's say, Visual Studio Code, IntelliJ, or whatever else is your coding weapon of choice. Fear not, we can use them as well. Our next mission is to connect your favorite IDE with DevPods. But, before we do that, we'll delete the DevPod we're currently running and start a new one with a twist.
+We saw how we can work using personal development environments and modifying them from a browser.
+
+I used Theia quite a few times. It is very useful when we do not have anything running in our laptops (except `jx` CLI). But, a browser-based editor might not be your cup of tea. You might find a desktop IDE easier and faster. Or, maybe you are emotionally attached to a desktop version of Visual Studio Code, IntelliJ, or whatever else is your coding weapon of choice. Fear not, we can use them as well. Our next mission is to connect your favorite IDE with DevPods. But, before we do that, we'll delete the DevPod we're currently running and start a new one with a twist.
 
 ```bash
 jx delete devpod
@@ -441,7 +439,7 @@ Please type `y` when asked whether you want `to delete the DevPods` and press th
 
 The DevPod is no more.
 
-The problem is that we did not push the code changes to GitHub. If we did that, we could pull them to our local hard disk. Since we forget that important step, our changes we lost the moment we deleted the DevPod. That was silly of me, wasn't it? Or, maybe I did that intentionally just to show you that we can also synchronize files from your laptop into the DevPod, and vice versa.
+The problem is that we did not push the code changes to GitHub. If we did that, we could pull them to our local hard disk. Since we forgot that important step, our changes were lost the moment we deleted the DevPod. That was silly of me, wasn't it? Or maybe I did that intentionally just to show you that we can also synchronize files from your laptop into the DevPod, and vice versa.
 
 ## Synchronizing Code From A Laptop Into A DevPod
 
@@ -449,7 +447,7 @@ I hope that you liked the idea of using an browser-based IDE like Theia. On the 
 
 Given that we are using Makefile to specify our targets (at least when working with Go), that's the place where we'll add unit tests. My assumption is that you want to run unit tests every time you change your code, and that you'll leave slower types of tests (e.g., functional and integration tests) to Jenkins. If that's not the case, you should have no problem extending our examples to run broader set of validations.
 
-W> Remember what we said before about `Makefile`. It expects tabs for indentation. Please make sure that the command that follows is indeed using tabs and not spaces, if you're typing the commands instead of copying and pasting from the Gist.
+W> Remember what we said before about `Makefile`. It expects tabs as indentation. Please make sure that the command that follows is indeed using tabs and not spaces, if you're typing the commands instead of copying and pasting from the Gist.
 
 ```bash
 echo 'unittest: 
@@ -457,7 +455,9 @@ echo 'unittest:
 ' | tee -a Makefile
 ```
 
-We added `go test` command limited to functions that contain `UnitTest` in their names. Next, we need to modify `watch.sh` so that it executes that target as well.
+We added a `unittest` target with `go test` command limited to functions that contain `UnitTest` in their names.
+
+Next, we need to modify `watch.sh` so that it executes the new target.
 
 ```bash
 cat watch.sh | sed -e \
@@ -467,9 +467,9 @@ cat watch.sh | sed -e \
 
 Now that we added unit tests both to `Makefile` and `watch.sh`, we can go back to our original objective and figure out how to synchronize local files with those in a DevPod.
 
-We'll use [ksync](https://github.com/vapor-ware/ksync). It transparently updates containers running inside a cluster from a local checkout. That will enable us to use our favorite favorite IDE to work from inside a cluster instead of from outside it.
+We'll use [ksync](https://github.com/vapor-ware/ksync). It transparently updates containers running inside a cluster from a local checkout. That will enable us to use our favorite IDE to work with local files that will be synchronized with those inside the cluster.
 
-To make things simpler, `jx` has its own implementation of ksync that will connect it with DevPod. Let's fire it up.
+To make things simpler, `jx` has its own implementation of ksync that will connect it with a DevPod. Let's fire it up.
 
 ```bash
 jx sync --daemon
@@ -477,7 +477,7 @@ jx sync --daemon
 
 We executed `jx sync` in `daemon` mode. That will allow us to run it in background instead of blocking a terminal session.
 
-It'll take a few moments until everything is up and running. The final message should state that `it looks like 'ksync watch' is already running so we don't need to run it yet...` When you see it, you'll know that it is fully operational and all that's left is to press *ctrl+c* to go back to the terminal session. Since we specified `--daemon`, `ksync` will continue running in background.
+It'll take a few moments until everything is up and running. The final message should state that `it looks like 'ksync watch' is already running so we don't need to run it yet...` When you see it, you'll know that it is fully operational, and all that's left is to press *ctrl+c* to go back to the terminal session. Since we specified `--daemon`, `ksync` will continue running in background.
 
 Now we can create yet another DevPod. This time, however, we'll add `--sync` argument. That will give it a signal that we want to use `ksync` to synchronize our local file system with the files in the DevPod.
 
@@ -485,35 +485,35 @@ Now we can create yet another DevPod. This time, however, we'll add `--sync` arg
 jx create devpod --sync -b
 ```
 
-Now we need to repeat the same commands as before to start the watcher inside the DevPod. However, this time we will not run it in background since it might be useful to see the output in case one of our tests fail and we might need to apply a fix before we proceed with the development. For that reason, we'll open a second terminal and I will assume that you'll have both aligend side by side.
+Now we need to repeat the same commands as before to start the watcher inside the DevPod. However, this time we will not run it in background since it might be useful to see the output in case one of our tests fail and we might need to apply a fix before we proceed with the development. For that reason, we'll open a second terminal. I recommend that you resize two terminals so that both occupy half of the screen. That way you can see them both.
 
 Open a second terminal session.
 
 W> If you are using EKS, you'll need to recreate the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`. Otherwise, your second terminal will not be able to authenticate against Kube API.
 
-Next, we'll enter the DevPod, and execute the same commands that will end with running the `watch.sh` script.
+Next, we'll enter the DevPod and execute the same commands that will end with running the `watch.sh` script.
 
 ```bash
-jx rsh -d # If not already inside the Pod
+jx rsh -d
 
 go mod init
 
 helm init --client-only
 
-chmod +x watch.sh # Just in case...
+chmod +x watch.sh
 
 ./watch.sh
 ```
 
-Now that `watch.sh` is running, this time in foreground, we can see the result of building, testing, and deploying development releases created every time we change our source code.
+Now that `watch.sh` is running in foreground, we can see the results of building, testing, and deploying development releases created every time we change our source code.
 
-The last time we modified the files in DevPod, we did not push them to Git and since we did not have synchronization, they were lost when we deleted the Pod. Let's confirm that we are still at square one by sending a request to the application.
+The last time we modified the files in a DevPod we did not push them to Git. Since we did not have synchronization, they were lost when we deleted the Pod. Let's confirm that we are still at square one by sending a request to the application.
 
 ```bash
 curl "$URL/demo/hello"
 ```
 
-The output is `hello, world!` thus confirming that our source code is indeed intact. If the output is `hello, devpod!`, the new deployment did not yet roll out. Wait for a few moments and repeat the `curl` command.
+The output is `hello, world!` thus confirming that our source code is indeed intact and that the watcher did its job by deploying a new release based on the original code. If the output is `hello, devpod!`, the new deployment did not yet roll out. In that case, wait for a few moments and repeat the `curl` command.
 
 Next, we'll make a few changes to the files on our laptop.
 
@@ -529,7 +529,7 @@ cat main_test.go | sed -e \
 
 Since we changed the file, and if you are quick, we should see the result of the new iteration of `watch.sh`. Please go back to the second terminal. In there, you should see that the binary is built, that the unit tests are executed, and that skaffold built a new image and upgraded the development release using Helm.
 
-Now that we observed that the process run through yet another iteration, we can send a request to the application and confirm that the new release indeed rolled out. Please go to the first terminal to execute the `curl` command.
+Now that we observed that the process run through yet another iteration, we can send a request to the application and confirm that the new release indeed rolled out. Please go to the first terminal to execute the `curl` command that follows.
 
 ```bash
 curl "$URL/demo/hello"
@@ -537,7 +537,7 @@ curl "$URL/demo/hello"
 
 This time, the output is `hello, devpod with tests!`. From now on, every time we change any of the local Go files, the process will repeat. We will be notified if something (e.g., tests) fail by the output from the second terminal. Otherwise, the application running in our personal environment (Namespace) will always be up-to-date.
 
-TODO: Diagram
+![Figure 7-4: The process of using ksync to synchronize local files with those in the container that forms the DevPod](images/ch07/devpod-ksync.png)
 
 Next, we'll imagine that we continued making changes to the code until the new feature is done. The only thing left is to push them back to the GitHub repository. We'll ignore the fact that we should probably make a pull request (explanation is coming in the next chapter), and push directly to the master branch.
 
@@ -555,7 +555,7 @@ You should be familiar with the rest of the process. Since we pushed a change to
 jx get activity -f go-demo-6 -w
 ```
 
-The new release should be available in the staging environment once all the steps `Succeeded`, and we can cancel the activity watcher by pressing *ctrl+c*.
+The new release should be available in the staging environment once all the steps `Succeeded` and we can cancel the activity watcher by pressing *ctrl+c*.
 
 Let's take another look at the available applications.
 
@@ -563,21 +563,19 @@ Let's take another look at the available applications.
 jx get applications
 ```
 
-The output should be the same as before. However, this time we're interested in URL of the staging environment, since that's where the new release was rolled out after we pushed the changes to the master branch.
+The output should be the same as before. However, this time we're interested in URL of the staging environment since that's where the new release was rolled out after we pushed the changes to the master branch.
 
 Please copy the URL of the staging release (the second one) and paste it instead of `[...]` in the commands that follow.
 
 ```bash
-STAGING_URL=[...] # Copy&paste the output from the second URL.
+STAGING_URL=[...]
 
 curl "$STAGING_URL/demo/hello"
 ```
 
-As expected, the output is `hello, devpod with tests!` thus confirming that the new release (the same one we have in the private development environment) is not rolled out to staging.
+As expected, the output is `hello, devpod with tests!` thus confirming that the new release (the same one we have in the private development environment) is now rolled out to staging.
 
-TODO: Diagram
-
-We're done with our DevPod combined with ksync synchronization, so we can delete it from the system. We're not going to make any more changes to the code, so there is no need for us to waste resources on the DevPod. 
+We're done with our DevPod combined with ksync synchronization so we can delete it from the system. We're not going to make any more changes to the code, so there is no need for us to waste resources on the DevPod.
 
 ```bash
 jx delete devpod
@@ -593,23 +591,25 @@ We saw that we can work with local files and let ksync synchronize them with Dev
 
 Do you remember the screenshot from the beginning of the chapter? That was Visual Studio Code setup I used when working on the examples in this book. It's repeated below in case you're forgetful and you do not want to go back to see it again.
 
-![Figure 7-TODO: Visual Studio Code With Jenkins X extension](images/ch07/vs-code-jx.png)
+![Figure 7-5: Visual Studio Code With Jenkins X extension](images/ch07/vs-code-jx.png)
 
 Let's see if we can configure it in the same way on your laptop.
 
-I> I'll show how to integrate Visual Studio Code with Jenkins X. If you prefer IntelliJ instead, the steps are very similar and I hope you will not have trouble setting it up. On the other hand, if you do not like either of the two, you're in tought luck since those are the only ones supported so far (March 2019). Nevertheless, I strongly recommend Visual Studio Code and urge you to try it out. It is my favorite and, in my opinion, it is superior to any other IDE.
+I> I'll show how to integrate Visual Studio Code with Jenkins X. If you prefer IntelliJ instead, the steps are very similar and I hope you will not have trouble setting it up. On the other hand, if you do not like either of the two, you're in tought luck since those are the only ones supported so far (March 2019). Nevertheless, I strongly recommend Visual Studio Code and I urge you to try it out. It is my favorite and, in my opinion, it is superior to any other IDE.
 
 W> I could not configure Jenkins X extension to Visual Studio Code to work with EKS. As far as I know, there is no place where we can define the environment variables required for authentication. Truth be told, I did not try too hard since I tend to work with GKE most of the time. I would appreciate if you let me know if you solve that issue.
 
-if you do not already use Visual Studio Code, but you do want to try it out, please download it and install it from the [official site]((https://code.visualstudio.com/)). Open it and navigate to *File* > *Open*, select the *go-demo-6* directory, and click the *Open* button.
+If you do not already use Visual Studio Code, but you do want to try it out, please download it and install it from the [official site]((https://code.visualstudio.com/)). 
 
-Next, we need to install *jx* extension. To do that, go to *View* > *Extensions*, search for *jx*, click the *Install* button in *jx-tools*, followed with *Reload*.
+With Visual Studio Code up-and-running, navigate to *File* > *Open*, select the *go-demo-6* directory, and click the *Open* button.
+
+Next, we need to install *jx* extension. To do that, go to *View* > *Extensions*, search for *jx*, click the *Install* button in *jx-tools*. Once it is installed, click the *Reload* button.
 
 Now that the extension is installed, we can display some useful information opening *View* > *Explorer*, and expanding the *JENKINS X* tab.
 
-You will see a few general options by clicking *...*. Feel free to explore them.
+You will see a few general options by clicking the *...* button. Feel free to explore them.
 
-A more interesting information is available in the *Pipelines* section. Inside it should be your user*. Expand it and you'll see *go-demo-6*, with the *master* branch inside. Inside the master branch you should see the builds executed for that project. If you expand one of them, you should notice the same steps as those we see when we execute `jx get activity` command. Some of the steps provide additional actions by clicking the right-mouse button or two-finger click on Mac. They should be self-explanatory, so I'll let you explore them on your own.
+More interesting information is available in the *Pipelines* section. Inside it should be your user. Expand it and you'll see *go-demo-6*, with the *master* branch inside. Inside the master branch you should see the builds executed for that project. If you expand one of them, you should notice the same steps as those we see when we execute `jx get activity` command. Some of them provide additional actions by clicking the right-mouse button or two-finger click on Mac. They should be self-explanatory, so I'll let you explore them on your own.
 
 Finally, I would normally open a terminal session inside Visual Studio Code. You can do that by opening *View* > *Integrated Terminal*. Inside that terminal I would execute the command that would create a DevPod for that project.
 
@@ -617,9 +617,9 @@ Now you have everything in one place. You can write your Code and see the Jenkin
 
 ## What Now?
 
-We're done with yet another chapter, and you are once again forced to decide whether to continue using the cluster or to destroy it.
+We're done with yet another chapter, and you are once again forced to decide whether to continue using the cluster or to destroy it. If the destruction is what you crave fow, you'll find the instructions at the bottom of the Gist you choose at the beginning on this chapter.
 
-If you destroy the cluster or uninstall Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
+If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
