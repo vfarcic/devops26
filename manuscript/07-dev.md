@@ -1,21 +1,3 @@
-## Checklist
-
-- [X] Code
-- [X] Write
-- [X] Code review GKE
-- [X] Code review EKS
-- [X] Code review AKS
-- [-] Code review existing cluster
-- [X] Diagrams
-- [X] Text review
-- [X] Gist
-- [X] Review titles
-- [X] Proofread
-- [ ] Add to slides
-- [ ] Publish on TechnologyConversations.com
-- [ ] Add to Book.txt
-- [ ] Publish on LeanPub.com
-
 # Improving And Simplifying Software Development
 
 Software development is hard. It takes years to become a proficient developer, and the tech and the processes change every so often. What was effective yesterday, is not necessarily effective today. The number of languages we code in is increasing. While in the past, most developers would work in the same language throughout their whole carrier, today it is not uncommon for a developer to work on multiple projects written in different languages. We might, for example, work on a new project and code in Go, while we still need to maintain some other project written in Java. For us to be efficient, we need to install compilers, helper libraries, and quite a few other things.
@@ -32,7 +14,7 @@ As you can imagine, installing and configuring all that is not trivial. It is no
 
 We can continue with business as usual and install all the compilers and the tools on our laptops. We can dedicate time setting them up and connecting them with the system (e.g., with the registries). We can continue giving new hires long Word documents that walk them through all the actions they need to perform to be able to develop our applications. Or, we can take a different approach. We might be able to create a full-blown development environment on demand and for each person. We can even make those environments application specific. And we might be able to make it so fast and straightforward that anyone can do it with a single command and in only a couple of minutes.
 
-But, before we do all that, we'll take a step back and explore what we need from a development environment.
+Jenkins X allows us to spin up a project-based private development environment with all the tools, configurations, and environment variables we might need to work on any of our applications. That feature is called DevPod.
 
 ## Exploring The Requirements Of Efficient Development Environment
 
@@ -509,6 +491,8 @@ Now that `watch.sh` is running in the foreground, we can see the results of buil
 
 The last time we modified the files in the DevPod, we did not push them to Git. Since we did not have synchronization, they were lost when we deleted the Pod. Let's confirm that we are still at square one by sending a request to the application.
 
+Please return to the first terminal.
+
 ```bash
 curl "$URL/demo/hello"
 ```
@@ -599,7 +583,7 @@ I> I'll show how to integrate Visual Studio Code with Jenkins X. If you prefer I
 
 W> I could not configure Jenkins X extension to Visual Studio Code to work with EKS. As far as I know, there is no place where we can define the environment variables required for authentication. Truth be told, I did not try too hard since I tend to work with GKE most of the time. I would appreciate if you let me know if you solve that issue.
 
-If you do not already use Visual Studio Code, but you do want to try it out, please download it and install it from the [official site]((https://code.visualstudio.com/)). 
+If you do not already use Visual Studio Code, but you do want to try it out, please download it and install it from the [official site](https://code.visualstudio.com/). 
 
 With Visual Studio Code up-and-running, navigate to *File* > *Open*, select the *go-demo-6* directory, and click the *Open* button.
 
