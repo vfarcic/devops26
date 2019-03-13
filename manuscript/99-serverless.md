@@ -2,9 +2,12 @@
 
 - [ ] Code
 - [ ] Write
-- [ ] Code review
-- [ ] Text review
+- [ ] Code review GKE
+- [ ] Code review EKS
+- [ ] Code review AKS
+- [ ] Code review existing cluster
 - [ ] Diagrams
+- [ ] Text review
 - [ ] Gist
 - [ ] Review titles
 - [ ] Proofread
@@ -13,9 +16,7 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Creating A Cluster With jx
-
-## Creating A GKE Cluster With jx
+## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
 ```bash
 PROJECT=[...] # e.g. devops24-book

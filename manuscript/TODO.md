@@ -6,10 +6,11 @@
 - [X] 04-import.md
 - [X] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
 - [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
-- [ ] 07-dev.md
+- [X] 07-dev.md
 - [ ] 08-pr.md
 - [ ] 99-promote.md
 - [ ] 99-progressive-delivery.md
+- [ ] 99-teams.md
 - [ ] 99-serverless.md
 - [ ] 99-prow.md
 - [ ] 99-knative-build.md
@@ -18,7 +19,6 @@
 - [ ] 99-prow.md
 - [ ] 99-skaffold.md
 - [ ] 99-kaniko.md
-- [ ] 99-teams.md
 - [ ] 99-security-scanning.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
@@ -55,14 +55,6 @@
 - [ ] Amazon marketing
 - [ ] Workshop
 - [ ] Create talks
-
-## Outputs
-
-- [ ] Docker for Desktop
-- [ ] minikube
-- [ ] GKE
-- [ ] EKS
-- [ ] AKS
 
 ## Checklist
 
