@@ -13,12 +13,11 @@
 - [ ] 99-teams.md
 - [ ] 99-serverless.md
 - [ ] 99-prow.md
-- [ ] 99-knative-build.md
 - [ ] 99-import-serverless.md
 - [ ] 99-knative-build.md
-- [ ] 99-prow.md
 - [ ] 99-skaffold.md
 - [ ] 99-kaniko.md
+- [ ] 99-addons.md
 - [ ] 99-security-scanning.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
@@ -35,7 +34,6 @@
 - [ ] 99-bdd.md
 - [ ] 99-hashi-vault.md
 - [ ] 99-build-notifications.md
-- [ ] 99-addons.md 
 - [ ] 99-bg-with-flagger-addon.md 
 - [ ] 99-custom-apps.md
 - [ ] 99-custom-build-images.md 
@@ -44,6 +42,7 @@
 - [ ] 99-rbac.md
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-notifications-to-slack.md
+- [ ] 99-chatops-from-slack-to-jx.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -64,8 +63,8 @@
 - [ ] Code review EKS
 - [ ] Code review AKS
 - [ ] Code review existing cluster
-- [ ] Diagrams
 - [ ] Text review
+- [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles
 - [ ] Proofread
@@ -76,12 +75,10 @@
 
 ## The DevOps 2.X Toolkit
 
-- [ ] [Skaffold](https://github.com/GoogleContainerTools/skaffold)
-- [ ] CRD (e.g. LE Issuer)
+- [ ] k8s CRD (e.g. jx)
+- [ ] k8s jobs
 - [ ] Service mesh ([Istio](https://istio.io/), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali))
 - [ ] Serverless (KNative)
-- [ ] [prow](https://github.com/kubernetes/test-infra/tree/master/prow)
-- [ ] JenkinsX
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
 - [ ] [Vistio](https://github.com/nmnellis/vistio)
 - [ ] Anchore
@@ -141,4 +138,5 @@
 - [ ] Operator pattern
 - [ ] https://www.keycloak.org/
 - [ ] [KataContainers](https://katacontainers.io/)
+- [ ] [Submariner](https://submariner.io/)
 - [ ] Terraform
