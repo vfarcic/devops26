@@ -128,22 +128,6 @@ For your convenience, the Gists from the previous chapter are available below as
 * Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
 * Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 
-No matter whether you spin up a new cluster or you're reusing the one from before, it might be a good idea to update `jx`. The project usually makes quite a few releases every day, and you might benefit from a bug fix or a new feature introduced since the release you're currently running.
-
-```bash
-jx version
-```
-
-The output, limited to the relevant parts, is as follows.
-
-```
-...
-A new jx version is available: 1.3.872
-? Would you like to upgrade to the new jx version? Yes
-```
-
-If there is a newer release, you will be asked you would like to upgrade. The default answer is `Y`, so all you have to do is to press the enter button.
-
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
 ```bash

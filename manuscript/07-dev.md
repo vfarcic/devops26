@@ -47,12 +47,6 @@ For your convenience, the Gists from the previous chapter are available below as
 * Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
 * Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 
-Next, update your `jx` version so that we are sure that the examples do not use features that do not exist in your version.
-
-```bash
-jx version
-```
-
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
 ```bash

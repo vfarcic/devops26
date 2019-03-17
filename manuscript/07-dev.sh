@@ -4,8 +4,6 @@
 # aks-jx.sh: https://gist.github.com/6e01717c398a5d034ebe05b195514060
 # install.sh: https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233
 
-jx version
-
 cd go-demo-6
 
 git checkout buildpack
