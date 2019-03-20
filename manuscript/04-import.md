@@ -285,10 +285,11 @@ echo "dependencies:
   alias: go-demo-6-db
   version: 5.3.0
   repository:  https://kubernetes-charts.storage.googleapis.com
+  condition: db.enabled
 " | tee charts/go-demo-6/requirements.yaml
 ```
 
-The only thing worth noting in that file is the `alias`. It's set to the value that will create a Service with the same name as the environment variable `DB` that we just added to `deployment.yaml`. 
+The only thing worth noting in that file are `alias` and `condition`. The former (`alias`) is set to the value that will create a Service with the same name as the environment variable `DB` that we just added to `deployment.yaml`. The latter (`condition`) will allow us to disable this dependency. We'll see later why we might want to do that.
 
 There's only one more thing missing. We should probably customize the MongoDB chart to fit our use case. I won't go through all the values we could set. You can explore them yourself by executing `helm inspect values stable/mongodb` or by visiting [project README](https://github.com/helm/charts/tree/master/stable/mongodb). Instead, we'll define only one, mostly as an exercise how to define values for the dependencies.
 

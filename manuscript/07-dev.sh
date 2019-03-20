@@ -18,6 +18,8 @@ git push
 
 jx import -b
 
+jx get activity -f go-demo-6 -w
+
 cd go-demo-6
 
 jx create devpod -b

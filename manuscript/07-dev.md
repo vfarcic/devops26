@@ -71,7 +71,11 @@ I> If you destroyed the cluster at the end of the previous chapter, we'll need t
 
 ```bash
 jx import -b
+
+jx get activities -f go-demo-6 -w
 ```
+
+Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
 
 Now we can explore how to leverage Jenkins X for our development environments.
 
@@ -427,7 +431,8 @@ W> Remember what we said before about `Makefile`. It expects tabs as indentation
 
 ```bash
 echo 'unittest: 
-	CGO_ENABLED=$(CGO_ENABLED) $(GO) test --run UnitTest -v
+	CGO_ENABLED=$(CGO_ENABLED) $(GO) \\
+	test --run UnitTest -v
 ' | tee -a Makefile
 ```
 

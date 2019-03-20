@@ -31,6 +31,7 @@ echo "dependencies:
   alias: REPLACE_ME_APP_NAME-db
   version: 5.3.0
   repository:  https://kubernetes-charts.storage.googleapis.com
+  condition: db.enabled
 " | tee packs/go-mongo/charts/requirements.yaml
 
 echo "REPLACE_ME_APP_NAME-db:

@@ -8,7 +8,9 @@
 - [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
 - [X] 07-dev.md
 - [ ] 08-pr.md
+- [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
 - [ ] 99-promote.md
+- [ ] Remove the warning *I made a few changes*
 - [ ] 99-progressive-delivery.md
 - [ ] 99-teams.md
 - [ ] 99-serverless.md
@@ -64,10 +66,10 @@
 - [ ] Code review AKS
 - [ ] Code review existing cluster
 - [ ] Text review
-- [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles
 - [ ] Proofread
+- [ ] Diagrams
 - [ ] Add to slides
 - [ ] Publish on TechnologyConversations.com
 - [ ] Add to Book.txt

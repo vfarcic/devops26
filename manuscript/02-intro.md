@@ -718,7 +718,7 @@ Before we conclude this chapter, let's validate whether we can access those appl
 jx console
 ```
 
-Please login using `admin` as the username and password.
+If you are asked to *pick service to open*, please select `jenkins`, login using `admin` as the username and password, and click the *Blue Ocean* link. Otherwise, Jenkins' Blue Ocean screen will open automatically after you login.
 
 ![Figure 2-1: Jenkins X Console](images/ch02/jx-console-environments.png)
 

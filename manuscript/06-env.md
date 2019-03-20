@@ -289,8 +289,8 @@ echo 'test:
 	ADDRESS=`kubectl -n jx-staging \\
 	get ing go-demo-6 \\
 	-o jsonpath="{.spec.rules[0].host}"` \\
-	go test -v' \
-    | tee -a Makefile
+	go test -v
+' | tee -a Makefile
 ```
 
 We echoed the `test` target that contains the command that retrieves the host of the *go-demo-6* application and stores it in the `ADDRESS` variable. The rest of the command executes `go test`. The output of the `echo` was appended to `Makefile`.
