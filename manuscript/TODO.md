@@ -30,6 +30,7 @@
 - [ ] 99-custom-domains.md
 - [ ] 99-issues-in-releases.md
 - [ ] 99-cert-manager.md
+- [ ] 99-post-build-steps.md (`jx step post build`)
 - [ ] 99-context.md
 - [ ] 99-upgrade-cluster-and-jx.md
 - [ ] 99-helm-hooks.md
