@@ -5,3 +5,4 @@
 05-buildpacks.md
 06-env.md
 07-dev.md
+08-pr.md

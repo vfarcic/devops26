@@ -45,6 +45,7 @@
 - [ ] 99-rbac.md
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-notifications-to-slack.md
+- [ ] 99-logging.md (gh-pages branch)
 - [ ] 99-chatops-from-slack-to-jx.md
 - [ ] 99-the-end.md
 - [ ] Packt
