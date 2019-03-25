@@ -4,22 +4,21 @@
 - [X] 02-intro.md
 - [X] 03-quickstart.md
 - [X] 04-import.md
-- [X] 05-buildpacks.md (publish a part of "Creating Custom Buildpacks" and "Creating A Buildpack For Go Applications With MongoDB Datastore")
+- [X] 05-buildpacks.md
 - [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
 - [X] 07-dev.md
-- [ ] 08-pr.md
-- [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
-- [ ] 99-promote.md
+- [X] 08-pr.md
 - [ ] Remove the warning *I made a few changes*
+- [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
+- [ ] 09-promote.md
+- [ ] 10-serverless.md
 - [ ] 99-progressive-delivery.md
-- [ ] 99-teams.md
-- [ ] 99-serverless.md
-- [ ] 99-prow.md
 - [ ] 99-import-serverless.md
 - [ ] 99-knative-build.md
 - [ ] 99-skaffold.md
 - [ ] 99-kaniko.md
 - [ ] 99-addons.md
+- [ ] 99-prometheus-addon.md
 - [ ] 99-security-scanning.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
@@ -29,6 +28,7 @@
 - [ ] 99-custom-ingress-rules.md
 - [ ] 99-custom-domains.md
 - [ ] 99-issues-in-releases.md
+- [ ] 99-tekton.md
 - [ ] 99-cert-manager.md
 - [ ] 99-post-build-steps.md (`jx step post build`)
 - [ ] 99-context.md
@@ -47,6 +47,9 @@
 - [ ] 99-notifications-to-slack.md
 - [ ] 99-logging.md (gh-pages branch)
 - [ ] 99-chatops-from-slack-to-jx.md
+- [ ] 99-openshift.md
+- [ ] 99-teams.md
+- [ ] 99-cloudbees.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -82,7 +85,6 @@
 - [ ] k8s CRD (e.g. jx)
 - [ ] k8s jobs
 - [ ] Service mesh ([Istio](https://istio.io/), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali))
-- [ ] Serverless (KNative)
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
 - [ ] [Vistio](https://github.com/nmnellis/vistio)
 - [ ] Anchore
@@ -121,8 +123,6 @@
 - [ ] Write the-end.md
 - [ ] Harbor (https://github.com/goharbor/harbor)
 - [ ] AWS Fargate
-- [ ] DockerEE
-- [ ] OpenShift
 - [ ] Rancher
 - [ ] kismatic
 - [ ] https://kubernetes.io/docs/setup/pick-right-solution/
@@ -139,6 +139,7 @@
 - [ ] [cert-manager](https://github.com/jetstack/cert-manager)
 - [ ] [Google Cloud Build](https://cloud.google.com/cloud-build/docs/)
 - [ ] [KNative](https://github.com/knative/)
+- [ ] Serverless
 - [ ] Operator pattern
 - [ ] https://www.keycloak.org/
 - [ ] [KataContainers](https://katacontainers.io/)

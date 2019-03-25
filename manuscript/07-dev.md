@@ -56,6 +56,8 @@ cd go-demo-6
 I> The commands that follow will reset your master branch with the contents of the `buildpack` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
+git pull
+
 git checkout buildpack
 
 git merge -s ours master --no-edit

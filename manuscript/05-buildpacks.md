@@ -295,6 +295,8 @@ kubectl -n jx delete act \
 To make sure that our new build pack is indeed working as expected, we'll undo all the commits we made to the `master` branch in the previous chapter and start over.
 
 ```bash
+git pull
+
 git checkout orig
 
 git merge -s ours master --no-edit

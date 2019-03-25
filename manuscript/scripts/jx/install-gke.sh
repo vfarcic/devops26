@@ -75,6 +75,7 @@ jx install \
     --ingress-deployment $INGRESS_DEP \
     --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
+    --git-provider-kind github \
     -b
 
 #######################
