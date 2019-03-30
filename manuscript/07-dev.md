@@ -6,7 +6,7 @@ No matter whether we write all the code in a single language or not, our applica
 
 For the dependencies to be useful, we should run them in (almost) the same way we're running them in production, that means we should deploy them to Kubernetes as well. For that, we can choose minikube or Docker Desktop if we prefer a local cluster, or get a segment (Namespace) of a remote cluster.
 
-Unfortunately, compilers and dependencies are not everything we need to develop efficiently. We also need tools. Today that means that we need Docker or kaniko to build container images. We need `helm` and `kubectl` to deploy applications to Kubernetes. We need `skaffold` that combines the process of building images with deployment. There are quite a few other tools specific to a language and a framework that would need to be installed and configured as well.
+Unfortunately, compilers and dependencies are not everything we need to develop efficiently. We also need tools. Today that means that we need Docker or Kaniko to build container images. We need `helm` and `kubectl` to deploy applications to Kubernetes. We need `skaffold` that combines the process of building images with deployment. There are quite a few other tools specific to a language and a framework that would need to be installed and configured as well.
 
 Even if we do set up all those things, we are still missing more. We need to be able to push and pull artifacts from container registry, ChartMuseum, Nexus, or any other registry that might be in use in our organization.
 

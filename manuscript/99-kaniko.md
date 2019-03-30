@@ -16,7 +16,7 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# kaniko
+# Kaniko
 
 ## Cluster
 
