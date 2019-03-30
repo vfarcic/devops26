@@ -1,21 +1,70 @@
-```bash
-# https://github.com/jenkins-x/jx/issues/2711
+## TODO
 
-cd ../go-demo-3
+- [ ] Code
+- [ ] Write
+- [ ] Code review GKE
+- [ ] Code review EKS
+- [ ] Code review AKS
+- [ ] Code review existing cluster
+- [ ] Text review
+- [ ] Gist
+- [ ] Review titles
+- [ ] Proofread
+- [ ] Diagrams
+- [ ] Add to slides
+- [ ] Publish on TechnologyConversations.com
+- [ ] Add to Book.txt
+- [ ] Publish on LeanPub.com
+
+# kaniko
+
+## Cluster
+
+* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
+* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
+* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
+* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+
+```bash
+git pull
+
+git checkout pr
+
+git merge -s ours master --no-edit
+
+git checkout master
+
+git merge pr
+
+git push
+```
+
+```bash
+jx import -b
+
+jx get activities -f go-demo-6 -w
+```
+
+## Building Images With Kaniko Manually
+
+```bash
+cd go-demo-6 # If you're not already there
+
+jx create devpod -b
+
+jx rsh -d
+
+# https://github.com/jenkins-x/jx/issues/2711
 
 docker run -it --rm \
     -v $(pwd):/workspace \
     --entrypoint=/busybox/sh \
     gcr.io/kaniko-project/executor:debug
 
-mkdir /workspace
-
 cd /workspace/
 
-wget https://raw.githubusercontent.com/vfarcic/go-demo-3/master/Dockerfile
-
 /kaniko/executor \
-    -d vfarcic/go-demo-3 \
+    -d vfarcic/go-demo-6 \
     -c /workspace \
     -f /workspace/Dockerfile
 ```

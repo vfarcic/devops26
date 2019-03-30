@@ -602,7 +602,7 @@ Now you have everything in one place. You can write your Code and see the Jenkin
 
 ## What Now?
 
-We're done with yet another chapter, and you are once again forced to decide whether to continue using the cluster or to destroy it. If the destruction is what you crave for, you'll find the instructions at the bottom of the Gist you choose at the beginning of this chapter.
+We're done with yet another chapter, and you are once again forced to decide whether to continue using the cluster or to destroy it. If the destruction is what you crave for, you'll find the instructions at the bottom of the Gist you chose at the beginning of this chapter.
 
 If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
 
