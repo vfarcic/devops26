@@ -51,7 +51,8 @@ jx install \
     --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    -b
+    --namespace cd \
+    --prow -b
 
 #######################
 # Uninstall Jenkins X #

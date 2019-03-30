@@ -55,6 +55,8 @@ cd go-demo-6
 The chances are that I did not leave the master branch in the state I intended it to be or that I'm doing something with it while you're reading this. I might be testing some recently released Jenkins X feature, or maybe I'm trying to fix a problem from one of the examples. To be sure that you're having the correct version of the code, we'll replace the `master` branch with the `orig` branch, and push it back to GitHub.
 
 ```bash
+git pull
+
 git checkout orig
 
 git merge -s ours master --no-edit
