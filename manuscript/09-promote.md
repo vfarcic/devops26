@@ -1,22 +1,3 @@
-## TODO
-
-- [X] Code
-- [X] Write
-- [X] Code review GKE
-- [X] Code review EKS
-- [X] Code review AKS
-- [-] Code review existing cluster
-- [X] Text review
-- [X] Gist
-- [X] Review titles
-- [X] Proofread
-- [-] Diagrams
-- [X] Add to slides
-- [-] Publish on TechnologyConversations.com
-- [ ] Add to Book.txt
-- [ ] Publish on LeanPub.com
-
-
 # Promoting Releases To Production
 
 We reached the final stage, at least from the application lifecycle point of view. We saw how to import an existing project and how to create a new one. We saw how to develop buildpacks that will simplify those processes for the types of applications that are not covered with the existing buildpacks or for those that deviate from them. Once we added our app to Jenkins X, we explored how it implements GitOpts processes through environments (e.g., `staging` and `production`). Then we moved into the application development phase and explored how DevPods help us to set a personal application-specific environment that simplifies the "traditional" setup that forced us to spend countless hours setting it on our laptop and, at the same time, that avoids the pitfalls of shared development environments. Once the development of a feature, a change, or a bug fix is finished, we created a pull request, we executed automatic validations, and we deployed the release candidate to a PR-specific preview environment so that we can check it manually as well. Once we were satisfied with the changes we made, we merged it to the master branch, and that resulted in deployment to the environments set to receive automatic promotions (e.g., staging) as well as in another round of testing. Now that we are comfortable with the changes we did, all that's left is to promote our release to production.
