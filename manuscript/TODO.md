@@ -12,44 +12,34 @@
 - [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
 - [ ] 09-promote.md
 - [ ] Change GKE `--zone` to `--region`
-- [ ] 10-addons.md
-- [ ] 11-serverless.md
-- [ ] 99-progressive-delivery.md
-- [ ] 99-kaniko.md
-- [ ] 99-create-app.md
-- [ ] 99-buildpacks-tekton.md
-- [ ] 99-import-serverless.md
-- [ ] 99-prometheus-addon.md
-- [ ] 99-security-scanning.md
-- [ ] 99-container-registry.md
-- [ ] 99-using-other-code-repositories.md
-- [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-preview-chart.md
-- [ ] 99-dev-environment.md
-- [ ] 99-custom-ingress-rules.md
-- [ ] 99-custom-domains.md
-- [ ] 99-issues-in-releases.md
-- [ ] 99-tekton.md
-- [ ] 99-cert-manager.md
-- [ ] 99-post-build-steps.md (`jx step post build`)
-- [ ] 99-context.md
+- [ ] 10-domains.md
 - [ ] 99-upgrade.md
 - [ ] 99-helm-hooks.md
 - [ ] 99-bdd.md
 - [ ] 99-hashi-vault.md
 - [ ] 99-build-notifications.md
-- [ ] 99-bg-with-flagger-addon.md 
-- [ ] 99-custom-build-images.md 
-- [ ] 99-terraform-and-gitops-arg.md
+- [ ] 99-bg-with-flagger-addon.md
+- [ ] 99-custom-build-images.md
+- [ ] 99-ng-arg.md
 - [ ] 99-change-versioning.md
 - [ ] 99-rbac.md
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-notifications-to-slack.md
-- [ ] 99-logging.md (gh-pages branch)
 - [ ] 99-chatops-from-slack-to-jx.md
-- [ ] 99-openshift.md
 - [ ] 99-teams.md
+- [ ] 99-serverless.md
+- [ ] 99-buildpacks-tekton.md
+- [ ] 99-import-serverless.md
 - [ ] 99-cloudbees.md
+- [ ] 99-addons.md
+- [ ] 99-progressive-delivery.md
+- [ ] 99-anchore
+- [ ] 99-kaniko.md
+- [ ] 99-add-app.md
+- [ ] 99-container-registry.md
+- [ ] 99-using-other-code-repositories.md
+- [ ] 99-other-quickstart-buildpacks.md
+- [ ] 99-create-step.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -62,7 +52,7 @@
 - [ ] Workshop
 - [ ] Create talks
 
-## Checklist
+## TODO
 
 - [ ] Code
 - [ ] Write
@@ -87,7 +77,6 @@
 - [ ] Service mesh ([Istio](https://istio.io/), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali))
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
 - [ ] [Vistio](https://github.com/nmnellis/vistio)
-- [ ] Anchore
 - [ ] Monitoring alternatives (Splunk, DataDog, New Relic)
 - [ ] Custom resources
 - [ ] kubernetes Networking - different CNI plugin/provider (Flannel, Calico, etc)
