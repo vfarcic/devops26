@@ -70,19 +70,103 @@ Now we can promote our last release to production.
 ## Changing domains
 
 ```bash
-# TODO: Upgrade UrlTemplate for the whole cluster
+jx upgrade ingress
+
+# Use the default values
+
+# Cancel with `n` at `? Using config values { 34.73.153.155.nip.io  Ingress  false}, ok? (Y/n)`
+```
+
+```
+Looking for existing ingress rules in current namespace jx
+? Existing ingress rules found in current namespace.  Confirm to delete and recreate them Yes
+? Expose type Ingress
+? Domain: 34.73.153.155.nip.io
+? UrlTemplate (press <Enter> to keep the current value):
+? Using config values { 34.73.153.155.nip.io  Ingress  false}, ok? No
+```
+
+```bash
+# NOTE: Domain can be changed only if not in batch mode.
 
 # Must be version 1.3.1068+.
 
-jx upgrade ingress \
-    --cluster true \
-    --skip-certmanager true \
-    --urltemplate "{{.Namespace}}.{{.Service}}.{{.Domain}}" \
-    -b
-
 jx get applications
+```
 
-VERSION=0.0.196
+The output is as follows.
+
+```
+APPLICATION STAGING PODS URL
+go-demo-6   0.0.200 1/1  http://go-demo-6.jx-staging.35.243.161.174.nip.io
+```
+
+```bash
+kubectl -n kube-system \
+    get svc jxing-nginx-ingress-controller \
+    -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+```
+
+```
+35.243.161.174
+```
+
+```bash
+# Change your DNS A records in your domain registrar
+
+DOMAIN=[...]
+
+jx upgrade ingress \
+    --cluster true
+    --domain $DOMAIN \
+    --wait-for-certs true \
+    -b
+```
+
+```
+TODO: Output
+```
+
+```bash
+jx get applications
+```
+
+```
+TODO: Output
+```
+
+TODO: Confirm that new domains with certificates are working
+
+```bash
+jx upgrade ingress \
+    --namespaces jx-staging \
+    --skip-certmanager true \
+    --urltemplate "{{.Service}}.staging.{{.Domain}}" \
+    -b
+```
+
+```
+Deleting ingress jx-staging/go-demo-6
+using stable version 2.3.97 from charts of jenkins-x/exposecontroller from /Users/vfarcic/.jx/jenkins-x-versions
+Updating Helm repository...
+Helm repository update done.
+Ingress rules recreated
+Previous webhook endpoint http://jenkins.jx.35.243.161.174.nip.io/github-webhook/
+Updated webhook endpoint http://jenkins.jx.35.243.161.174.nip.io/github-webhook/
+Webhook URL unchanged. Use --force to force updating
+```
+
+```bash
+jx get applications
+```
+
+```
+APPLICATION STAGING PODS URL
+go-demo-6   0.0.200 1/1  http://go-demo-6.staging.35.243.161.174.nip.io
+```
+
+```bash
+VERSION=[...]
 
 STAGING_ADDR=[...]
 
@@ -94,44 +178,81 @@ jx promote go-demo-6 \
     -b
 
 jx get applications
+```
 
+```
+APPLICATION STAGING PODS URL                                            PRODUCTION PODS URL
+go-demo-6   0.0.200 1/1  http://go-demo-6.staging.35.243.161.174.nip.io 0.0.200    1/1  http://go-demo-6.jx-production.35.243.161.174.nip.io
+```
+
+```bash
 PROD_ADDR=[...]
 
 curl "$PROD_ADDR/demo/hello"
+```
 
+```
+hello, PR!
+```
+
+```bash
 jx upgrade ingress \
     --namespaces jx-production \
     --skip-certmanager true \
     --urltemplate "{{.Service}}.{{.Domain}}" \
     -b
+```
 
+```
+Deleting ingress jx-production/go-demo-6
+using stable version 2.3.97 from charts of jenkins-x/exposecontroller from /Users/vfarcic/.jx/jenkins-x-versions
+Updating Helm repository...
+Helm repository update done.
+Ingress rules recreated
+Previous webhook endpoint http://jenkins.jx.35.243.161.174.nip.io/github-webhook/
+Updated webhook endpoint http://jenkins.jx.35.243.161.174.nip.io/github-webhook/
+Webhook URL unchanged. Use --force to force updating
+```
+
+```bash
 jx get applications
+```
 
+```
+APPLICATION STAGING PODS URL                                            PRODUCTION PODS URL
+go-demo-6   0.0.200 1/1  http://go-demo-6.staging.35.243.161.174.nip.io 0.0.200    1/1  http://go-demo-6.35.243.161.174.nip.io
+```
+
+```bash
 PROD_ADDR=[...]
 
 curl "$PROD_ADDR/demo/hello"
+```
 
-echo '{{- if eq .Release.Namespace "jx-production" }}
+```
+hello, PR!
+```
+
+```bash
+# `urltemplate` could be `{{.Service}}.com`
+
+echo "{{- if eq .Release.Namespace \"jx-production\" }}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: go-demo-6
+  name: go-demo-6-prod
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: nginx
 spec:
   rules:
-  - host: go-demo-6.com
+  - host: $DOMAIN
     http:
       paths:
       - backend:
           serviceName: go-demo-6
           servicePort: 80
 {{- end }}
-' | tee charts/go-demo-6/templates/ing.yaml
-
-# Add `if` to service.yaml as well
+" | tee charts/go-demo-6/templates/ing.yaml
 
 git add .
 
@@ -142,7 +263,14 @@ git push
 jx get activity -f go-demo-6 -w
 
 jx get applications
+```
 
+```
+APPLICATION STAGING PODS URL                                            PRODUCTION PODS URL
+go-demo-6   0.0.201 1/1  http://go-demo-6.staging.35.243.161.174.nip.io 0.0.200    1/1  http://go-demo-6.play-with-jx.com
+```
+
+```bash
 VERSION=[...]
 
 jx promote go-demo-6 \
@@ -152,13 +280,11 @@ jx promote go-demo-6 \
 
 jx get applications
 
-ADDR=[...] # Convert to a `kubectl` query
+curl "http://$DOMAIN/demo/hello"
 
-curl -H "Host: go-demo-6.com" \
-    "http://$ADDR/demo/hello"
-
-# TODO: Cert Manager
+# NOTE: There are no certificates
 ```
+
 
 ## What Now?
 
@@ -180,6 +306,8 @@ hub delete -y \
 
 hub delete -y \
   $GH_USER/environment-jx-rocks-production
+
+rm -rf environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
