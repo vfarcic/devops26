@@ -60,8 +60,6 @@ PR_ADDR=[...]
 
 curl "$PR_ADDR/demo/hello"
 
-helm ls
-
 jx create issue -t "Add unit tests" \
     --body "Add unit tests to the CD process" \
     -b

@@ -33,7 +33,10 @@ jx create cluster gke \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
     --namespace cd \
-    --prow --tekton --no-tiller -b
+    --no-tiller \
+    --prow \
+    --tekton \
+    -b
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 

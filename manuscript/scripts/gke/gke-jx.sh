@@ -32,6 +32,7 @@ jx create cluster gke \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
+    --no-tiller \
     -b
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.

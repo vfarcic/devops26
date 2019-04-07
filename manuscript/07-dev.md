@@ -244,8 +244,14 @@ The output should display over a hundred variables. Some of them were created th
 Next, we should initialize Helm client residing in the DevPod so that we can use it to deploy charts.
 
 ```bash
-helm init --client-only
+kubectl create \
+    -f https://raw.githubusercontent.com/vfarcic/k8s-specs/master/helm/tiller-rbac.yml \
+    --record --save-config
+
+helm init --service-account tiller
 ```
+
+Is> We are using `tiller` only to simplify the development. For a more secure cluster, you should consider using Helm with `tiller` (server-side Helm) by executing `helm template` command.
 
 Now we're ready to build and deploy our application in the personal development environment.
 

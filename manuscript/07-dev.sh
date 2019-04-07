@@ -40,7 +40,11 @@ echo $DOCKER_REGISTRY
 
 env
 
-helm init --client-only
+kubectl create \
+    -f https://raw.githubusercontent.com/vfarcic/k8s-specs/master/helm/tiller-rbac.yml \
+    --record --save-config
+
+helm init --service-account tiller
 
 skaffold run -p dev
 

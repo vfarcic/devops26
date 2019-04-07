@@ -32,6 +32,7 @@ jx create cluster gke \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
+    --no-tiller \
     --kaniko \
     -b
 

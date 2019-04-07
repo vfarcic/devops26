@@ -31,19 +31,6 @@ export LB_IP=$(kubectl -n ingress-nginx \
 
 echo $LB_IP # It might take a while until LB is created. Repeat the `export` command if the output is empty.
 
-##################
-# Install Tiller #
-##################
-
-kubectl create \
-    -f https://raw.githubusercontent.com/vfarcic/k8s-specs/master/helm/tiller-rbac.yml \
-    --record --save-config
-
-helm init --service-account tiller
-
-kubectl -n kube-system \
-    rollout status deploy tiller-deploy
-
 ##############
 # Install jx #
 ##############
@@ -62,6 +49,7 @@ jx install \
     --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
+    --no-tiller \
     -b
 
 #######################

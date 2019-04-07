@@ -185,7 +185,8 @@ jx create cluster gke \
     --min-num-nodes 3 \
     --max-num-nodes 5 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -199,8 +200,6 @@ Once we're authenticated and the services are enabled, `jx` will create a cluste
 Once the GKE cluster is up and running, the process will create a `jx` Namespace. It will also modify your local `kubectl` context and create a ClusterRoleBinding that will give you the necessary administrative permissions.
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
-
-Once the cluster is up-and-running and configured, `jx` will install `tiller` (Helm server), since that is currently the preferred mechanism for installing and upgrading applications in Kubernetes.
 
 The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace. If it's not there (and it shouldn't be at this point), it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
 
@@ -258,7 +257,8 @@ jx create cluster eks -n jx-rocks \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -267,13 +267,11 @@ W> Do not be too hasty answering `jx` questions. For all other types of Kubernet
 
 The process started creating an EKS cluster right away. This will typically take around ten minutes, during which you won't see any movement in `jx` console output. It uses CloudFormation to set up EKS,as well as worker nodes, so you can monitor the progress by visiting the [CloudFormation page](https://console.aws.amazon.com/cloudformation/).
 
-Once the cluster is fully operational, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info. After that, `jx` will install `tiller` (Helm server) since that is currently the preferred mechanism for installing and upgrading applications in Kubernetes.
-
 The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace. If it's not there (and it shouldn't be at this point), it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer.
 
 Once we chose to install Ingress, the process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
 
-Jenkins X recommends using a custom DNS name to access services in your Kubernetes cluster. However, there is no way for me to know if you have a domain available for use or not. Instead, we'll use the [nip.io](http://nip.io/) service to create a fully qualified domain. To do that, we'll have to answer with `n` to the question "`would you like to register a wildcard DNS ALIAS to point at this ELB address?`". As a result, we'll be presented with another question. "`Would you like to wait and resolve this address to an IP address and use it for the domain?`". Answer with `y` (or press the enter key since that is the default answer). The process will wait until Elastic Load Balancer (ELB) is created and use its hostname to deduce its IP.
+Jenkins X recommends using a custom DNS name to access services in your Kubernetes cluster. However, there is no way for me to know if you have a domain available for use or not. Instead, we'll use the [nip.io](http://nip.io/) service to create a fully qualified domain. To do that, we'll have to answer with `n` to the question *"would you like to register a wildcard DNS ALIAS to point at this ELB address?"*. As a result, we'll be presented with another question. *"Would you like to wait and resolve this address to an IP address and use it for the domain?"*. Answer with `y` (or press the enter key since that is the default answer). The process will wait until Elastic Load Balancer (ELB) is created and use its hostname to deduce its IP.
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
@@ -345,17 +343,29 @@ aws iam put-role-policy \
     --policy-document https://raw.githubusercontent.com/vfarcic/k8s-specs/master/scaling/eks-autoscaling-policy.json
 ```
 
-Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. If you followed the logs from `jx cluster create`, you noticed that it already installed `tiller` (Helm server), so all we have to do now is execute `helm install stable/cluster-autoscaler`
+Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. If you followed the logs from `jx cluster create`, you noticed that it already installed `tiller` (Helm server), so all we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, we used `--no-tiller` flag when we created the cluster. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
 
 ```bash
-helm install stable/cluster-autoscaler \
+mkdir -p charts
+
+helm fetch stable/cluster-autoscaler \
+    -d charts \
+    --untar
+
+mkdir -p k8s-specs/aws
+
+helm template charts/cluster-autoscaler \
     --name aws-cluster-autoscaler \
+    --output-dir k8s-specs/aws \
     --namespace kube-system \
     --set autoDiscovery.clusterName=jx-rocks \
     --set awsRegion=us-west-2 \
     --set sslCertPath=/etc/kubernetes/pki/ca.crt \
-    --set rbac.create=true \
-    --wait
+    --set rbac.create=true
+
+kubectl apply \
+    -n kube-system \
+    -f k8s-specs/aws/cluster-autoscaler/*
 ```
 
 Once the Deployment is rolled out, the autoscaler should be fully operational.
@@ -389,7 +399,8 @@ jx create cluster aks \
     -s Standard_B2s \
     --nodes 3 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -545,7 +556,7 @@ DOMAIN=[...]
 If you do NOT have a domain, we can combine the IP with the [nip.io](http://nip.io/) service to create a fully qualified domain. If that's the case, please execute the command that follows.
 
 ```bash
-DOMAIN=jenkins.$LB_IP.nip.io
+DOMAIN=$LB_IP.nip.io
 ```
 
 We need to find out which provider to use. The available providers are the same as those you saw through the `jx create cluster help` command. For your convenience, we'll list them again through the `jx install` command.
@@ -616,7 +627,7 @@ INGRESS_DEP=nginx-ingress-controller
 ```
 
 There's only one more thing missing. I promise that this is the last one.
-
+xxx
 We need to know the Namespace in which `tiller` (Helm server) is running. Just as with Ingress, if you do NOT have `tiller`, `jx` will install it for you.
 
 So, if you do have `tiller`, replace `[...]` with the Namespace where it's running. Otherwise, skip the command that follows and make sure to remove the `--tiller-namespace` argument from the `jx install` command.
@@ -636,7 +647,8 @@ jx install \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
     --tiller-namespace $TILLER_NS \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 ```
 
 If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll notice that `jx install` executes the same steps as those performed by `jx cluster create`, except that the latter creates a cluster first. You can think of `jx install` as a subset of `jx cluster create`.

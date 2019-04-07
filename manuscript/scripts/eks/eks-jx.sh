@@ -35,6 +35,7 @@ jx create cluster eks -n jx-rocks \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
+    --no-tiller \
     -b
 
 # When in doubt, use the default answers, except in the case listed below
@@ -72,13 +73,26 @@ aws iam put-role-policy \
     --policy-name jx-rocks-AutoScaling \
     --policy-document https://raw.githubusercontent.com/vfarcic/k8s-specs/master/scaling/eks-autoscaling-policy.json
 
-helm install stable/cluster-autoscaler \
+mkdir -p charts
+
+helm fetch stable/cluster-autoscaler \
+    -d charts \
+    --untar
+
+mkdir -p k8s-specs/aws
+
+helm template charts/cluster-autoscaler \
     --name aws-cluster-autoscaler \
+    --output-dir k8s-specs/aws \
     --namespace kube-system \
     --set autoDiscovery.clusterName=jx-rocks \
     --set awsRegion=us-west-2 \
     --set sslCertPath=/etc/kubernetes/pki/ca.crt \
-    --set rbac.create=true --wait
+    --set rbac.create=true
+
+kubectl apply \
+    -n kube-system \
+    -f k8s-specs/aws/cluster-autoscaler/*
 
 #######################
 # Destroy the cluster #

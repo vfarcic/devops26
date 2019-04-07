@@ -63,6 +63,7 @@ jx install \
     --git-provider-url http://gitlab.$LB_IP.nip.io \
     --git-username root \
     --git-api-token $GL_TOKEN \
+    --no-tiller \
     -b
 
 # TODO: Switch to prow

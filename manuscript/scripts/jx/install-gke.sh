@@ -28,19 +28,6 @@ kubectl apply \
 kubectl apply \
     -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/cloud-generic.yaml
 
-##################
-# Install Tiller #
-##################
-
-kubectl create \
-    -f https://raw.githubusercontent.com/vfarcic/k8s-specs/master/helm/tiller-rbac.yml \
-    --record --save-config
-
-helm init --service-account tiller
-
-kubectl -n kube-system \
-    rollout status deploy tiller-deploy
-
 #####################
 # Install Jenkins X #
 #####################
@@ -76,6 +63,7 @@ jx install \
     --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
+    --no-tiller \
     -b
 
 #######################

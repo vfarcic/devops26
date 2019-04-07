@@ -52,6 +52,7 @@ jx install \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
     --namespace cd \
+    --no-tiller \
     --prow -b
 
 #######################
