@@ -77,7 +77,7 @@ Please wait until the activity of the application shows that all the steps were 
 
 Now we can promote our last release to production.
 
-# Versioning Releases Through Tags
+## Versioning Releases Through Tags
 
 Before we start "playing" with versions, we'll take a look at what we're currently running in the staging environment.
 

@@ -8,14 +8,17 @@
 - [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
 - [X] 07-dev.md
 - [X] 08-pr.md
+- [ ] Add to https://www.devopstoolkitseries.com/s
 - [ ] Remove the warning *I made a few changes*
 - [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
-- [ ] 09-promote.md
+- [X] 09-promote.md
 - [ ] Change GKE `--zone` to `--region`
-- [ ] 10-versioning.md
-- [ ] 99-build-notifications.md
-- [ ] 99-bg-with-flagger-addon.md
-- [ ] 99-custom-build-images.md
+- [X] 10-versioning.md
+- [ ] 99-gitops.md
+- [ ] 99-prow.md
+- [ ] 99-tekton.md
+- [ ] 99-no-tiller.md
+- [ ] 99-vault.md
 - [ ] 99-ng-arg.md
 - [ ] 99-rbac.md
 - [ ] 99-custom-jenkins-servers.md
@@ -38,6 +41,8 @@
 - [ ] 99-upgrade.md
 - [ ] 99-pipeline-yaml-from-buildpacks.md
 - [ ] 99-domains.md
+- [ ] 99-build-notifications.md
+- [ ] 99-custom-build-images.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
