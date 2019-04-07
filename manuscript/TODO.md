@@ -12,16 +12,11 @@
 - [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
 - [ ] 09-promote.md
 - [ ] Change GKE `--zone` to `--region`
-- [ ] 10-domains.md
-- [ ] 99-upgrade.md
-- [ ] 99-helm-hooks.md
-- [ ] 99-bdd.md
-- [ ] 99-hashi-vault.md
+- [ ] 10-versioning.md
 - [ ] 99-build-notifications.md
 - [ ] 99-bg-with-flagger-addon.md
 - [ ] 99-custom-build-images.md
 - [ ] 99-ng-arg.md
-- [ ] 99-change-versioning.md
 - [ ] 99-rbac.md
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-notifications-to-slack.md
@@ -40,6 +35,9 @@
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
+- [ ] 99-upgrade.md
+- [ ] 99-pipeline-yaml-from-buildpacks.md
+- [ ] 99-domains.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

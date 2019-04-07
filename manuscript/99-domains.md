@@ -93,12 +93,7 @@ jx upgrade ingress \
     --domain $DOMAIN \
     -b
 
-# jx upgrade ingress \
-#     --cluster true \
-#     --skip-certmanager true \
-#     --urltemplate "{{.Service}}.{{.Namespace}}.{{.Domain}}"
-
-# Batch mode does not work with `--domain`
+# Batch mode does not work with `--domain` (https://github.com/jenkins-x/jx/pull/3499)
 
 jx get applications
 

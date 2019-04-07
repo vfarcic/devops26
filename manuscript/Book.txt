@@ -7,3 +7,4 @@
 07-dev.md
 08-pr.md
 09-promote.md
+10-versioning.md
