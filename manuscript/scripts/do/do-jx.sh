@@ -46,7 +46,6 @@ jx install \
     --default-admin-password=admin \
     --ingress-namespace ingress-nginx \
     --ingress-deployment nginx-ingress-controller \
-    --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
     --no-tiller \

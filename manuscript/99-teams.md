@@ -12,7 +12,5 @@ kubectl get secret \
 
 jx console
 
-# Select `jenkins`
-
 jx create env
 ```

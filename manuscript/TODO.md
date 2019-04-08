@@ -14,8 +14,10 @@
 - [X] 09-promote.md
 - [ ] Change GKE `--zone` to `--region`
 - [X] 10-versioning.md
-- [ ] 99-anchore
+- [ ] 99-additional-apps-in-environment.md
+- [ ] 99-teams.md
 - [ ] 99-kaniko.md
+- [ ] 99-anchore.md
 - [ ] 99-add-app.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
@@ -36,13 +38,12 @@
 - [ ] 99-buildpacks-tekton.md
 - [ ] 99-import-serverless.md
 - [ ] 99-custom-jenkins-servers.md
-- [ ] 99-notifications-to-slack.md
 - [ ] 99-chatops-from-slack-to-jx.md
-- [ ] 99-teams.md
 - [ ] 99-cloudbees.md
 - [ ] 99-rbac.md
 - [ ] 99-addons.md
 - [ ] 99-progressive-delivery.md
+- [ ] 99-create-chat.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

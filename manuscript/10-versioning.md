@@ -16,7 +16,7 @@ I'm writing this on my MacBook running macOS *Mojave*. My Pixel 3 phone is runni
 
 For technical users, we need something more specific and less random, so let's take a look at the release identifiers of some of the software we are already using.
 
-I am currently running `kubectl` version `v1.13.2`, and my Kubernetes cluster is `1.12.6-gke.10`. My Helm client and server (tiller) are both at the version `v2.12.1`. I have `jx` CLI version `1.3.1074` and Git `2.17.2`. What do all those versions have in common? They all contain three numbers, with an optional prefix (e.g., `v`) or a suffix (e.g., `-gke.10`). All those tools are using semantic versioning. That's the versioning engineers should care about. That's the versioning most of us should use.
+I am currently running `kubectl` version `v1.13.2`, and my Kubernetes cluster is `1.12.6-gke.10`. My Helm client is at the version `v2.12.1` (I'm not using tiller). I have `jx` CLI version `1.3.1074` and Git `2.17.2`. What do all those versions have in common? They all contain three numbers, with an optional prefix (e.g., `v`) or a suffix (e.g., `-gke.10`). All those tools are using semantic versioning. That's the versioning engineers should care about. That's the versioning most of us should use.
 
 ## Semantic Versioning Explained
 

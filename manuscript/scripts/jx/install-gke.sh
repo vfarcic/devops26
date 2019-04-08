@@ -60,7 +60,6 @@ jx install \
     --default-admin-password=admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --tiller-namespace kube-system \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
     --no-tiller \

@@ -343,7 +343,7 @@ aws iam put-role-policy \
     --policy-document https://raw.githubusercontent.com/vfarcic/k8s-specs/master/scaling/eks-autoscaling-policy.json
 ```
 
-Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. If you followed the logs from `jx cluster create`, you noticed that it already installed `tiller` (Helm server), so all we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, we used `--no-tiller` flag when we created the cluster. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
+Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. All we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, we used `--no-tiller` flag when we created the cluster. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
 
 ```bash
 mkdir -p charts
@@ -412,8 +412,6 @@ Once we're authenticated, `jx` will create a cluster. It should take around ten 
 Once the AKS cluster is up and running, the process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
-
-Once the cluster is up-and-running and configured, `jx` will install `tiller` (Helm server) since that is currently the preferred mechanism for installing and upgrading applications in Kubernetes.
 
 The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace. If it's not there (and it shouldn't be at this point), it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
 
@@ -626,17 +624,7 @@ In my case, the Deployment is called `nginx-ingress-controller`. Yours is likely
 INGRESS_DEP=nginx-ingress-controller
 ```
 
-There's only one more thing missing. I promise that this is the last one.
-xxx
-We need to know the Namespace in which `tiller` (Helm server) is running. Just as with Ingress, if you do NOT have `tiller`, `jx` will install it for you.
-
-So, if you do have `tiller`, replace `[...]` with the Namespace where it's running. Otherwise, skip the command that follows and make sure to remove the `--tiller-namespace` argument from the `jx install` command.
-
-```bash
-TILLER_NS=[...]
-```
-
-Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it. Similarly, remove `--tiller-namespace` if you do not have tiller and you prefer `jx` to set it up for you.
+Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it.s
 
 ```bash
 jx install \
@@ -646,7 +634,6 @@ jx install \
     --default-admin-password admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --tiller-namespace $TILLER_NS \
     --default-environment-prefix jx-rocks \
     --no-tiller
 ```
@@ -656,8 +643,6 @@ If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll no
 The process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
-
-Also, if you did not specify `--tiller-namespace`, `jx` will install `tiller` (Helm server), since that is the default mechanism for installing and upgrading applications in Kubernetes.
 
 The next in line is Ingress. The process will try to find it inside the Namespace specified as `--ingress-namespace`. If you did not set that argument, it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
 
