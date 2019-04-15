@@ -44,7 +44,7 @@ echo "nexus:
 jx create cluster gke \
     -n jx-rocks \
     -p $PROJECT \
-    -z us-east1-b \
+    -r us-east1 \
     -m n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 5 \

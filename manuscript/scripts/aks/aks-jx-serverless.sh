@@ -21,9 +21,12 @@ jx create cluster aks \
     -s Standard_B2s \
     --nodes 3 \
     --default-admin-password=admin \
-    --default-environment-prefix jx-rocks \
+    --default-environment-prefix tekton \
     --git-provider-kind github \
+    --namespace cd \
     --no-tiller \
+    --prow \
+    --tekton \
     -b
 
 #######################

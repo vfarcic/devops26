@@ -8,12 +8,14 @@ jx version
 # Install Jenkins X #
 #####################
 
-# Replace `[...]` with the IP of the load balancer created when you installed the NGINX Ingress controller`
+# Replace `[...]` with the IP of the load balancer created when you installed the NGINX Ingress controller.
+# An example command that retrieves the IP is as follows.
+# kubectl get svc --all-namespaces -l app=nginx-ingress -l component=controller -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}"
 
 LB_IP=[...]
 
 # Replace `[...]` with the domain that will be used to access Jenkins X and that is pointing to your LB. 
-# If you don't have a domain, use `jenkinx.$LB_IP.nip.io` as the value.`
+# If you don't have a domain, use `serverless.$LB_IP.nip.io` as the value.`
 
 DOMAIN=[...]
 
@@ -47,11 +49,13 @@ jx install \
     --default-admin-password=admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --default-environment-prefix jx-rocks \
+    --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
     --no-tiller \
-    --prow -b
+    --prow \
+    --tekton \
+    -b
 
 #######################
 # Uninstall Jenkins X #

@@ -32,7 +32,7 @@ PROJECT=[...]
 jx create cluster gke \
     -n jx-rocks \
     -p $PROJECT \
-    -z us-east1-b \
+    -r us-east1 \
     -m n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 5 \
@@ -202,13 +202,24 @@ rm -f ~/.jx/jenkinsAuth.yaml
 # If GKE
 gcloud container clusters \
     delete jx-rocks \
-    --zone us-east1-b \
+    --region us-east1 \
     --quiet
 
 # If GKE
 gcloud compute disks delete \
+    --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="-users:*" \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-c \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-d \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)")
 
 # If EKS

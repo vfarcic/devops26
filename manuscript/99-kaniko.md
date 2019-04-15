@@ -48,17 +48,23 @@
 # jx get activities -f go-demo-6 -w
 ```
 
-## Kaniko
+## Kaniko Manually
+
+```bash
+# TODO: Commands
+
+# cd go-demo-6 # If you're not already there
+```
+
+## Kaniko Quickstart
 
 ```bash
 jx create quickstart \
   -l go \
-  -p jx-go-kaniko \
+  -p jx-kaniko \
   -b
 
-# cd go-demo-6 # If you're not already there
-
-
+jx get activities -f jx-kaniko -w
 ```
 
 ## What Now?
@@ -74,9 +80,9 @@ hub delete -y \
 hub delete -y \
   $GH_USER/environment-jx-rocks-production
   
-hub delete -y $GH_USER/jx-go-kaniko
+hub delete -y $GH_USER/jx-kaniko
 
-rm -rf jx-go-kaniko
+rm -rf jx-kaniko
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 

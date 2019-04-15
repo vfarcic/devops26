@@ -25,7 +25,7 @@ echo "nexus:
 jx create cluster gke \
     -n jx-rocks \
     -p $PROJECT \
-    -z us-east1-b \
+    -r us-east1 \
     -m n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 5 \
@@ -44,11 +44,23 @@ jx create cluster gke \
 
 gcloud container clusters \
     delete jx-rocks \
-    --zone us-east1-b \
+    --region us-east1 \
     --quiet
 
 # Remove unused disks to avoid reaching the quota (and save a bit of money)
+# Remove unused disks to avoid reaching the quota (and save a bit of money)
 gcloud compute disks delete \
+    --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="-users:*" \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-c \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-d \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)")

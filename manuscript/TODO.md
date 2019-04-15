@@ -5,18 +5,27 @@
 - [X] 03-quickstart.md
 - [X] 04-import.md
 - [X] 05-buildpacks.md
-- [X] 06-env.md (publish "Ten Commandments Of GitOps Applied To Continuous Delivery")
+- [X] 06-env.md
 - [X] 07-dev.md
 - [X] 08-pr.md
-- [ ] Add to https://www.devopstoolkitseries.com/s
 - [ ] Remove the warning *I made a few changes*
-- [ ] Add changes to `charts/preview/values.yaml` in pr.md to the buildpack
 - [X] 09-promote.md
 - [ ] Change GKE `--zone` to `--region`
 - [X] 10-versioning.md
-- [ ] 99-additional-apps-in-environment.md
-- [ ] 99-teams.md
+- [ ] 11-serverless.md
+- [ ] Remove of rewrite the *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
+- [ ] Publish "Going Serverless" oon TechnologyConversations.ccom 
+- [ ] Remove or rewrite the *Today (April 2019), serverless Jenkins X...* paragraph
+- [ ] 99-prow.md
+- [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
+- [ ] 99-jenkins-x-yml-extension-model.md
+- [ ] 99-jenkins-x-yml-blank.md
+- [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
+- [ ] 99-domains.md
+- [ ] 99-knative.md (https://jenkins-x.io/developing/knative/)
+- [ ] 99-additional-apps-in-environment-repos.md
+- [ ] 99-teams-and-multi-cluster.md
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
 - [ ] 99-container-registry.md
@@ -24,22 +33,17 @@
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
 - [ ] 99-upgrade.md
-- [ ] 99-pipeline-yaml-from-buildpacks.md
-- [ ] 99-domains.md
 
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
 - [ ] 99-gitops.md
-- [ ] 99-prow.md
 - [ ] 99-no-tiller.md
 - [ ] 99-vault.md
-- [ ] 99-tekton.md
 - [ ] 99-ng-arg.md
 - [ ] 99-buildpacks-tekton.md
 - [ ] 99-import-serverless.md
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-chatops-from-slack-to-jx.md
-- [ ] 99-cloudbees.md
 - [ ] 99-rbac.md
 - [ ] 99-addons.md
 - [ ] 99-progressive-delivery.md
@@ -138,3 +142,4 @@
 - [ ] [KataContainers](https://katacontainers.io/)
 - [ ] [Submariner](https://submariner.io/)
 - [ ] Terraform
+- [ ] [KubeCost](https://kubecost.com/)

@@ -33,9 +33,12 @@ jx create cluster eks -n jx-rocks \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password=admin \
-    --default-environment-prefix jx-rocks \
+    --default-environment-prefix tekton \
     --git-provider-kind github \
+    --namespace cd \
     --no-tiller \
+    --prow \
+    --tekton \
     -b
 
 # When in doubt, use the default answers, except in the case listed below

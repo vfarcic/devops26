@@ -161,7 +161,7 @@ Please make sure to replace `[...]` with the name of the GCP project before exec
 PROJECT=[...]
 ```
 
-Now we're ready to create a GKE cluster with all the tools installed and configured. We'll name it `jx-rocks` (`-n`) and let it reside inside the project we just defined (`-p`). It'll run inside `us-east1-b` zone (`-z`) and on `n1-standard-2` (2 CPUs and 7.5 GB RAM) machines (`-m`). Feel free to reduce that to `n1-standard-1` if you're concerned about the cost. Since GKE auto-scales nodes automatically, the cluster will scale up if we need more.
+Now we're ready to create a GKE cluster with all the tools installed and configured. We'll name it `jx-rocks` (`-n`) and let it reside inside the project we just defined (`-p`). It'll run inside `us-east1` region (`-r`) and on `n1-standard-2` (2 CPUs and 7.5 GB RAM) machines (`-m`). Feel free to reduce that to `n1-standard-1` if you're concerned about the cost. Since GKE auto-scales nodes automatically, the cluster will scale up if we need more.
 
 While at the subject of scaling, we'll have a minimum of three nodes (`--min-num-nodes`) and we'll cap it to five (`--max-num-nodes`).
 
@@ -180,7 +180,7 @@ Feel free to change any of the values in the command that follows to suit your n
 jx create cluster gke \
     -n jx-rocks \
     -p $PROJECT \
-    -z us-east1-b \
+    -r us-east1 \
     -m n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 5 \
@@ -758,7 +758,7 @@ Please use the instructions that follow to delete your GKE cluster if it's dedic
 ```bash
 gcloud container clusters \
     delete jx-rocks \
-    --zone us-east1-b \
+    --region us-east1 \
     --quiet
 ```
 
@@ -766,10 +766,23 @@ With the cluster gone, there are still some resources that were not removed. Nam
 
 ```bash
 gcloud compute disks delete \
+    --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="-users:*" \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-c \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-d \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)")
 ```
+
+W> You will likely see an error stating that a disk cannot be deleted. That's because the command
 
 That command listed all disks that do not have a user assigned (not used). The list of those disks is then passed to the `disks delete` command that removed them one by one if you confirmed the action.
 
