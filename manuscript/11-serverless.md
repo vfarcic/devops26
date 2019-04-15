@@ -73,9 +73,9 @@ In this and the next few chapters, we'll explore what serverless gives us, and i
 
 What you've seen so far is Jenkins X first generation, and now we're moving into the second.
 
-W> At the time of this writing, serverless Jenkins X works only with GitHub repository. Also, it is still not polished in EKS and AKS. The examples in this chapter were validated in GKE and in Kubernetes clusters that use Docker Registry (AKS and EKS use services as container registries). At least, that is the status in April 2019. The community is working on extending the support for other Git providers. In parallel, an effort is underway to make it work in other Kubernetes flavors. It will work everywhere soon, and I will update the book as soon as that happens.
+W> At the time of this writing, serverless Jenkins X works only with GitHub repository. At least, that is the status in April 2019. The community is working on extending the support for other Git providers, and I will update the book as soon as that happens.
 
-I> For practice purposes, GitHub should not be an issue since all the examples we used so far were using GitHub. That leaves us with the GKE limitation. I urge you to create a GKE account if you do not have it already. You'll get 300$ in credits which should be more than enough to run all the exercises in this book, many times over. By the time you finish learning about serverless Jenkins X, the limitations will likely be lifted, and you should be able to apply what you learned in your favorite Kubernetes platform and using your Git provider of choice. Please use the [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18) Gist to set up your GKE cluster if you haven't already.
+I> For practice purposes, GitHub should not be an issue since all the examples we used so far were using GitHub.
 
 We are about to install serverless Jenkins X inside an existing cluster. It will run in parallel with the static Jenkins we created earlier. That way we can see not only how serverless works, but also demonstrate that both can be combined inside the same cluster. At the same time, you can think of the exercise that follows as a way to refresh your knowledge how to install any Jenkins X flavor inside an existing cluster (unless that's what you've been doing all along).
 
@@ -108,6 +108,16 @@ W> Please replace `[...]` with the name of your Kubernetes provider (e.g., `gke`
 
 ```bash
 PROVIDER=[...]
+```
+
+At the time of this writing (April 2019), serverless Jenkins X has problems with container registry services like ECR and Azure Container Registry. Since it works correctly with Docker Registry running inside a cluster, we'll force it by adding `docker-registry` entry in `myvalues.yaml`.
+
+```bash
+echo "nexus:
+  enabled: false
+docker-registry:
+  enabled: true
+" | tee myvalues.yaml
 ```
 
 Now we can install the serverless flavor of Jenkins X.
@@ -234,30 +244,7 @@ Now that we discovered the first change introduced through serverless Jenkins X,
 jx get activities -f jx-serverless -w
 ```
 
-The output is as follows.
-
-```
-STEP                                        STARTED AGO DURATION STATUS
-vfarcic/jx-serverless/master #1                   7m24s     2m2s Succeeded Version: 0.0.1
-  from build pack                                 7m24s     2m2s Succeeded
-    Credential Initializer Fhngb                  7m24s       0s Succeeded
-    Git Source Vfarcic Jx Go Master Wlzhb         7m22s       1s Succeeded https://github.com/vfarcic/jx-serverless
-    Place Tools                                   7m19s       0s Succeeded
-    Setup Jx Git Credentials                      6m36s       0s Succeeded
-    Build Make Build                              6m35s       5s Succeeded
-    Build Container Build                         6m26s       1s Succeeded
-    Build Post Build                              6m24s       0s Succeeded
-    Promote Changelog                             6m23s       4s Succeeded
-    Promote Helm Release                          6m18s       3s Succeeded
-    Promote Jx Promote                            6m14s      49s Succeeded
-    Source Mkdir Vfarcic Jx Go Master Zk8nr       5m24s       0s Succeeded
-    Source Copy Vfarcic Jx Go Master N2qqj        5m23s       1s Succeeded
-  Promote: staging                                6m10s      44s Succeeded
-    PullRequest                                   6m10s      44s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/1 Merge SHA: 50698e8c215b5f89f86d930955176b97fd2fdab9
-    Update                                        5m26s       0s Succeeded
-```
-
-Many of the steps in the activity are new. That is due to the underlying mechanism that executes them. As we already mentioned, the pipeline is functionally the same as it would be if we created the quickstart in a static Jenkins. We'll explore those differences in more detail soon. For now, we'll take a look at the Pods in the `cd` Namespace and see whether there is anything interesting going on there.
+The output is the same as with static Jenkins X, so there's nothing new there.
 
 Please cancel the activity watcher by pressing *ctrl+c*.
 
@@ -380,7 +367,7 @@ If, on the other hand, you are interested in details, we will cover each of the 
 
 Should we switch to the serverless model or stick with the static flavor we've been exploring in the previous chapters? The answer to that question is not as straightforward as it might seem. On the one hand, the serverless flavor is the present and the future. That's the model Jenkins X will be pushing, and that's the one that will receive most contributions. Judging by the previous sentence, you might conclude that it is an easy decision after all. Why would we use something old (static), when we can choose the new (serverless)? The reason why you might want to stick with the static version (for now) lies in the red lines.
 
-Today (April 2019), serverless Jenkins X works only in GKE and in Kubernetes platforms that use Docker Registry (not in AKS and EKS). Also, it supports only GitHub. If you're using EKS or AKS, you might need to postpone switching. Similarly, if you are not using GitHub (e.g., if, for example, you prefer GitLab), you are forced to wait with the adoption. The good news is that the team is working hard on making serverless Jenkins X work in any Kubernetes platform and with all the popular Git providers. With that in mind, even if you cannot adopt it just yet, it might be a good idea to start learning it right away. If that's what you're planning to do, you'll be glad to know that the next few chapters are dedicated to serverless Jenkins X. After we master it, we'll explore the subjects that work in both flavors, and I'll make sure to stress any differences you might experience.
+Today (April 2019), serverless Jenkins X supports only GitHub. So, if you are not using GitHub (e.g., if, for example, you prefer GitLab), you are forced to wait with the adoption. The good news is that the team is working hard on making serverless Jenkins X work with all the popular Git providers. With that in mind, even if you cannot adopt it just yet, it might be a good idea to start learning it right away. If that's what you're planning to do, you'll be glad to know that the next few chapters are dedicated to serverless Jenkins X. After we master it, we'll explore the subjects that work in both flavors, and I'll make sure to stress any differences you might experience.
 
 Nevertheless, do not make the decision just yet. There are many benefits of serverless that we did not even mention. My job is to show you both solutions with their pros and cons. It's up to you to choose which one works better for you and your team.
 

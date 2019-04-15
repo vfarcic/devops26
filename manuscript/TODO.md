@@ -10,20 +10,21 @@
 - [X] 08-pr.md
 - [ ] Remove the warning *I made a few changes*
 - [X] 09-promote.md
-- [ ] Change GKE `--zone` to `--region`
 - [X] 10-versioning.md
-- [ ] 11-serverless.md
-- [ ] Remove of rewrite the *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
+- [X] 11-serverless.md
 - [ ] Publish "Going Serverless" oon TechnologyConversations.ccom 
-- [ ] Remove or rewrite the *Today (April 2019), serverless Jenkins X...* paragraph
-- [ ] 99-prow.md
+- [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
+- [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
+- [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
+- [ ] 12-prow.md
+- [ ] Remove `--no-tiller` (it's default since v2.x.x)
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] 99-jenkins-x-yml-extension-model.md
 - [ ] 99-jenkins-x-yml-blank.md
 - [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
 - [ ] 99-domains.md
-- [ ] 99-knative.md (https://jenkins-x.io/developing/knative/)
+- [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md
 - [ ] 99-teams-and-multi-cluster.md
 - [ ] 99-anchore.md
