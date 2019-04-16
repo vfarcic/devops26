@@ -1,3 +1,9 @@
+##############
+# Upgrade jx #
+##############
+
+jx version
+
 ####################
 # Create a cluster #
 ####################
@@ -16,6 +22,8 @@ jx create cluster aks \
     --nodes 3 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
+    --git-provider-kind github \
+    --no-tiller \
     -b
 
 #######################

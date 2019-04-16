@@ -1,20 +1,20 @@
-# If MacOS
+# If macOS
 brew tap jenkins-x/jx
 
-# If MacOS
+# If macOS
 brew install jx
 
-# If Lunux
+# If Linux
 mkdir -p ~/.jx/bin
 
-# If Lunux
+# If Linux
 curl -L https://github.com/jenkins-x/jx/releases/download/v1.3.634/jx-linux-amd64.tar.gz \
     | tar xzv -C ~/.jx/bin
 
-# If Lunux
+# If Linux
 export PATH=$PATH:~/.jx/bin
 
-# If Lunux
+# If Linux
 echo 'export PATH=$PATH:~/.jx/bin' \
     >> ~/.bashrc
 
@@ -32,12 +32,13 @@ PROJECT=[...]
 jx create cluster gke \
     -n jx-rocks \
     -p $PROJECT \
-    -z us-east1-b \
+    -r us-east1 \
     -m n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 5 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 
 # If EKS
 export AWS_ACCESS_KEY_ID=[...]
@@ -56,7 +57,8 @@ jx create cluster eks -n jx-rocks \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 
 # If EKS
 ASG_NAME=$(aws autoscaling \
@@ -93,14 +95,30 @@ aws iam put-role-policy \
     --policy-document https://raw.githubusercontent.com/vfarcic/k8s-specs/master/scaling/eks-autoscaling-policy.json
 
 # If EKS
-helm install stable/cluster-autoscaler \
+mkdir -p charts
+
+# If EKS
+helm fetch stable/cluster-autoscaler \
+    -d charts \
+    --untar
+
+# If EKS
+mkdir -p k8s-specs/aws
+
+# If EKS
+helm template charts/cluster-autoscaler \
     --name aws-cluster-autoscaler \
+    --output-dir k8s-specs/aws \
     --namespace kube-system \
     --set autoDiscovery.clusterName=jx-rocks \
     --set awsRegion=us-west-2 \
     --set sslCertPath=/etc/kubernetes/pki/ca.crt \
-    --set rbac.create=true \
-    --wait
+    --set rbac.create=true
+
+# If EKS
+kubectl apply \
+    -n kube-system \
+    -f k8s-specs/aws/cluster-autoscaler/*
 
 # If AKS
 jx create cluster aks \
@@ -110,7 +128,8 @@ jx create cluster aks \
     -s Standard_B2s \
     --nodes 3 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 
 jx compliance run
 
@@ -161,7 +180,8 @@ jx install \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
     --tiller-namespace $TILLER_NS \
-    --default-environment-prefix jx-rocks
+    --default-environment-prefix jx-rocks \
+    --no-tiller
 
 kubectl -n jx get pods
 
@@ -182,13 +202,24 @@ rm -f ~/.jx/jenkinsAuth.yaml
 # If GKE
 gcloud container clusters \
     delete jx-rocks \
-    --zone us-east1-b \
+    --region us-east1 \
     --quiet
 
 # If GKE
 gcloud compute disks delete \
+    --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="-users:*" \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-c \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-d \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)")
 
 # If EKS

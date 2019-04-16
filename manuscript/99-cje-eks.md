@@ -266,6 +266,6 @@ echo "http://$USER:$API_TOKEN@$CJE_ADDR/teams-$MASTER/job/$MASTER/project/$JOB" 
 ```bash
 gcloud container clusters \
     delete devops25 \
-    --zone $ZONE \
+    --region $ZONE \
     --quiet
 ```

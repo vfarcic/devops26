@@ -53,13 +53,13 @@ jx get build logs $GH_USER/jx-go/master
 
 jx get pipelines
 
-jx get apps
+jx get applications
 
 jx get env
 
-jx get apps -e staging
+jx get applications -e staging
 
-jx get apps -e production
+jx get applications -e production
 
 open "https://github.com/$GH_USER/jx-go/releases"
 

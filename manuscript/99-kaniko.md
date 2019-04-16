@@ -1,162 +1,90 @@
-```bash
-cd ../go-demo-3
+## TODO
 
-docker run -it --rm \
-    -v $(pwd):/workspace \
-    --entrypoint=/busybox/sh \
-    gcr.io/kaniko-project/executor:debug
+- [ ] Code
+- [ ] Write
+- [ ] Code review GKE
+- [ ] Code review EKS
+- [ ] Code review AKS
+- [ ] Code review existing cluster
+- [ ] Text review
+- [ ] Gist
+- [ ] Review titles
+- [ ] Proofread
+- [ ] Diagrams
+- [ ] Add to slides
+- [ ] Publish on TechnologyConversations.com
+- [ ] Add to Book.txt
+- [ ] Publish on LeanPub.com
 
-mkdir /workspace
+# kaniko
 
-cd /workspace/
+## Cluster
 
-wget https://raw.githubusercontent.com/vfarcic/go-demo-3/master/Dockerfile
-
-/kaniko/executor \
-    -d vfarcic/go-demo-3 \
-    -c /workspace \
-    -f /workspace/Dockerfile
-```
-
-
-
-
-
-
-
-
-
-
-```bash
-docker login
-```
-
-```
-Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
-Username: vfarcic
-Password:
-Login Succeeded
-```
+* Create new **GKE** cluster: [gke-jx-kaniko.sh](TODO:)
+* Create new **EKS** cluster: [eks-jx-kaniko.sh](TODO:)
+* Create new **AKS** cluster: [aks-jx-kaniko.sh](TODO:)
+* Use an **existing** cluster: [install-kaniko.sh](TODO:)
+* Use an **existing** cluster: [upgrade-kaniko.sh](TODO:)
 
 ```bash
-cat ~/.docker/config.json
-```
+# cd go-demo-6
 
-```json
-{
-  "auths": {
-    "https://127.0.0.1:31567": {},
-    "https://index.docker.io/v1/": {}
-  },
-  "HttpHeaders": {
-    "User-Agent": "Docker-Client/18.05.0-ce (darwin)"
-  },
-  "credsStore": "osxkeychain",
-  "experimental": "enabled",
-  "orchestrator": "kubernetes"
-}
+# git pull
+
+# git checkout pr
+
+# git merge -s ours master --no-edit
+
+# git checkout master
+
+# git merge pr
+
+# git push
 ```
 
 ```bash
-DH_USER=[...]
+# jx import -b
 
-DH_PASS=[...]
-
-DH_EMAIL=[...]
-
-kubectl -n jenkins \
-    create secret \
-    docker-registry regcred \
-    --docker-server https://index.docker.io/v1/ \
-    --docker-username=$DH_USER \
-    --docker-password=$DH_PASS \
-    --docker-email=$DH_EMAIL
+# jx get activities -f go-demo-6 -w
 ```
 
-```
-secret "regcred" created
-```
+## Kaniko Manually
 
 ```bash
-kubectl -n jenkins \
-    get secret regcred -o yaml
+# TODO: Commands
+
+# cd go-demo-6 # If you're not already there
 ```
 
-```yaml
-apiVersion: v1
-data:
-  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2ZmFyY2ljIiwicGFzc3dvcmQiOiJUcnVzdG5vMU5vdyIsImVtYWlsIjoidmlrdG9yQGZhcmNpYy5jb20iLCJhdXRoIjoiZG1aaGNtTnBZenBVY25WemRHNXZNVTV2ZHc9PSJ9fX0=
-kind: Secret
-metadata:
-  creationTimestamp: 2018-06-14T20:13:23Z
-  name: regcred
-  namespace: default
-  resourceVersion: "39315"
-  selfLink: /api/v1/namespaces/default/secrets/regcred
-  uid: 63a8ce92-700f-11e8-8d9c-025000000001
-type: kubernetes.io/dockerconfigjson
-```
+## Kaniko Quickstart
 
 ```bash
-echo $(kubectl -n jenkins \
-    get secret regcred \
-    -o go-template \
-    --template="{.data.\.dockerconfigjson | base64decode}")
+jx create quickstart \
+  -l go \
+  -p jx-kaniko \
+  -b
+
+jx get activities -f jx-kaniko -w
 ```
 
-```json
-{
-  "auths": {
-    "https://index.docker.io/v1/": {
-      "username": "vfarcic",
-      "password": "...",
-      "email": "viktor@farcic.com",
-      "auth": "..."
-    }
-  }
-}
-```
+## What Now?
 
-```groovy
-def label = "kaniko-${UUID.randomUUID().toString()}"
+```bash
+cd ..
 
-podTemplate(name: 'kaniko', label: label, yaml: """
-kind: Pod
-metadata:
-  name: kaniko
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:debug
-    imagePullPolicy: Always
-    command:
-    - /busybox/cat
-    tty: true
-    volumeMounts:
-      - name: jenkins-docker-cfg
-        mountPath: /root
-  volumes:
-  - name: jenkins-docker-cfg
-    projected:
-      sources:
-      - secret:
-          name: regcred
-          items:
-            - key: .dockerconfigjson
-              path: .docker/config.json
-"""
-  ) {
+GH_USER=[...]
 
-   node(label) {
-     stage('Build with Kaniko') {
-       //git 'https://github.com/jenkinsci/docker-jnlp-slave.git'
-       git 'https://github.com/vfarcic/go-demo-3.git'
-       container(name: 'kaniko', shell: '/busybox/sh') {
-           sh '''#!/busybox/sh
-           /kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure-skip-tls-verify --destination=index.docker.io/vfarcic/xxx
-           '''
-       }
-     }
-   }
- }
+hub delete -y \
+  $GH_USER/environment-jx-rocks-staging
+
+hub delete -y \
+  $GH_USER/environment-jx-rocks-production
+  
+hub delete -y $GH_USER/jx-kaniko
+
+rm -rf jx-kaniko
+
+rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
+
+rm -f ~/.jx/jenkinsAuth.yaml
 ```

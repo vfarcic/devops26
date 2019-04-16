@@ -1,0 +1,1 @@
+This application uses Anchore

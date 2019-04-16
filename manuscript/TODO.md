@@ -1,38 +1,54 @@
 ## The DevOps 2.6 Toolkit
 
 - [ ] 01-preface.md (add *Overview* amd *Audience*)
-- [X] 02-intro.md (publish "Is Your Existing Cluster Ready For Jenkins X?", and "Installing Jenkins X In An Existing Kubernetes Cluster" sub-chapters)
+- [X] 02-intro.md
 - [X] 03-quickstart.md
 - [X] 04-import.md
-- [ ] 05-buildpacks.md
-- [ ] 99-env.md
-- [ ] 99-skaffold.md
-- [ ] 99-pr.md
-- [ ] 99-promote.md
-- [ ] 99-serverless.md
-- [ ] 99-prow.md
-- [ ] 99-knative-build.md
-- [ ] 99-import-serverless.md
-- [ ] 99-knative-build.md
-- [ ] 99-prow.md
+- [X] 05-buildpacks.md
+- [X] 06-env.md
+- [X] 07-dev.md
+- [X] 08-pr.md
+- [ ] Remove the warning *I made a few changes*
+- [X] 09-promote.md
+- [X] 10-versioning.md
+- [X] 11-serverless.md
+- [ ] Publish "Going Serverless" oon TechnologyConversations.ccom 
+- [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
+- [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
+- [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
+- [ ] 12-prow.md
+- [ ] Remove `--no-tiller` (it's default since v2.x.x)
+- [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
+- [ ] 99-jenkins-x-yml-extension-model.md
+- [ ] 99-jenkins-x-yml-blank.md
+- [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
-- [ ] 99-security-scanning.md
+- [ ] 99-domains.md
+- [ ] 99-knative.md
+- [ ] 99-additional-apps-in-environment-repos.md
+- [ ] 99-teams-and-multi-cluster.md
+- [ ] 99-anchore.md
+- [ ] 99-add-app.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
-- [ ] 99-custom-quickstart-buildpacks.md
 - [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-preview-chart.md
-- [ ] 99-dev-environment.md
-- [ ] 99-custom-ingress-rules.md
-- [ ] 99-custom-domains.md
-- [ ] 99-issues-in-releases.md
-- [ ] 99-cert-manager.md
-- [ ] 99-teams.md
-- [ ] 99-context.md
-- [ ] 99-upgrade-cluster-and-jx.md
-- [ ] 99-helm-hooks.md
-- [ ] 99-bdd.md
+- [ ] 99-create-step.md
+- [ ] 99-upgrade.md
+
+- [ ] 99-build-notifications.md
+- [ ] 99-custom-build-images.md
+- [ ] 99-gitops.md
+- [ ] 99-no-tiller.md
+- [ ] 99-vault.md
+- [ ] 99-ng-arg.md
+- [ ] 99-buildpacks-tekton.md
+- [ ] 99-import-serverless.md
+- [ ] 99-custom-jenkins-servers.md
+- [ ] 99-chatops-from-slack-to-jx.md
+- [ ] 99-rbac.md
+- [ ] 99-addons.md
 - [ ] 99-progressive-delivery.md
+- [ ] 99-create-chat.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -45,15 +61,7 @@
 - [ ] Workshop
 - [ ] Create talks
 
-## Outputs
-
-- [ ] Docker For Desktop
-- [ ] minikube
-- [ ] GKE
-- [ ] EKS
-- [ ] AKS
-
-## Checklist
+## TODO
 
 - [ ] Code
 - [ ] Write
@@ -62,10 +70,10 @@
 - [ ] Code review AKS
 - [ ] Code review existing cluster
 - [ ] Text review
-- [ ] Diagrams
 - [ ] Gist
 - [ ] Review titles
 - [ ] Proofread
+- [ ] Diagrams
 - [ ] Add to slides
 - [ ] Publish on TechnologyConversations.com
 - [ ] Add to Book.txt
@@ -73,17 +81,12 @@
 
 ## The DevOps 2.X Toolkit
 
-- [ ] [Skaffold](https://github.com/GoogleContainerTools/skaffold)
-- [ ] CRD (e.g. LE Issuer)
+- [ ] k8s CRD (e.g. jx)
+- [ ] k8s jobs
 - [ ] Service mesh ([Istio](https://istio.io/), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali))
-- [ ] Serverless (KNative)
-- [ ] [prow](https://github.com/kubernetes/test-infra/tree/master/prow)
-- [ ] JenkinsX
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
 - [ ] [Vistio](https://github.com/nmnellis/vistio)
-- [ ] Anchore
 - [ ] Monitoring alternatives (Splunk, DataDog, New Relic)
-- [ ] Hashi Vault
 - [ ] Custom resources
 - [ ] kubernetes Networking - different CNI plugin/provider (Flannel, Calico, etc)
 - [ ] CodeShip
@@ -118,8 +121,6 @@
 - [ ] Write the-end.md
 - [ ] Harbor (https://github.com/goharbor/harbor)
 - [ ] AWS Fargate
-- [ ] DockerEE
-- [ ] OpenShift
 - [ ] Rancher
 - [ ] kismatic
 - [ ] https://kubernetes.io/docs/setup/pick-right-solution/
@@ -136,7 +137,10 @@
 - [ ] [cert-manager](https://github.com/jetstack/cert-manager)
 - [ ] [Google Cloud Build](https://cloud.google.com/cloud-build/docs/)
 - [ ] [KNative](https://github.com/knative/)
+- [ ] Serverless
 - [ ] Operator pattern
 - [ ] https://www.keycloak.org/
 - [ ] [KataContainers](https://katacontainers.io/)
+- [ ] [Submariner](https://submariner.io/)
 - [ ] Terraform
+- [ ] [KubeCost](https://kubecost.com/)

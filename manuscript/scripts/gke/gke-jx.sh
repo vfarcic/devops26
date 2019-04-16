@@ -1,3 +1,9 @@
+##############
+# Upgrade jx #
+##############
+
+jx version
+
 ####################
 # Create a cluster #
 ####################
@@ -6,7 +12,7 @@
 
 # Open https://console.cloud.google.com/cloud-resource-manager to create a new GCP project if you do not have one available already. Make sure to enable billing for that project.
 
-PROJECT=[...] # Replace [...] with the name of the GCP project (e.g. jx).
+PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
 echo "nexus:
   enabled: false
@@ -19,12 +25,14 @@ echo "nexus:
 jx create cluster gke \
     -n jx-rocks \
     -p $PROJECT \
-    -z us-east1-b \
+    -r us-east1 \
     -m n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 5 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
+    --git-provider-kind github \
+    --no-tiller \
     -b
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
@@ -35,11 +43,22 @@ jx create cluster gke \
 
 gcloud container clusters \
     delete jx-rocks \
-    --zone us-east1-b \
+    --region us-east1 \
     --quiet
 
 # Remove unused disks to avoid reaching the quota (and save a bit of money)
 gcloud compute disks delete \
+    --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="-users:*" \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-c \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
+    --format="value(id)")
+gcloud compute disks delete \
+    --zone us-east1-d \
+    $(gcloud compute disks list \
+    --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)")
