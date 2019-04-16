@@ -42,13 +42,6 @@ curl "$STAGING_ADDR/demo/hello"
 kubectl -n jx-staging logs \
     -l app=jx-staging-go-demo-6
 
-echo "dependencies:
-- name: mongodb
-  alias: go-demo-6-db
-  version: 5.3.0
-  repository:  https://kubernetes-charts.storage.googleapis.com
-" | tee charts/go-demo-6/requirements.yaml
-
 echo "go-demo-6-db:
   replicaSet:
     enabled: true
