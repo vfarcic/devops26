@@ -359,6 +359,8 @@ The complete flow can be seen in the diagram 11-9.
 
 ![Figure 11-9: The complete flow of events in serverless Jenkins X](images/ch11/serverless-flow.png)
 
+I> You might notice the same diagram in [jenkins-x.io](https://jenkins-x.io/architecture/diagram/). The community thought that it is useful, so I contributed it.
+
 As I already mentioned, not everyone needs to understand the flow of events nor to have a deep understanding of all the components involved in the process. For most users, the only important thing to understand is that pushing changes to Git will result in the execution of the builds defined in jenkins-x.yml pipeline. That's the beauty of Jenkins X. It simplifies our lives by making complicated processes simple.
 
 If, on the other hand, you are interested in details, we will cover each of the components in more details in the next chapters.

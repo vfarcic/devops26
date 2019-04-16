@@ -8,16 +8,17 @@
 - [X] 06-env.md
 - [X] 07-dev.md
 - [X] 08-pr.md
-- [ ] Remove the warning *I made a few changes*
 - [X] 09-promote.md
 - [X] 10-versioning.md
 - [X] 11-serverless.md
+- [ ] 12-prow.md
+- [ ] Remove the warning *I made a few changes*
 - [ ] Publish "Going Serverless" oon TechnologyConversations.ccom 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
-- [ ] 12-prow.md
 - [ ] Remove `--no-tiller` (it's default since v2.x.x)
+- [ ] Remove `docker-registry:`from `myvalues.yaml`
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] 99-jenkins-x-yml-extension-model.md
 - [ ] 99-jenkins-x-yml-blank.md
@@ -33,11 +34,12 @@
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
+- [ ] 99-gitops.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-upgrade.md
 
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
-- [ ] 99-gitops.md
 - [ ] 99-no-tiller.md
 - [ ] 99-vault.md
 - [ ] 99-ng-arg.md
@@ -49,6 +51,7 @@
 - [ ] 99-addons.md
 - [ ] 99-progressive-delivery.md
 - [ ] 99-create-chat.md
+- [ ] 99-custom-builders-and-pod-templates.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

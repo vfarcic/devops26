@@ -27,8 +27,8 @@ jx create cluster gke \
     -p $PROJECT \
     -r us-east1 \
     -m n1-standard-2 \
-    --min-num-nodes 3 \
-    --max-num-nodes 5 \
+    --min-num-nodes 1 \
+    --max-num-nodes 2 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
