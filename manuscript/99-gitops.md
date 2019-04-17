@@ -77,6 +77,8 @@ hub delete -y \
 hub delete -y \
   $GH_USER/environment-jx-rocks-dev
 
+rm -rf jenkins-x-dev-environment
+
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
 rm -f ~/.jx/jenkinsAuth.yaml

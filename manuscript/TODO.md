@@ -13,14 +13,15 @@
 - [X] 11-serverless.md
 - [ ] 12-prow.md
 - [ ] Remove the warning *I made a few changes*
-- [ ] Publish "Going Serverless" oon TechnologyConversations.ccom 
+- [ ] Publish "Going Serverless" on TechnologyConversations.ccom 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove `--no-tiller` (it's default since v2.x.x)
 - [ ] Remove `docker-registry:`from `myvalues.yaml`
+- [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
-- [ ] 99-jenkins-x-yml-extension-model.md
+- [ ] 13-pipeline-extension-model.md
 - [ ] 99-jenkins-x-yml-blank.md
 - [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
