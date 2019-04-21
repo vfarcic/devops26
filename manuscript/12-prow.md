@@ -175,9 +175,7 @@ Next, you (acting as a reviewer) would go through the changes of the code and co
 
 We'll assume that you believe that the change is safe to merge to the master branch. You already know that will initiate another pipeline build that will end with the deployment of the new release to the staging environment.
 
-As you already saw by reading the description of the PR process, all we have to do is type `/approve`. But we won't do that. Instead, we'll use `lgtm` abbreviation that stands for *looks good to me*. Both `/approve` and `/lgtm` commands serve the same purpose. We'll use the latter mostly because I like more how it sounds.
-
-TODO: Double check that `lgtm` and `approve` are the same.
+As you already saw by reading the description of the PR process, all we have to do is type `/approve`. But we won't do that. Instead, we'll use `lgtm` abbreviation that stands for *looks good to me*. Originally, `/lgtm` is meant to provide a label that is typically used to gate merging. It is an indication that an approver confirmed a pull request can be approved. However, Jenkins X implementation sets it to act as approval as well. Therefore, both `/approve` and `/lgtm` commands serve the same purpose. Both can be used to approve a PR. We'll use the latter mostly because I like how it sounds.
 
 So, without further ado, please type `/lgtm` and click the *Comment* button.
 
@@ -209,9 +207,9 @@ reviewers:
 - vfarcic
 ```
 
-TODO: Explain the `OWNERS` file
+The `OWNERS` conotains the list of users responsible for the codebase of this repositroy. It is split between `approvers` and `reviewers` sections. Such split is useful if we'd like to implement a two-phase code review process in which different people would be in charge of reviewing and approving pull requests. However, more often than not those two roles are perfomed by same people so Jenkins X comes without two-phase review process.
 
-We need a real GitHub user so please contact a colleague or a friend and ask him to give you a hand. Tell her that you'll need her help to complete some of the steps of the exercises that follow. Also, let her know that you need to know her GitHub user.
+To proceed, we need a real GitHub user (other than yours) so please contact a colleague or a friend and ask him to give you a hand. Tell her that you'll need her help to complete some of the steps of the exercises that follow. Also, let her know that you need to know her GitHub user.
 
 I> Feel free to ask someone for help in [DevOps20](http://slack.devops20toolkit.com/) Slack if you do not have a GitHub friend around. I'm sure that someone will be happy to act as a reviewer and an approver of your pull request.
 
@@ -296,7 +294,7 @@ We already know from past that a merge to the master branch initiates yet anothe
 
 ## Exploring Additional Slash Commands
 
-TODO: Continue text
+We some a few of the most commonly used slash commands used through a common pull request process. We'll expand on that next by creating a new PR and experimenting with a few other commands.
 
 ```bash
 git checkout master
@@ -304,7 +302,13 @@ git checkout master
 git pull
 
 git checkout -b my-pr
+```
 
+We created a new branch called `my-pr`.
+
+Next, we'll make a trivial change to the source code and push it to the newly created branch. Otherwise, GitHub would not allow us to make a pull request if nothing changed.
+
+```bash
 echo "My PR" | tee README.md
 
 git add .
@@ -312,68 +316,53 @@ git add .
 git commit -m "My first PR with prow"
 
 git push --set-upstream origin my-pr
+```
 
+We are finally ready to create a pull request.
+
+```bash
 jx create pr \
     -t "My PR" \
     --body "What I can say?" \
     -b
 ```
 
-```
-Created PullRequest #2 at https://github.com/vfarcic/jx-prow/pull/2
-```
+Please open the link from the output in your favorite browser.
 
-```bash
-# Open the link as you (not the reviewer)
+You will notice that this time your colleague is automatically assigned as a reviewer. Prow took the list of reviewers from the `OWNERS` file and saw that there are only two available. Since you made the pull request, it decided to assign the other user as the reviewer. If wouldn't make sense to assign it to you anyways.
 
-# Observe that the reviewer is automatically assigned
-```
+We can also observe that the system automatically added a label *size/XS*. It deduced that the changes we're proposing in this pull request as *extra small*. That is done through Prow plugin `size`. While some plugins (e.g. `approve`) react to slash commands, others (e.g., `size`) are used as a reaction to other events (e.g., creation of a pull request).
+
+Size labels are applied based on the total number of changed lines. Both new and deleted lines are counted. The thresholds are as follows.
+
+* size/XS: 0-9
+* size/S: 10-29
+* size/M: 30-99
+* size/L: 100-499
+* size/XL: 500-999
+* size/XXL: 1000+
+
+Since we rewrote `README.md` with a single line, the number of changed lines is one plus whatever was the number of lines in the file before we overwrote it. We know that up to nine lines we changed in total since we got the label *size/XS*.
+
+Sometimes, we might use code generator of sorts and might want to exclude those files from the calculation. In such case, all we'd need to do is `.generated_files` to the project root.
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-pr-reviewer-auto-assigned.png)
 
-```bash
-# Observe the *size/XS* label
+Let's imagine that we reviewed the pull request and decided that we do not want to proceed for now. In such a case, we probably do not want to close it, but we still want to make sure that everyone is aware that it is on hold.
 
-# Type `/hold` as the comment and click the *Comment* button
-
-# Observe the *do-not-merge/hold* label
-```
+Please type `/hold` as the comment and click the *Comment* button. You'll see that the *do-not-merge/hold* label was added. Now it should be clear to everyone that the PR should not be merged. Hopefully, we would also add a comment that would explain the reasons behind such a decision. I will let your imagination kick in and let you compose it.
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-pr-label-hold.png)
 
-```bash
-# Type `/hold cancel` as the comment and click the *Comment* button
+At this moment, you might wonder whether it is more efficient to create comments with slash commands that add labels, instead of simply creating labels directly. It is not. But, the reason for applying ChatOps principles is not primarily efficiency. Rather, it is more focused on documenting actions. When we write a comment with the `/hold` command, we did not only create a label, but we also recorded who did that (the person who wrote the comment), as well as when it was done. The comments serve as a ledger and can be used to deduce the flow of actions and decisions. We can deduce everything that happened to a pull request by reading the comments from top to bottom.
 
-# Observe that the *do-not-merge/hold* label was removed
+Now, let's say that the situation changed and that the pull request should not be on hold anymore. Many of the slash commands can be written with `cancel`. So, to remove the label, all we have to do is to write a new comment with `/hold cancel`. Try it out and confirm that the *do-not-merge/hold* label is removed.
 
-# Type `/close` as the comment and click the *Comment* button
+All commonly perfoemd actions with pull requests are supported. We can, for example, `/close` and `/reopen` a pull request. Both belong to the *lifecycle* plugin which also supports `/lifecycle frozen`, `/lifecycle stale`, and `/lifecycle rottens` commands that add appropriate labels. To remove those labels, all we have to do is add `remove` as the prefix (e.g., `/remove-lifecycle stale`).
 
-# Observe that the status of the PR is *Closed*
-```
+Finally, if you want to bring a bit of life to your comments, try the `/meow` command.
 
-![Figure 12-TODO: TODO:](images/ch12/prow-pr-closed.png)
-
-```bash
-# Type `/reopen` as the comment and click the *Comment* button
-
-# Observe that the status of the PR is *Open*
-
-# Type `/lifecycle frozen` as the comment and click the *Comment* button
-
-# Observe the *lifecycle/frozen* label
-
-# Type `/meow` as the comment and click the *Comment* button
-
-# Type `/meow caturday` as the comment and click the *Comment* button
-
-# Type `/meowvie clothes` as the comment and click the *Comment* button
-
-# Login as `$GH_APPROVER`
-
-# Type `/lgtm` as the comment and click the *Comment* buttons
-```
-
-TODO: Notifications?
+xOnce you're done experimenting with the commands, please tell the approver to write a comment with the `/lgtm` and the pull request will be merged to the master branch which, in turn, will initiate yet another Jenkins X build that will deploy a new release to the staging environment.
 
 ```bash
 jx open deck
@@ -647,6 +636,12 @@ welcome:
 
 Events:  <none>
 ```
+
+TODO: Modify plugins, the welcome message, and the rules?
+
+https://prow.k8s.io/plugins
+
+https://prow.k8s.io/command-help
 
 ## What Now?
 

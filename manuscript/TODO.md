@@ -12,7 +12,7 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [ ] 12-prow.md
-- [ ] Remove the warning *Since April 2019, creating DevPods fails...*`
+- [ ] Remove the warning *Since April 2019, creating DevPods fails...*
 - [ ] Remove the warning *I made a few changes*
 - [ ] Publish "Going Serverless" on TechnologyConversations.ccom 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
@@ -23,6 +23,7 @@
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] 13-pipeline-extension-model.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-jenkins-x-yml-blank.md
 - [ ] 99-extending-buildpack-pipelines.md
 - [ ] 99-cloudbees.md
@@ -38,7 +39,6 @@
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
 - [ ] 99-gitops.md
-- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-upgrade.md
 
 - [ ] 99-build-notifications.md

@@ -21,6 +21,8 @@ We will not need the `jx-serverless` project we created in the previous chapter.
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
+TODO: Restore to the master branch
+
 Now we can explore Jenkins X Pipeline Extension Model.
 
 ## Pipeline Extension Model
@@ -40,14 +42,16 @@ ls -1
 
 cat jenkins-x.yml
 
+# Explain buildpack pipeline
+
 git checkout -b extension
 
 jx create step
 
 # pullRequest
-# setup
+# build
 # pre
-# echo this is the pre mode of the setup stage
+# make unittest
 
 cat jenkins-x.yml
 
@@ -66,6 +70,8 @@ jx get activities -f go-demo-6 -w
 ```
 
 TODO: Continue code
+
+TODO: Fail a test and use the `/retest` slash command
 
 https://jenkins-x.io/architecture/jenkins-x-pipelines/#customising-the-pipelines
 

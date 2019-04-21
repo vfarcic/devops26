@@ -46,7 +46,7 @@ First things first. We need a cluster with Jenkins X up-and-running, just as we 
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [11-scaling.sh](https://gist.github.com/855b8d70f3fa49b42d930144ed1606f1) Gist.
+I> All the commands from this chapter are available in the [11-serverless.sh](https://gist.github.com/855b8d70f3fa49b42d930144ed1606f1) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 

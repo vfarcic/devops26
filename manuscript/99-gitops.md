@@ -31,29 +31,76 @@ TODO
 ```bash
 jx version
 
-PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
+# PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
-GH_USER=[...] # Replace `[...]` with GitHub username
+# # Added `--gitops` and `--no-gitops-vault`
+# jx create cluster gke \
+#     -n jx-rocks \
+#     -p $PROJECT \
+#     -r us-east1 \
+#     -m n1-standard-2 \
+#     --min-num-nodes 1 \
+#     --max-num-nodes 2 \
+#     --default-admin-password=admin \
+#     --default-environment-prefix jx-rocks \
+#     --git-provider-kind github \
+#     --no-tiller \
+#     --gitops \
+#     --no-gitops-vault \
+#     -b
 
-echo "nexus:
-  enabled: false
-" | tee myvalues.yaml
+kubectl apply \
+    -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 
-# Added `--gitops true`
-# Removed `-b`
-jx create cluster gke \
-    -n jx-rocks \
-    -p $PROJECT \
-    -r us-east1 \
-    -m n1-standard-2 \
-    --min-num-nodes 1 \
-    --max-num-nodes 2 \
+kubectl apply \
+    -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/cloud-generic.yaml
+
+# External IP
+LB_IP=[...]
+
+# The domain through which 
+# we can access the applications
+DOMAIN=serverless.$LB_IP.nip.io
+
+# The Namespace where Ingress is running
+INGRESS_NS=ingress-nginx
+
+# The name of the NGINX Ingress Deployment
+INGRESS_DEP=nginx-ingress-controller
+
+PROVIDER=[...]
+
+jx create terraform \
+    -c jx-rocks=gke \
+    --gke-project-id $PROJECT \
+    --gke-zone us-east1-c \
+    --gke-machine-type n1-standard-2 \
+    --gke-min-num-nodes 3 \
+    --gke-max-num-nodes 2 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --gitops true \
-    --vault true \
-    --no-tiller true
+    --no-tiller \
+    --gitops \
+    --no-gitops-vault \
+    -b
+
+jx install \
+    --provider $PROVIDER \
+    --external-ip $LB_IP \
+    --domain $DOMAIN \
+    --default-admin-password=admin \
+    --ingress-namespace $INGRESS_NS \
+    --ingress-deployment $INGRESS_DEP \
+    --default-environment-prefix tekton \
+    --git-provider-kind github \
+    --namespace cd \
+    --no-tiller \
+    --prow \
+    --tekton \
+    --gitops \
+    --no-gitops-vault \
+    -b
 
 # Use default answers, except...
 

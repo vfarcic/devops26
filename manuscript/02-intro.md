@@ -252,7 +252,8 @@ We'll also set the default Jenkins X password to `admin` (`--default-admin-passw
 Feel free to change any of the values in the command that follows to suit your needs better. Or, keep them as they are. After all, this is only a practice, and you'll be able to destroy the cluster and recreate it later on with different values.
 
 ```bash
-jx create cluster eks -n jx-rocks \
+jx create cluster eks \
+    -n jx-rocks \
     -r $AWS_DEFAULT_REGION \
     --node-type t2.medium \
     --nodes 3 \
@@ -626,7 +627,7 @@ In my case, the Deployment is called `nginx-ingress-controller`. Yours is likely
 INGRESS_DEP=nginx-ingress-controller
 ```
 
-Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it.s
+Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it.
 
 ```bash
 jx install \
