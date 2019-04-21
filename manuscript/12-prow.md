@@ -87,7 +87,7 @@ jx delete application \
 
 Now we can explore Prow.
 
-## Exploring The Basic Pull Request Process
+## Exploring The Basic Pull Request Process Through ChatOps
 
 The best way to explore thee inteegration Jenkins X provides between Git, Prow, and the rest of the system is through practical examples. The first thing we'll need is a project, so we'll create a new one.
 
@@ -104,7 +104,7 @@ jx get activities -f jx-prow -w
 
 We created a Go-based project called `jx-prow`, entered into the local copy of the Git repository `jx` created for us, and started watching the activity. After a while, the output have all the steps in the `Succeeded` status, and we can stop the watcher by pressing *ctrl+c*.
 
-W> At the time of this writing (April 2019) there is a bug that causes the overall pipeline build to report as `Running` even though all the stages are `Succeeded`. If that happens in your case, feel free to ignore it and consider the build finished when the last stage (`Update`) is `Succeeded`.
+W> At the time of this writing (April 2019) there is a bug that causes the overall pipeline build to report as `Running` even though all the stages are `Succeeded`. The build change the information in the staging envinronment which, in turn, initiated another build that will deploy the application to staging. The issue is that one build does not correctly track the other. If that happens in your case, feel free to ignore it and consider the build finished when the last stage (`Update`) is `Succeeded`.
 
 When we created a new project, Git sent a webhook to Prow which, in turn, nootified the system that it should run a pipeline build. Even though different processess are running build in serverless Jenkins (e.g., Pipeline Operator and Tekton), the are functionally the same as they were before. We'll explore those processes later and for now conclude that a build was successfull and, as a result, we got the application deployed to the staging environment just as before when we used static Jenkins X. For now, we're mostly interested in ChatOps (or GitChat) features available through Prow.
 
@@ -145,53 +145,89 @@ Tide is one of Prow components. It is in charge of merging the pull request to t
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-pr.png)
 
-TODO: Continue
+Next, we'll wait until the Jenkins X build initiated by the creation of the PR is finished. Once it's done, you'll see a comment stating *PR built and available in a preview environment*. Feel free to click the link next to it to open the application in browser.
 
-```bash
-# Wait the *PR built and available in a preview environment...* message
+The "real" indication that the build is finished is the *serverless-jenkins — All Tasks have completed executing* message in the *checks* section near the bottom of the screen. When we created the PR, a webhook request was sent to Prow which, in turn, notified the system that it should run a build of the associated pipeline (the one defined in `jenkins-x.yml`). Not only that Prow initiated the build, but it also monitored its progress. Once the build was finished, Prow communicated the outcome to GitHub.
 
-# Wait and observe *serverless-jenkins — All Tasks have completed executing* and *tide Pending — Not mergeable. Needs approved label.*
+You can also see the second check stating *tide Pending — Not mergeable. Needs approved label.* That is yet another Prow task running. It is waiting until we comply with the the pull request process. It's status will change only if we approve the pull request.
 
-# Type `/assign` as the comment and click the *Comment* button
+If you take another look at the description of the pull request process, you'll see that you can assign it to someone. We could, as you probably already know, do that through the standard GitHub process by clicking a few buttons. Since we're trying to employ the ChatOps process, we'll write a comment instead.
 
-# Observe that the PR is assigned (might need to refresh)
-```
+Please type `/assign` as the comment. Feel free to add any text around it. You can, for example, write `The pull request is ready for review so I'd like to /assign it to someone`. The text does not matter. It is only informative and you are free to write anything you want. What matters is the slash command `/assign`. When we create the comment, GitHub will notify Prow, Prow will parse it, process all slash commands, and discard the rest of the comment. Please click the *Comment* button once you're done writing a nice humanly readable message that contains `/assign`.
+
+I> Sometimes, GitHub will not refresh automatically. If you do not see the expected result, try refreshing the screen.
+
+ A moment after we created the comment, the list of assignees in the right-hand menu will change. Prow automatically assigned the PR to you. Now that might seem silly at first. Why would you assign it to yourself? We need someone to review it, and that someone could be anybody but you. You already know what is inside the PR and you are confident that it most likely work as expected. Otherwise, you wouldn't create it. What we need is a second pair of eyes. However, we do not yet have any collaborators on the project so you're the only one Prow could assign it to. We'll change that soon.
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-assign.png)
 
-```bash
-# Type `/unassign` as the comment and click the *Comment* button
+Just as we can assign a PR to someone, we can just as well unassign it through a slash command. Please type `/unassign` as a new comment and click the *Comment* button. A moment later your name will dissapear from the list of assignees.
 
-# Observe that the PR is unassigned
-```
+I> From now on, I'll skip surrounding slash commands with humanly-readable text (e.g., `I'd like to /unassign this pull request`). It's up to you to choose whether to make it pretty or just type bare-bones commands like in the examples. From the practical perspective, the result will be the same since Prow cares only about the commands and it discards the rest of the text.
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-unassign.png)
 
-```bash
-# Type `/assign @$GH_USER` as the comment and click the *Comment* button
+When we issued the command `/assign`, Prow made a decision who should it be assigned to since we were not specific. We can, instead, be more precise and choose who should review our pull request. Since you are currently the only collaborator on the project, we have limited possibilities, but we'll try it out nevertheless.
 
-# Type `/lgtm` as the comment and click the *Comment* button
+Please type `/assign @YOUR_GITHUB_USER` as the comment. Make sure to replace `YOUR_GITHUB_USER` with your user. Once you're done, click the *Comment* button. The result should be the same as when with issued `/assign` command without a specific user simply because there is only one collaborator this pull request can be assigned to. If we'd have more (as we will soon) we could have assigned it to someone else.
 
-# You might need to refresh your screen
-```
+Next, you (acting as a reviewer) would go through the changes of the code and confirm that everything works correctly. By the fact that *serverless-jenkins* check completed without issues, you know that all the validations executed as part of the pipeline build were successful. If you're still in doubt, you can always open the application deployed to the PR-specific temporary environment by clicking the link next to the *PR built and available in a preview environment* comment.
+
+We'll assume that you believe that the change is safe to merge to the master branch. You already know that will initiate another pipeline build that will end with the deployment of the new release to the staging environment.
+
+As you already saw by reading the description of the PR process, all we have to do is type `/approve`. But we won't do that. Instead, we'll use `lgtm` abbreviation that stands for *looks good to me*. Both `/approve` and `/lgtm` commands serve the same purpose. We'll use the latter mostly because I like more how it sounds.
+
+TODO: Double check that `lgtm` and `approve` are the same.
+
+So, without further ado, please type `/lgtm` and click the *Comment* button.
+
+A moment later, we should receive (a comment) saying that *you cannot LGTM your own PR* (remember that you might need to refresh your screen). That makes sense doesn't it. Why would you review your own code. There is no benefit in that since it would neither result in knowledge sharing nor additional validations. The system is protecting us from ourselves and from making silly mistakes.
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-lgtm-own-pr.png)
 
+If we are to proceed, we'll need to add a collaborrator to the project. Before we do that, I should comment that if `/lgtm` worked, we could use `/lgtm cancel` command. I'm s
+ure you know what it does.
+
+Before we explore how to add collaborators, approvers, and reviewers, we'll remove you from the list of assignees. Since you cannot approve your own PR, it doesn't make sense for it to be assigned to you.
+
+Please type `/unassign` and click the *Comment* button. You'll notice that your name dissapeared from the list of assignees.
+
+We need to define who is allowed to review and who can approve our pull requests. We can do that by modifying the `OWNERS` file created when we created a project through Jenkins X quickstarts. Since it would be insecure to allow a person who made the PR to change that file, the one that counts is the `OWNERS` file in thhe master branch. So, that's the one we'll explore and modify.
+
 ```bash
-# It could be `/lgtm cancel`
-
-# Type `/unassign` as the comment and click the *Comment* button
-
 git checkout master
 
 cat OWNERS
+```
 
-cat OWNERS_ALIASES
+The output is as follows.
 
+```yaml
+approvers:
+- vfarcic
+reviewers:
+- vfarcic
+```
+
+TODO: Explain the `OWNERS` file
+
+We need a real GitHub user so please contact a colleague or a friend and ask him to give you a hand. Tell her that you'll need her help to complete some of the steps of the exercises that follow. Also, let her know that you need to know her GitHub user.
+
+I> Feel free to ask someone for help in [DevOps20](http://slack.devops20toolkit.com/) Slack if you do not have a GitHub friend around. I'm sure that someone will be happy to act as a reviewer and an approver of your pull request.
+
+We'll define two environment variables that will help us create a new version of the `OWNERS` file. `GH_USER` will hold your username, while `GH_APPROVER` will contain the user of the person that will be allowed to review and approve your pull requests. Normally, we would have more than one approver so that the reivew and approval tasks are distributed across the team. For demo purposes, the two of you should be more then enough.
+
+W> Before executing the commands that follow, please replace the first `[...]` with your GitHub user and the second with the user of the person that will approve your PR.
+
+```bash
 GH_USER=[...]
 
 GH_APPROVER=[...]
+```
 
+Now we can create a new version of the `OWNERS` file. As already discussed, we'll use the same users as both reviewers and approvers.
+
+```bash
 echo "approvers:
 - $GH_USER
 - $GH_APPROVER
@@ -199,41 +235,41 @@ reviewers:
 - $GH_USER
 - $GH_APPROVER
 " | tee OWNERS
+```
 
+All that's left, related to the `OWNERS` file, is to push the changes to the repository.
+
+```bash
 git add .
 
 git commit -m "Added an owner"
 
 git push
-
-open "https://github.com/$GH_USER/jx-prow/settings/collaboration"
-
-# Login if asked
-
-# Type the user and click the *Add collaborator* button
 ```
+
+Even though the `OWNERS` file defines who can review and approve pull requests, that would be useless if those users are not allowed to collaborate on your project. We need to tell GitHub that your colleague works with you by adding a collaborator (other Git platforms might call it differently).
+
+```bash
+open "https://github.com/$GH_USER/jx-prow/settings/collaboration"
+```
+
+Please login if you're asked to do so. Type the user and click the *Add collaborator* button.
 
 ![Figure 12-TODO: TODO:](images/ch12/prow-collaborator.png)
 
-```bash
-# `$GH_APPROVER` should receive an email. Make sure that he accepts the invitation.
+Your colleague should receive an email with an invitation to join the project as collaborator. Make sure that she accepts the invitation.
 
-# Go back to the PR and make sure that you are signed in (not the friend).
+Now we can assign the pull request to the newly added approver. Please go to the pull request screen and make sure that you are logged in (as you, not as the approver). Type `/assign @[...]` as the comment where `[...]` is replaced with the username of the approver. Click the *Comment* button
 
-# Type `/assign @$GH_APPROVER` as the comment and click the *Comment* button
+The approver should receive a notification email. Please let her know that she should go to the pull request (instructions are in the email) and type `/approve` and click the *Comment* button.
 
-# Login as `$GH_APPROVER`
+I> Please note that `/approve` and `/lgtm` have the same purpose. We're switching from one to another only to show that both result in the pull request being merged to the master branch.
 
-# Open the PR and type `/approve` as the comment and click the *Comment* button (NOTE: `/approve` is the same as `/lgtm`)
+After a while, the PR will be merged and a build of the pipeline will be executed. That, as you already know, results in a new release being validated and deployed to the staging environment.
 
-# Could be `/approve cancel`
+You will notice that email notifications are flying back and forth between you and the approver. Not only that we are applying ChatOps principles but we are at the same time solving the need for notifications that let each involved know what's going on as well as whether there are pending actions. Those notifications are send by Git itself as a reaction to certain actions. The way to control who receives what is specific to each Git platform and I hope that you already know how to subscribe, unsubscribe, or modify Git notifications you're receiving.
 
-# After a while, the PR will be merged and a build of the pipeline will be executed
-```
-
-```bash
-# Observe the email to the approver
-```
+As an example, the email sent as the result of approving a PR is as follows.
 
 ```
 [APPROVALNOTIFIER] This PR is APPROVED
@@ -250,42 +286,19 @@ Approvers can indicate their approval by writing /approve in a comment
 Approvers can cancel approval by writing /approve cancel in a comment
 ```
 
+All in all, the pull request is approved. As a result, Prow merged it to the master branch and that initiate a pipeline build that ended with the deployment of the new release to the staging environment.
+
 ![Figure 12-TODO: TODO:](images/ch12/prow-pr-merged.png)
 
-```bash
-# Wait until the *All checks have passed* message
-```
+Please wait until the *All checks have passed* message appears in the PR.
+
+We already know from past that a merge to the master branch initiates yet another build. That did not change with the introduction of ChatOps. When we approved the PR, Prow merged it to the master branch and from there on the same processes were executed as if we merged manually.
+
+## Exploring Additional Slash Commands
+
+TODO: Continue text
 
 ```bash
-jx get activities \
-    -f $GH_USER/jx-prow/master \
-    -w
-```
-
-```
-STEP                      STARTED AGO DURATION STATUS
-vfarcic/jx-prow/master #1                      Running Version: 0.0.1
-  Release                     1h13m9s     1m0s Succeeded
-  Promote: staging            1h12m9s      29s Succeeded
-    PullRequest               1h12m9s      28s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/2 Merge SHA: 29cce039c92898be8f5107a8d41a28eda026032e
-    Update                   1h11m41s       1s Succeeded
-vfarcic/jx-prow/master #2                      Running Version: 0.0.2
-  Release                      22m59s     1m0s Succeeded
-  Promote: staging             21m59s      47s Succeeded
-    PullRequest                21m59s      47s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/3 Merge SHA: 492a97bfb9952fb50b1ffbe72404a7de05dacd83
-    Update                     21m12s       0s Succeeded
-    Promoted                   21m12s       0s Succeeded  Application is at: http://jx-prow.cd-staging.35.164.205.224.nip.io
-vfarcic/jx-prow/master #3                      Running Version: 0.0.3
-  Release                      22m36s     1m0s Succeeded
-  Promote: staging             21m36s    1m18s Succeeded
-    PullRequest                21m36s    1m18s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/4 Merge SHA: d5a904cd69e5ea27d6488f676e0f56327be32b6a
-    Update                     20m18s       0s Succeeded
-    Promoted                   20m18s       0s Succeeded  Application is at: http://jx-prow.cd-staging.35.164.205.224.nip.io
-```
-
-```bash
-# Press *ctrl+c*
-
 git checkout master
 
 git pull

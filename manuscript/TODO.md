@@ -12,6 +12,7 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [ ] 12-prow.md
+- [ ] Remove the warning *Since April 2019, creating DevPods fails...*`
 - [ ] Remove the warning *I made a few changes*
 - [ ] Publish "Going Serverless" on TechnologyConversations.ccom 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
@@ -23,6 +24,7 @@
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] 13-pipeline-extension-model.md
 - [ ] 99-jenkins-x-yml-blank.md
+- [ ] 99-extending-buildpack-pipelines.md
 - [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
 - [ ] 99-domains.md

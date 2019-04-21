@@ -100,6 +100,8 @@ There are two ways we can proceed with the examples that involve `jx-release-ver
 
 W> Please make sure that you are inside the local copy of the *go-demo-6* repository before executing the commands that follow.
 
+W> Since April 2019, creating DevPods fails. You will likely experience problems until the [issue 3689](https://github.com/jenkins-x/jx/issues/3689) is resolved. Please skip creating the DevPod and install [jx-release-version release](https://github.com/jenkins-x/jx-release-version/releases) for your operating system on your laptop.
+
 ```bash
 jx create devpod -b
 

@@ -21,53 +21,77 @@ We will not need the `jx-serverless` project we created in the previous chapter.
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
-```bash
-```
-
 Now we can explore Jenkins X Pipeline Extension Model.
 
 ## Pipeline Extension Model
 
-
-https://jenkins-x.io/architecture/jenkins-x-pipelines/#customising-the-pipelines
-
-TODO: Figure out why it fails with `replace: false`
-
 ```bash
-echo "pipelineConfig:
-  pipelines:
-    release:
-      setup:
-        replace: true
-        steps:
-        - sh: echo 'Injected into the setup phase'
-      preBuild:
-        replace: true
-        steps:
-        - sh: echo 'Injected into the preBuild phase'
-      build:
-        replace: true
-        steps:
-        - sh: echo 'Injected into the build phase'
-      postBuild:
-        replace: true
-        steps:
-        - sh: echo 'Injected into the postBuild phase'
-      promote:
-        replace: true
-        steps:
-        - sh: echo 'Injected into the promote phase'
-" | tee -a jenkins-x.yml
+cd go-demo-6
+
+git checkout master
+
+rm Jenkinsfile
+
+jx import -b
+
+jx get activities -f go-demo-6 -w
+
+ls -1
+
+cat jenkins-x.yml
+
+git checkout -b extension
+
+jx create step
+
+# pullRequest
+# setup
+# pre
+# echo this is the pre mode of the setup stage
+
+cat jenkins-x.yml
 
 git add .
 
-git commit -m "Lifecycle example"
+git commit -m "Trying to extend the pipeline"
 
-git push
+git push --set-upstream origin extension
 
-jx get activities -f jx-go -w
+jx create pr \
+    -t "Extensions" \
+    --body "What I can say?" \
+    -b
 
-jx get build logs
+jx get activities -f go-demo-6 -w
+```
 
-# Add pullRequest and feature pipelines
+TODO: Continue code
+
+https://jenkins-x.io/architecture/jenkins-x-pipelines/#customising-the-pipelines
+
+
+## What Now?
+
+TODO: Rewrite
+
+Now you need to decide whether to continue using the cluster or to destroy it. If you choose to destroy it or to uninstall Jenkins X, you'll find the instructions at the bottom of the Gist you chose at the beginning of this chapter.
+
+If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
+
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
+
+```bash
+cd ..
+
+GH_USER=[...]
+
+hub delete -y \
+  $GH_USER/environment-tekton-staging
+
+hub delete -y \
+  $GH_USER/environment-tekton-production
+
+rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+
+rm -f ~/.jx/jenkinsAuth.yaml
 ```
