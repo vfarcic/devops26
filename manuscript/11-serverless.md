@@ -207,6 +207,8 @@ Instead of talking about the advantages Serverless Jenkins X provides, we'll exp
 
 We'll create a Go-based project called *jx-serverless*.
 
+W> Make sure that you are not inside an existing repository before executing the command that follows.
+
 ```bash
 jx create quickstart \
   -l go \

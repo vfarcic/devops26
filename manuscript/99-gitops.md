@@ -70,8 +70,14 @@ INGRESS_DEP=nginx-ingress-controller
 
 PROVIDER=[...]
 
+gcloud iam service-accounts \
+    create vfarcic \
+    --display-name "vfarcic"
+
+gcloud iam service-accounts list
+
 jx create terraform \
-    -c jx-rocks=gke \
+    -c jx-production=gke \
     --gke-project-id $PROJECT \
     --gke-zone us-east1-c \
     --gke-machine-type n1-standard-2 \
@@ -82,8 +88,7 @@ jx create terraform \
     --git-provider-kind github \
     --no-tiller \
     --gitops \
-    --no-gitops-vault \
-    -b
+    --no-gitops-vault
 
 jx install \
     --provider $PROVIDER \

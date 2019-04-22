@@ -13,8 +13,8 @@
 - [X] 11-serverless.md
 - [ ] 12-prow.md
 - [ ] Remove the warning *Since April 2019, creating DevPods fails...*
-- [ ] Remove the warning *I made a few changes*
-- [ ] Publish "Going Serverless" on TechnologyConversations.ccom 
+- [ ] Remove the warning *I made a few changes...*
+- [ ] Publish "Going Serverless" on TechnologyConversations.com 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -22,25 +22,27 @@
 - [ ] Remove `docker-registry:`from `myvalues.yaml`
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
+- [ ] Remove `jenkinsAuth.yaml`
+- [ ] Publish "Exploring The Basic Pull Request Process Through ChatOps" (from "We need to define who is allowed to review and who can approve our pull...") on TechnologyConversations.com 
 - [ ] 13-pipeline-extension-model.md
-- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-jenkins-x-yml-blank.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-extending-buildpack-pipelines.md
 - [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
 - [ ] 99-domains.md
 - [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md
-- [ ] 99-teams-and-multi-cluster.md
+- [ ] 99-teams-and-multi-cluster.md (Multiple Clusters)
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
+- [ ] 99-storage.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
 - [ ] 99-gitops.md
 - [ ] 99-upgrade.md
-
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
 - [ ] 99-no-tiller.md

@@ -17,7 +17,7 @@ For your convenience, the Gists that will create a new Jenkins X cluster or inst
 * Create new **AKS** cluster: [aks-jx-serverless.sh](TODO:)
 * Use an **existing** cluster: [install-serverless.sh](TODO:)
 
-We will not need the `jx-serverless` project we created in the previous chapter. If you are reusing the cluster and Jenkins X installation, you might want to remove it and same a bit of resources.
+We will not need the `jx-serverless` project we created in the previous chapter. If you are reusing the cluster and Jenkins X installation, you might want to remove it and save a bit of resources.
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
@@ -74,6 +74,7 @@ TODO: Continue code
 TODO: Fail a test and use the `/retest` slash command
 
 https://jenkins-x.io/architecture/jenkins-x-pipelines/#customising-the-pipelines
+https://jenkins-x.io/architecture/build-packs
 
 
 ## What Now?
