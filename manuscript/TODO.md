@@ -11,9 +11,8 @@
 - [X] 09-promote.md
 - [X] 10-versioning.md
 - [X] 11-serverless.md
-- [ ] 12-prow.md
-- [ ] Remove the warning *Since April 2019, creating DevPods fails...*
-- [ ] Remove the warning *I made a few changes...*
+- [X] 12-prow.md
+- [ ] 13-buildpack-pipelines.md
 - [ ] Publish "Going Serverless" on TechnologyConversations.com 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
@@ -24,10 +23,10 @@
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] Remove `jenkinsAuth.yaml`
 - [ ] Publish "Exploring The Basic Pull Request Process Through ChatOps" (from "We need to define who is allowed to review and who can approve our pull...") on TechnologyConversations.com 
-- [ ] 13-pipeline-extension-model.md
+- [ ] Remove the warning *Since April 2019, creating DevPods fails...*
+- [ ] 99-pipeline-extension-model.md
 - [ ] 99-jenkins-x-yml-blank.md
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
-- [ ] 99-extending-buildpack-pipelines.md
 - [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
 - [ ] 99-domains.md
