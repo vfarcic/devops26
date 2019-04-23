@@ -34,8 +34,8 @@ jx create cluster gke \
     -p $PROJECT \
     -r us-east1 \
     -m n1-standard-2 \
-    --min-num-nodes 3 \
-    --max-num-nodes 5 \
+    --min-num-nodes 1 \
+    --max-num-nodes 2 \
     --default-admin-password admin \
     --default-environment-prefix jx-rocks \
     --no-tiller
@@ -50,7 +50,8 @@ export AWS_SECRET_ACCESS_KEY=[...]
 export AWS_DEFAULT_REGION=us-west-2
 
 # If EKS
-jx create cluster eks -n jx-rocks \
+jx create cluster eks \
+    -n jx-rocks \
     -r $AWS_DEFAULT_REGION \
     --node-type t2.medium \
     --nodes 3 \
@@ -179,7 +180,6 @@ jx install \
     --default-admin-password admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --tiller-namespace $TILLER_NS \
     --default-environment-prefix jx-rocks \
     --no-tiller
 

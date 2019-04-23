@@ -46,7 +46,7 @@ First things first. We need a cluster with Jenkins X up-and-running, just as we 
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [11-scaling.sh](https://gist.github.com/855b8d70f3fa49b42d930144ed1606f1) Gist.
+I> All the commands from this chapter are available in the [11-serverless.sh](https://gist.github.com/855b8d70f3fa49b42d930144ed1606f1) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -207,6 +207,8 @@ Instead of talking about the advantages Serverless Jenkins X provides, we'll exp
 
 We'll create a Go-based project called *jx-serverless*.
 
+W> Make sure that you are not inside an existing repository before executing the command that follows.
+
 ```bash
 jx create quickstart \
   -l go \
@@ -358,6 +360,8 @@ Tekton creates a PipelineRun for each build initiated by each push to one of the
 The complete flow can be seen in the diagram 11-9.
 
 ![Figure 11-9: The complete flow of events in serverless Jenkins X](images/ch11/serverless-flow.png)
+
+I> You might notice the same diagram in [jenkins-x.io](https://jenkins-x.io/architecture/diagram/). The community thought that it is useful, so I contributed it.
 
 As I already mentioned, not everyone needs to understand the flow of events nor to have a deep understanding of all the components involved in the process. For most users, the only important thing to understand is that pushing changes to Git will result in the execution of the builds defined in jenkins-x.yml pipeline. That's the beauty of Jenkins X. It simplifies our lives by making complicated processes simple.
 

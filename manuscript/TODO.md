@@ -8,36 +8,41 @@
 - [X] 06-env.md
 - [X] 07-dev.md
 - [X] 08-pr.md
-- [ ] Remove the warning *I made a few changes*
 - [X] 09-promote.md
 - [X] 10-versioning.md
 - [X] 11-serverless.md
-- [ ] Publish "Going Serverless" oon TechnologyConversations.ccom 
+- [X] 12-prow.md
+- [ ] 13-buildpack-pipelines.md
+- [ ] Publish "Going Serverless" on TechnologyConversations.com 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
-- [ ] 12-prow.md
 - [ ] Remove `--no-tiller` (it's default since v2.x.x)
+- [ ] Remove `docker-registry:`from `myvalues.yaml`
+- [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
-- [ ] 99-jenkins-x-yml-extension-model.md
+- [ ] Remove `jenkinsAuth.yaml`
+- [ ] Publish "Exploring The Basic Pull Request Process Through ChatOps" (from "We need to define who is allowed to review and who can approve our pull...") on TechnologyConversations.com 
+- [ ] 99-pipeline-extension-model.md
 - [ ] 99-jenkins-x-yml-blank.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-cloudbees.md
 - [ ] 99-kaniko.md
 - [ ] 99-domains.md
 - [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md
-- [ ] 99-teams-and-multi-cluster.md
+- [ ] 99-teams-and-multi-cluster.md (Multiple Clusters)
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
+- [ ] 99-storage.md
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
+- [ ] 99-gitops.md
 - [ ] 99-upgrade.md
-
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
-- [ ] 99-gitops.md
 - [ ] 99-no-tiller.md
 - [ ] 99-vault.md
 - [ ] 99-ng-arg.md
@@ -49,6 +54,7 @@
 - [ ] 99-addons.md
 - [ ] 99-progressive-delivery.md
 - [ ] 99-create-chat.md
+- [ ] 99-custom-builders-and-pod-templates.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

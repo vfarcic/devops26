@@ -138,6 +138,8 @@ echo "nexus:
 
 Among other things, Jenkins X installs Nexus where we can store our libraries. While that is useful for many projects, we will not need it in the examples that follow. By disabling it, we'll avoid reserving resources we won't use.
 
+W> We will use `Static Jenkins Server and Jenkinsfiles` and switch to the serverless flavor later. Jenkins X 1.x has the static flavor as the default, while version 2.x changed to serverless as the default option. It is tempting to keep pressing the enter key to use the default answer on every question since Jenkins X provides sane defaults. For now (until instructed otherwise) please make sure to choose the static flavor.
+
 For your convenience, bookmarks to the relevant sub-chapters are as follows.
 
 * [Creating A Google Kubernetes Engine (GKE) Cluster With jx](#jx-create-cluster-gke)
@@ -182,8 +184,8 @@ jx create cluster gke \
     -p $PROJECT \
     -r us-east1 \
     -m n1-standard-2 \
-    --min-num-nodes 3 \
-    --max-num-nodes 5 \
+    --min-num-nodes 1 \
+    --max-num-nodes 2 \
     --default-admin-password admin \
     --default-environment-prefix jx-rocks \
     --no-tiller
@@ -211,7 +213,7 @@ Since we did not specify a custom domain for our cluster, the process will combi
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll ask us a few additional questions. Which kind do we want to install? Static or serverless? Please answer with `Static Master Jenkins` (the default value). We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll ask us a few additional questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -250,7 +252,8 @@ We'll also set the default Jenkins X password to `admin` (`--default-admin-passw
 Feel free to change any of the values in the command that follows to suit your needs better. Or, keep them as they are. After all, this is only a practice, and you'll be able to destroy the cluster and recreate it later on with different values.
 
 ```bash
-jx create cluster eks -n jx-rocks \
+jx create cluster eks \
+    -n jx-rocks \
     -r $AWS_DEFAULT_REGION \
     --node-type t2.medium \
     --nodes 3 \
@@ -275,7 +278,7 @@ Jenkins X recommends using a custom DNS name to access services in your Kubernet
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Master Jenkins` (the default value). We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -423,7 +426,7 @@ Since we did not specify a custom domain for our cluster, the process will combi
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Master Jenkins` (the default value). We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -624,7 +627,7 @@ In my case, the Deployment is called `nginx-ingress-controller`. Yours is likely
 INGRESS_DEP=nginx-ingress-controller
 ```
 
-Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it.s
+Now we are finally ready to install Jenkins X into your existing Kubernetes cluster. Please make sure to remove `--ingress-*` arguments if you do not have a NGINX Ingress controller in your cluster and you want `jx` to install it.
 
 ```bash
 jx install \
@@ -654,7 +657,7 @@ Finally, the installation of Jenkins X itself and a few other applications (e.g.
 
 * Which kind do we want to install? Static or serverless? 
 
-Please answer with `Static Master Jenkins` (the default value). We'll explore the serverless option later. 
+Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. 
 
 The next question is:
 

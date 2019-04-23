@@ -27,8 +27,8 @@ jx create cluster gke \
     -p $PROJECT \
     -r us-east1 \
     -m n1-standard-2 \
-    --min-num-nodes 3 \
-    --max-num-nodes 5 \
+    --min-num-nodes 1 \
+    --max-num-nodes 2 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
@@ -50,15 +50,15 @@ gcloud container clusters \
 gcloud compute disks delete \
     --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="zone:us-east1-d AND -users:*" \
-    --format="value(id)")
+    --filter="zone:us-east1-b AND -users:*" \
+    --format="value(id)") --quiet
 gcloud compute disks delete \
     --zone us-east1-c \
     $(gcloud compute disks list \
-    --filter="zone:us-east1-d AND -users:*" \
-    --format="value(id)")
+    --filter="zone:us-east1-c AND -users:*" \
+    --format="value(id)") --quiet
 gcloud compute disks delete \
     --zone us-east1-d \
     $(gcloud compute disks list \
     --filter="zone:us-east1-d AND -users:*" \
-    --format="value(id)")
+    --format="value(id)") --quiet

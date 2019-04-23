@@ -20,6 +20,8 @@ export AWS_DEFAULT_REGION=us-west-2
 
 echo "nexus:
   enabled: false
+docker-registry:
+  enabled: true
 " | tee myvalues.yaml
 
 # The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
