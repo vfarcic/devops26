@@ -93,13 +93,13 @@ spec:
 
 Let's say we want to deploy our new version to 10% of the users, and increase it another 10% every minute until we reach 50% of the users, then deploy to all users. We will examine two key metrics, whether more than 1% of the requests fail (5xx errors) or the request time is over 500ms. If these metrics fail 5 times we want to rollback to the old version.
 
-This configuration can be done using Flagger's `Canary` objects, as you can see in our demo6 helm chart under `helm/go-demo-3/templates/canary.yaml` and the `canary` section of our chart values file in `helm/go-demo-3/values.yaml`.
+This configuration can be done using Flagger's `Canary` objects, as you can see in our demo6 helm chart under `helm/go-demo-6/templates/canary.yaml` and the `canary` section of our chart values file in `helm/go-demo-6/values.yaml`.
 
-We can enable canarying by setting the `enable: "true"` in the `canary` section of `helm/go-demo-3/values.yaml`.
+We can enable canarying by setting the `enable: "true"` in the `canary` section of `helm/go-demo-6/values.yaml`.
 
 ```bash
-sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-3/values.yaml > helm/go-demo-3/values.yaml.bak
-mv helm/go-demo-3/values.yaml.bak helm/go-demo-3/values.yaml
+sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
+mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
 ```
 
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
