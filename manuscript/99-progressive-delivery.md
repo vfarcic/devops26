@@ -93,20 +93,81 @@ spec:
 
 Let's say we want to deploy our new version to 10% of the users, and increase it another 10% every minute until we reach 50% of the users, then deploy to all users. We will examine two key metrics, whether more than 1% of the requests fail (5xx errors) or the request time is over 500ms. If these metrics fail 5 times we want to rollback to the old version.
 
-This configuration can be done using Flagger's `Canary` objects, as you can see in our demo6 helm chart under `helm/go-demo-6/templates/canary.yaml` and the `canary` section of our chart values file in `helm/go-demo-6/values.yaml`.
+This configuration can be done using Flagger's `Canary` objects, that we can add to our application helm chart under `helm/go-demo-6/templates/canary.yaml` 
 
-We can enable canarying by setting the `enable: "true"` in the `canary` section of `helm/go-demo-6/values.yaml`.
-
-```bash
-sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
-mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
+```yaml
+{{- if eq .Release.Namespace "jx-production" }}
+{{- if .Values.canary.enable }}
+apiVersion: flagger.app/v1alpha2
+kind: Canary
+metadata:
+  # canary name must match deployment name
+  name: {{ template "fullname" . }}
+spec:
+  # deployment reference
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "fullname" . }}
+  progressDeadlineSeconds: 60
+  service:
+    # container port
+    port: {{.Values.service.internalPort}}
+{{- if .Values.canary.service.gateways }}
+    # Istio gateways (optional)
+    gateways:
+{{ toYaml .Values.canary.service.gateways | indent 4 }}
+{{- end }}
+{{- if .Values.canary.service.hosts }}
+    # Istio virtual service host names (optional)
+    hosts:
+{{ toYaml .Values.canary.service.hosts | indent 4 }}
+{{- end }}
+  canaryAnalysis:
+    # schedule interval (default 60s)
+    interval: {{ .Values.canary.canaryAnalysis.interval }}
+    # max number of failed metric checks before rollback
+    threshold: {{ .Values.canary.canaryAnalysis.threshold }}
+    # max traffic percentage routed to canary
+    # percentage (0-100)
+    maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
+    # canary increment step
+    # percentage (0-100)
+    stepWeight: {{ .Values.canary.canaryAnalysis.stepWeight }}
+{{- if .Values.canary.canaryAnalysis.metrics }}
+    metrics:
+{{ toYaml .Values.canary.canaryAnalysis.metrics | indent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
 ```
 
-And we just need to set the correct domain name for our Istio gateway
+And the `canary` section added to our chart values file in `helm/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `example.com`.
 
-```bash
-sed 's/go-demo-6.istio.example.com/go-demo-6.istio.mydomainname.com/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
-mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
+```yaml
+canary:
+  enable: true
+  service:
+    hosts:
+    - go-demo-6.istio.example.com
+    gateways:
+    - jx-gateway.istio-system.svc.cluster.local
+  canaryAnalysis:
+    interval: 60s
+    threshold: 5
+    maxWeight: 50
+    stepWeight: 10
+    metrics:
+    - name: istio_requests_total
+      # minimum req success rate (non 5xx responses)
+      # percentage (0-100)
+      threshold: 99
+      interval: 60s
+    - name: istio_request_duration_seconds_bucket
+      # maximum req duration P99
+      # milliseconds
+      threshold: 500
+      interval: 60s
 ```
 
 
