@@ -102,6 +102,25 @@ sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-6/values.
 mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
 ```
 
+Mongodb will not work by default with Istio because it runs under a non root `securityContext`, you would get this error in the `istio-init` init container.
+
+```
+iptables v1.6.0: can't initialize iptables table `nat': Permission denied (you must be root)
+```
+
+In order to simplify things we will just enable Istio for the main web service, disabling automatic Istio sidecar injection for our mongodb deployment by setting the `sidecar.istio.io/inject: "false"` annotation.
+
+```bash
+echo "go-demo-6-db:
+  replicaSet:
+    enabled: true
+  usePassword: false
+  podAnnotations:
+    sidecar.istio.io/inject: \"false\"
+" | tee -a charts/go-demo-6/values.yaml
+```
+
+
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash

@@ -29,6 +29,8 @@ jx repo -b
 
 ls -1
 
+# import sets the Jenkinsfile ORG to carlossg, so it breaks because it doesn't match vfarcic
+# need to add carlossg to OWNERS and OWNERS_ALIASES
 jx import -b
 
 ls -1
@@ -37,23 +39,11 @@ jx get activities -f go-demo-6 -w
 
 STAGING_ADDR=[...]
 
+# curl -kL to workaround bad ssl and follow redirect
 curl "$STAGING_ADDR/demo/hello"
 
 kubectl -n jx-staging logs \
     -l app=jx-staging-go-demo-6
-
-echo "go-demo-6-db:
-  replicaSet:
-    enabled: true
-" | tee -a charts/go-demo-6/values.yaml
-
-git add .
-
-git commit -m "Added dependencies"
-
-git push
-
-jx get activity -f go-demo-6 -w
 
 kubectl -n jx-staging get pods
 
@@ -61,20 +51,32 @@ kubectl -n jx-staging \
     describe pod \
     -l app=jx-staging-go-demo-6
 
-git add .
+echo "go-demo-6-db:
+  replicaSet:
+    enabled: true
+  usePassword: false
+  podAnnotations:
+    sidecar.istio.io/inject: \"false\"
+" | tee -a charts/go-demo-6/values.yaml
 
-git commit -m "Added dependencies"
+sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
+mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
+
+git commit -am "Enable canary deployments"
 
 git push
 
-jx get activity -f go-demo-6 -w
+jx get activities -f go-demo-6 -w
 
-kubectl -n jx-staging get pods
+# wait for new version to be built
 
-curl "$STAGING_ADDR/demo/hello"
+jx get applications
 
+jx promote go-demo-6 --version 1.0.1 --env production
 
+kubectl -n istio-system logs -f deploy/flagger
 
+watch curl -skL "$STAGING_ADDR/demo/hello"
 
 
 hub delete -y \
