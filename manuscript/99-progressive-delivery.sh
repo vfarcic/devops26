@@ -62,6 +62,9 @@ echo "go-demo-6-db:
 sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
 mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
 
+sed 's/go-demo-6.istio.example.com/go-demo-6.istio.us.g.csanchez.org/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
+mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
+
 git commit -am "Enable canary deployments"
 
 git push
