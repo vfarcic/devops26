@@ -102,6 +102,14 @@ sed '/^canary:/,/^ *[^:]*:/s/enable: false/enable: true/' helm/go-demo-6/values.
 mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
 ```
 
+And we just need to set the correct domain name for our Istio gateway
+
+```bash
+sed 's/go-demo-6.istio.example.com/go-demo-6.istio.mydomainname.com/' helm/go-demo-6/values.yaml > helm/go-demo-6/values.yaml.bak
+mv helm/go-demo-6/values.yaml.bak helm/go-demo-6/values.yaml
+```
+
+
 Mongodb will not work by default with Istio because it runs under a non root `securityContext`, you would get this error in the `istio-init` init container.
 
 ```
