@@ -8,30 +8,7 @@ The idea behind ChatOps is to unify communication about the work that should be 
 
 We can define ChatOps as conversation driven development. Communication is essential for all but single-person teams. We need to communicate with others when the feature we're developing is ready. We need to ask others to review our changes. We might need to ask for permission to merge to the master branch. The list of the things we might need to communicate is infinite. That does not mean that all communication becomes ChatOps, but rather that parts of our communication does. It's up to the system to figure out what which parts of communication should result in actions, and what is a pure human-to-human messaging without tangible outcomes.
 
-As we already saw, four elements need to be combined into a process. We need communication (comments), permissions (RBAC), notifications (email), and actions. All but the last are already solved in every Git platform. We just need to figure out how to combine comments, permissions, and notifications into concrete actions. We'll do that by introducing Prow to our solution.
-
-[Prow](https://github.com/kubernetes/test-infra/tree/master/prow) is a project created by the team managing continuous delivery processes for [Kubernetes](https://kubernetes.io/) projects. It does quite a few things, but we will not use everything it offers because there are better ways to accomplish some of its tasks. The parts of Prow we are primarily interested in are those related to communication between Git and processes running in our cluster. We'll use it to capture Git events created through *slash commands* written in comments. When such events are captured, Prow will either forward them to other processes running in the cluster (e.g., execute pipeline builds), or perform Git actions (e.g., merge a pull request).
-
-Since this might be the first time you hear the term slash commands, so a short explanation might be in order.
-
-Slash commands act as shortcuts for specific actions. Type a slash command in the Git comment field, click the button, and that's it. You executed a task or a command. Of course, our comments are not limited to slash commands. Instead, they are often combined with "conversational" text. Unfortunately, commands and the rest of communication must be in separate lines. A command must be at the start of a line, and the whole line is considered a single command. We could, for example, write the following text.
-
-
-```
-This PR looks OK.
-
-/lgtm
-```
-
-Prow parses each line and will deduce that there is a slash command `/lgtm`.
-
-Slash commands are by no means specific to Git and are widely used in other tools. Slack, for example, is known for its wide range of supported slash commands and the ability to extend them. But, since we are focused on Git, we'll limit our ChatOps experience with Slash commands to what Prow offers as the mechanism adopted by Jenkins X (and by Kubernetes community).
-
-All in all, Prow will be our only entry point to the cluster. Since it accepts only requests from Git webhooks or slash commands, the only way we will be able to change something in our cluster is by changing the source code or by writing commands in Git comments. At the same time, Prow is highly available (unlike static Jenkins), so we'll use it to solve yet another problem.
-
-I> At the time of this writing (April 2019), Prow only supports GitHub. The community is working hard on adding support for other Git platforms. Until that is finished, we are restricted to GitHub. If you do use a different Git platform (e.g., GitLab), I still recommend going through the exercises in this chapter. They will provide a learning experience. The chances are that, by the time you start using Jenkins X in production, support for other Git flavors will be finished.
-
-W> Due to the current limitation, you cannot use Prow with anything but GitHub, and serverless Jenkins X doesn't work without Prow. Please take that into account if you are planning to use it in your organization (until the support for other Git providers is added to Prow).
+Without further ado, we'll take a look how Jenkins X implements ChatOps.
 
 ## A Quick Practical Demonstration
 
