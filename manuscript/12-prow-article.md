@@ -1,28 +1,10 @@
 # Implementing ChatOps With Jenkins X
 
-Jenkins X main logic is based on applying GitOps principles. Every change must be recorded in Git, and only Git is allowed to initiate events that result in changes in our clusters. That logic is the cornerstone of Jenkins X, and it served us well so far. However, there are actions we might need to perform that do not result in changes to the source code or configurations.
-
-We might need to assign a pull request to someone for review. That someone might have to review the changes and might need to run some manual tests if they are not fully automated. A pull request could need additional changes, and the committer might need to be notified about that. Someone might need to approve and merge a pull request or choose to cancel it altogether. The list of the actions that we might have to perform once a pull request is created can be quite extensive, and many of them do not result in changes to source code. The period starting with the creation of a pull request and until it is merged to master is mostly filled with communication, rather than changes to the project in question. As such, we need an effective way to facilitate that communication.
-
-The communication and decision making that surrounds a pull request needs to be recorded. We need to be able to track who said what and who made which decision. Otherwise, we would not be able to capture the events that lead to a merge of a pull request to the master branch. We'd be running blind. That means that verbal communication must be discarded since it would not be recorded.
-
-Given that such communication should be closely related to the pull request, we can discard emails and wiki pages as well, thus leading us back to Git. Almost every Git platform has a mechanism to create comments tied to pull requests. We can certainly use those comments to record the communication. But, communication by itself is useless if it does not result in concrete actions.
-
-If we do need to document the communication surrounding a pull request, it would be a waste of effort to have to perform related actions separately. Ideally, communication should result in actions.
-
-When we write a comment that a pull request should be assigned to a reviewer, it should trigger an action that will do the actual assignment and notify that person that there is a pending action. If we comment that a pull request should be labeled as "urgent", that comment should add the label. If a reviewer writes that a pull request should be canceled, that comment should close the pull request. Similarly, if a person with sufficient permissions comments that the pull request is approved, it should be merged automatically.
-
-There are a couple of concepts that need to be tied together for our process surrounding pull request to be effective. We need to be able to communicate, and we already have comments for that. People with sufficient privileges need to be able to perform specific actions (e.g., merge a pull request). Git platforms already implement some form of RBAC (Role Based Authentication), so that part is already solved. Furthermore, we need to be notified that there is a pending action we should perform as well as that a significant milestone is reached. This is solved as well. Every Git flavor provides a notification mechanism. What we're missing is a process that will tie all that together by executing actions based on our comments.
-
-We should be able to implement ChatOps principles if we manage to convert comments into actions controlled by RBAC and if we receive notifications when there is a pending task.
+Jenkins X main logic is based on applying GitOps principles. Every change must be recorded in Git, and only Git is allowed to initiate events that result in changes in our clusters. That logic is the cornerstone of Jenkins X, and it served us well so far. However, there are actions we might need to perform that do not result in changes to the source code or configurations. Hence the emergence of ChatOps.
 
 The idea behind ChatOps is to unify communication about the work that should be done with the history of what has been done. The expression of a desire (e.g., approve this pull request) becomes an action (execution of the approval process) and is at the same time recorded. ChatOps is similar to verbal communication or, to be more precise, commands we might give if we would have a butler. "Please make me a meal" is an expression of a desire. Your butler would transmit your wish to a cook, wait until the meal is ready, and bring it back to you. Given that we are obsessed (for a good reason) to record everything we do when developing software, verbal expressions are not good enough, so we need to write them down. Hence the idea of ChatOps.
 
 > ChatOps converts parts of communication into commands that are automatically executed and provides feedback of the results.
-
-In a ChatOps environment, a chat client is the primary source of communication for ongoing work. However, since we adopted Git as the only source of truth, it should come as no surprise that the role of a chat client is given to Git. After all, it has comments, and that can be considered chat (of sorts). Some call it GitChat, but we'll stick with a more general term ChatOps.
-
-If we assume that only Git should be able to initiate a change in our clusters, it stands to reason that such changes can be started either by a change in the source code, by writing comments in Git, or by creating an issue.
 
 We can define ChatOps as conversation driven development. Communication is essential for all but single-person teams. We need to communicate with others when the feature we're developing is ready. We need to ask others to review our changes. We might need to ask for permission to merge to the master branch. The list of the things we might need to communicate is infinite. That does not mean that all communication becomes ChatOps, but rather that parts of our communication does. It's up to the system to figure out what which parts of communication should result in actions, and what is a pure human-to-human messaging without tangible outcomes.
 
@@ -154,9 +136,9 @@ git commit -m "My first PR with prow"
 git push --set-upstream origin chat-ops
 ```
 
-We created a new branch `chat-ops`, we make a silly change to `README.md`, and we pushed the commit.
+We created a new branch `chat-ops`, we made a silly change to `README.md`, and we pushed the commit.
 
-Now that we have the branch with the change to the source code, we should create a pull request. We could do that by going to GitHub UI but, as you already know from the [Working With Pull Requests And Preview Environments][#pr] chapter, `jx` already allows us to do that through the command line. Given that I prefer terminal screen over UIs (and you don't have a say in that matter), we'll go with the latter option.
+Now that we have the branch with the change to the source code, we should create a pull request. We could do that by going to GitHub UI. There is a better way though. `jx` allows us to do that through the command line. Given that I prefer terminal screen over UIs (and you don't have a say in that matter), we'll go with the latter option.
 
 ```bash
 jx create pr \
@@ -165,7 +147,11 @@ jx create pr \
     -b
 ```
 
-Type the following comment and press the *Comment* button.
+We created a pull request and are presented with a confirmation message with a link. Please open it in your favorite browser.
+
+Given that no PR should be approved without a kitten, we'll add one.
+
+Please type the following PR comment and press the *Comment* button.
 
 ```
 No PR should be without a kitten
@@ -173,11 +159,13 @@ No PR should be without a kitten
 /meow
 ```
 
-The approver should receive a notification email. Please let her know that she should go to the pull request (instructions are in the email), type `/lgtm` (looks good to me), and click the *Comment* button.
+You should see a picture of a cat. We did not really need it, but it was a good demonstration of a communication through comments that results in automatically executed actions.
+
+When we created a pull request, it was automatically assigned to one of the approvers. Your colleague should have received a notification email. Please let her know that she should go to the pull request (instructions are in the email), type `/lgtm` (looks good to me), and click the *Comment* button.
 
 I> Please note that `/approve` and `/lgtm` have the same purpose in this context. We're switching from one to another only to show that both result in the pull request being merged to the master branch.
 
-After a while, the PR will be merged, and a build of the pipeline will be executed. That, as you already know, results in a new release being validated and deployed to the staging environment.
+After a while, the PR will be merged, and a build of the pipeline will be executed. That, as you hopefully know, results in a new release being validated and deployed to the staging environment (thanks to Jenkins X pipelines).
 
 You will notice that email notifications are flying back and forth between you and the approver. Not only that we are applying ChatOps principles, but we are at the same time solving the need for notifications that let each involved know what's going on as well as whether there are pending actions. Those notifications are sent by Git itself as a reaction to specific actions. The way to control who receives which notifications is particular to each Git platform and I hope that you already know how to subscribe, unsubscribe, or modify Git notifications you're receiving.
 
@@ -204,4 +192,4 @@ All in all, the pull request is approved. As a result, Prow merged it to the mas
 
 Please wait until the *All checks have passed* message appears in the PR.
 
-We already know from past that a merge to the master branch initiates yet another build. That did not change with the introduction of ChatOps. When we approved the PR, Prow merged it to the master branch, and from there the same processes were executed as if we merged manually.
+That was a very quick overview of ChatOps in Jenkins X. We only scratched the surface. Now it's up to you to roll up your sleeves and explore everything Prow, Tekton, Jenkins X Pipeline Operator and other tools offered through the serverless Jenkins X bundle.
