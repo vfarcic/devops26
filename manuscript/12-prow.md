@@ -123,7 +123,7 @@ git commit -m "My first PR with prow"
 git push --set-upstream origin chat-ops
 ```
 
-We created a new branch `chat-ops`, we make a silly change to `README.md`, and we pushed the commit.
+We created a new branch `chat-ops`, we made a silly change to `README.md`, and we pushed the commit.
 
 Now that we have the branch with the change to the source code, we should create a pull request. We could do that by going to GitHub UI but, as you already know from the [Working With Pull Requests And Preview Environments][#pr] chapter, `jx` already allows us to do that through the command line. Given that I prefer terminal screen over UIs (and you don't have a say in that matter), we'll go with the latter option.
 

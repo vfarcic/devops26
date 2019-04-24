@@ -12,8 +12,7 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [X] 12-prow.md
-- [ ] 13-buildpack-pipelines.md
-- [ ] Publish "Going Serverless" on TechnologyConversations.com 
+- [ ] Publish "Exploring The Basic Pull Request Process Through ChatOps" (from "We need to define who is allowed to review and who can approve our pull...") on TechnologyConversations.com 
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -22,8 +21,8 @@
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] Remove `jenkinsAuth.yaml`
-- [ ] Publish "Exploring The Basic Pull Request Process Through ChatOps" (from "We need to define who is allowed to review and who can approve our pull...") on TechnologyConversations.com 
 - [ ] 99-pipeline-extension-model.md
+- [ ] 99-buildpack-pipelines.md
 - [ ] 99-jenkins-x-yml-blank.md
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-cloudbees.md
@@ -71,10 +70,14 @@
 
 - [ ] Code
 - [ ] Write
-- [ ] Code review GKE
-- [ ] Code review EKS
-- [ ] Code review AKS
-- [ ] Code review existing cluster
+- [ ] Code review static GKE
+- [ ] Code review serverless GKE
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles

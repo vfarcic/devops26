@@ -8,14 +8,14 @@ W> You might be used to the fact that until now we were always using the same Gi
 
 If you kept the cluster from the previous chapter and it contains serverless Jenkinss X, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [13-pipeline-extension-model.sh](TODO:) Gist.
+I> All the commands from this chapter are available in the [TODO:](TODO:) Gist.
 
 For your convenience, the Gists that will create a new Jenkins X cluster or install it inside an existing one are as follows.
 
-* Create new **GKE** cluster: [gke-jx-serverless.sh](TODO:)
-* Create new **EKS** cluster: [eks-jx-serverless.sh](TODO:)
-* Create new **AKS** cluster: [aks-jx-serverless.sh](TODO:)
-* Use an **existing** cluster: [install-serverless.sh](TODO:)
+* Create new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
 We will not need the `jx-serverless` project we created in the previous chapter. If you are reusing the cluster and Jenkins X installation, you might want to remove it and save a bit of resources.
 

@@ -1,3 +1,25 @@
+## TODO
+
+- [ ] Code
+- [ ] Write
+- [ ] Code review static GKE
+- [ ] Code review serverless GKE
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
+- [ ] Text review
+- [ ] Gist
+- [ ] Review titles
+- [ ] Proofread
+- [ ] Diagrams
+- [ ] Add to slides
+- [ ] Publish on TechnologyConversations.com
+- [ ] Add to Book.txt
+- [ ] Publish on LeanPub.com
+
 # Extending Buildpack Pipelines
 
 ## Creating A Kubernetes Cluster With Jenkins X
@@ -27,6 +49,8 @@ We will not need the `jx-prow` project we created in the previous chapter. If yo
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
+TODO: Double check whether `jx-prow` should be removed
+
 ```bash
 GH_USER=[...]
 
@@ -38,6 +62,8 @@ jx delete application \
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
 I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `versioning` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+
+TODO: Double check whether the correct branch is restored
 
 ```bash
 cd go-demo-6
@@ -137,8 +163,6 @@ cat packs/go/pipeline.yaml
           name: jx-preview
       - dir: /home/jenkins/go/src/REPLACE_ME_GIT_PROVIDER/REPLACE_ME_ORG/REPLACE_ME_APP_NAME
         steps:
-        - sh: sleep 30
-          name: sleep
         - sh: jx get preview --current -o jsonpath="{.msg}"
           name: address
         - sh: ADDRESS=$(kubectl -n jx-$ORG-$PREVIEW_NAMESPACE get ing REPLACE_ME_APP_NAME -o jsonpath='{.spec.rules[0].host}' make functest
@@ -163,8 +187,6 @@ cat packs/go/pipeline.yaml
           name: jx-promote
       - dir: /home/jenkins/go/src/REPLACE_ME_GIT_PROVIDER/REPLACE_ME_ORG/REPLACE_ME_APP_NAME
         steps:
-        - sh: sleep 30
-          name: sleep
         - sh: ADDRESS=$(kubectl -n jx-staging get ing REPLACE_ME_APP_NAME -o jsonpath='{.spec.rules[0].host}' make functest
           name: func-test
         - sh: ADDRESS=$(kubectl -n jx-staging get ing REPLACE_ME_APP_NAME -o jsonpath='{.spec.rules[0].host}' make integtest
@@ -204,6 +226,8 @@ jx import -b
 jx get activities -f go-demo-6 -w
 
 git checkout -b pipeline-changes
+
+# TODO: Increase the number of replicas
 
 echo "Something different" \
     | tee README.md
