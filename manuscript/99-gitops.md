@@ -44,7 +44,6 @@ jx version
 #     --default-admin-password=admin \
 #     --default-environment-prefix jx-rocks \
 #     --git-provider-kind github \
-#     --no-tiller \
 #     --gitops \
 #     --no-gitops-vault \
 #     -b
@@ -86,7 +85,6 @@ jx create terraform \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --no-tiller \
     --gitops \
     --no-gitops-vault
 
@@ -100,7 +98,6 @@ jx install \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
     --gitops \

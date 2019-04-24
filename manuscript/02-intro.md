@@ -187,8 +187,7 @@ jx create cluster gke \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -260,8 +259,7 @@ jx create cluster eks \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -346,7 +344,7 @@ aws iam put-role-policy \
     --policy-document https://raw.githubusercontent.com/vfarcic/k8s-specs/master/scaling/eks-autoscaling-policy.json
 ```
 
-Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. All we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, we used `--no-tiller` flag when we created the cluster. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
+Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. All we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, Jenkins X does not use it by default. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
 
 ```bash
 mkdir -p charts
@@ -402,8 +400,7 @@ jx create cluster aks \
     -s Standard_B2s \
     --nodes 3 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -637,8 +634,7 @@ jx install \
     --default-admin-password admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll notice that `jx install` executes the same steps as those performed by `jx cluster create`, except that the latter creates a cluster first. You can think of `jx install` as a subset of `jx cluster create`.

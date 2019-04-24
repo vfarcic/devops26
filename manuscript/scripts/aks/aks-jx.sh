@@ -23,7 +23,6 @@ jx create cluster aks \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --no-tiller \
     -b
 
 #######################

@@ -38,7 +38,6 @@ jx create cluster eks -n jx-rocks \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
     -b

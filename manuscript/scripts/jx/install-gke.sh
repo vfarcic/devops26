@@ -62,7 +62,6 @@ jx install \
     --ingress-deployment $INGRESS_DEP \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --no-tiller \
     -b
 
 #######################
