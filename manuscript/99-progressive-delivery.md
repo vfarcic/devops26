@@ -65,35 +65,14 @@ jx create addon prometheus
 jx create addon flagger
 ```
 
-The Flagger addon will enable Istio for all pods in the `jx-production` namespace so it starts sending metrics to Prometheus.
-It will also configure an Istio ingress gateway to accept incoming external traffic through the ingress gateway service, but for it to reach the final service we must create Istio `VirtualServices`, the rules that manage the Istio routing. But Flagger will do that for us.
-
-Note that Istio v1.0 by default will block all outgoing traffic. This behavior is planned to change in Istio v1.1. If you need your service to access the internet you need to create `ServiceEntry` objects.
-
-TODO check this
-
-```
-# Allow calls to http://metadata.google.internal
-apiVersion: networking.istio.io/v1alpha3
-kind: ServiceEntry
-metadata:
-  name: external-google-api
-  namespace: jx-production
-spec:
-  hosts:
-  - metadata.google.internal
-  location: MESH_EXTERNAL
-  ports:
-  - number: 80
-    name: http
-    protocol: HTTP
-```
+The Flagger addon will enable Istio for all pods in the `jx-production` namespace so they send traffic metrics to Prometheus.
+It will also configure an Istio ingress gateway to accept incoming external traffic through the ingress gateway service, but for it to reach the final service we must create Istio `VirtualServices`, the rules that manage the Istio routing. Flagger will do that for us.
 
 ## Flagger App Configuration
 
 Let's say we want to deploy our new version to 10% of the users, and increase it another 10% every minute until we reach 50% of the users, then deploy to all users. We will examine two key metrics, whether more than 1% of the requests fail (5xx errors) or the request time is over 500ms. If these metrics fail 5 times we want to rollback to the old version.
 
-This configuration can be done using Flagger's `Canary` objects, that we can add to our application helm chart under `helm/go-demo-6/templates/canary.yaml` 
+This configuration can be done using Flagger's `Canary` objects, that we can add to our application helm chart under `charts/go-demo-6/templates/canary.yaml` 
 
 ```yaml
 {{- if eq .Release.Namespace "jx-production" }}
@@ -142,7 +121,7 @@ spec:
 {{- end }}
 ```
 
-And the `canary` section added to our chart values file in `helm/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `example.com`.
+And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `example.com`.
 
 ```yaml
 canary:
@@ -170,7 +149,6 @@ canary:
       interval: 60s
 ```
 
-
 Mongodb will not work by default with Istio because it runs under a non root `securityContext`, you would get this error in the `istio-init` init container.
 
 ```
@@ -179,14 +157,15 @@ iptables v1.6.0: can't initialize iptables table `nat': Permission denied (you m
 
 In order to simplify things we will just enable Istio for the main web service, disabling automatic Istio sidecar injection for our mongodb deployment by setting the `sidecar.istio.io/inject: "false"` annotation.
 
-```bash
-echo "go-demo-6-db:
+Under `go-demo-6` entry, add the `podAnnotations` section with `sidecar.istio.io/inject` set to `"false"`.
+
+```yaml
+go-demo-6-db:
   replicaSet:
     enabled: true
   usePassword: false
   podAnnotations:
-    sidecar.istio.io/inject: \"false\"
-" | tee -a charts/go-demo-6/values.yaml
+    sidecar.istio.io/inject: "false"
 ```
 
 
@@ -231,7 +210,7 @@ jx get applications
 Promote to production the new version
 
 ```
-jx promote demo6 --env production --version=[...] -b
+jx promote go-demo-6 --env production --version=[...] -b
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `Deployment` object in the `jx-production` environment.
