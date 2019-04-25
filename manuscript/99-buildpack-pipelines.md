@@ -285,6 +285,4 @@ rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
 # If serverless
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```

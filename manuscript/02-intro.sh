@@ -193,8 +193,6 @@ hub delete -y \
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
-rm -f ~/.jx/jenkinsAuth.yaml
-
 # If GKE
 gcloud container clusters \
     delete jx-rocks \

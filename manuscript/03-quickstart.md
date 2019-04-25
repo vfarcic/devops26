@@ -505,8 +505,6 @@ rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 cd ..
 
 rm -rf jx-go
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```
 
 Finally, you might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just keep reading.

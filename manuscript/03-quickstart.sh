@@ -82,5 +82,3 @@ rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 cd ..
 
 rm -rf jx-go
-
-rm -f ~/.jx/jenkinsAuth.yaml

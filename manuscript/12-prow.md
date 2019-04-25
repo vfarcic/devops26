@@ -435,6 +435,4 @@ hub delete -y $GH_USER/jx-prow
 rm -rf jx-prow
 
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```
