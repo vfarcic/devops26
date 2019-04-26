@@ -155,11 +155,24 @@ jx get applications
 
 jx promote go-demo-6 --version 1.0.1 --env production
 
+# deploy a new app
+
+sed "s/hello, PR/hello canary, PR/" main.go > main.go.bak
+mv main.go.bak main.go
+git commit -am "Canary"
+git push
+
+# promote to production
+
+jx get applications
+
+jx promote go-demo-6 --version 1.0.2 --env production
+
 kubectl -n istio-system logs -f deploy/flagger
 
 watch curl -skL "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"
 
-# deploy a new app
+
 
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
