@@ -81,7 +81,7 @@ GH_USER=[...]
 
 jx delete application \
     $GH_USER/jx-serverless \
-    -b
+    --batch-mode
 ```
 
 Now we can explore Prow inside the serverless Jenkins X bundle.
@@ -128,10 +128,10 @@ We created a new branch `chat-ops`, we made a silly change to `README.md`, and w
 Now that we have the branch with the change to the source code, we should create a pull request. We could do that by going to GitHub UI but, as you already know from the [Working With Pull Requests And Preview Environments][#pr] chapter, `jx` already allows us to do that through the command line. Given that I prefer terminal screen over UIs (and you don't have a say in that matter), we'll go with the latter option.
 
 ```bash
-jx create pr \
-    -t "PR with prow" \
+jx create pullrequest \
+    --title "PR with prow" \
     --body "What I can say?" \
-    -b
+    --batch-mode
 ```
 
 We created a pull request and are presented with a confirmation message with a link. Please open it in your favorite browser.
@@ -327,10 +327,10 @@ git push --set-upstream origin my-pr
 We are finally ready to create a pull request.
 
 ```bash
-jx create pr \
-    -t "My PR" \
+jx create pullrequest \
+    --title "My PR" \
     --body "What I can say?" \
-    -b
+    --batch-mode
 ```
 
 Please open the link from the output in your favorite browser.

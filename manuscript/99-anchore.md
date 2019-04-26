@@ -198,10 +198,10 @@ git commit -m "Testing anchore"
 
 git push --set-upstream origin anchore
 
-jx create pr \
-  -t "Testing anchore" \
+jx create pullrequest \
+  --title "Testing anchore" \
   --body "Title says is all" \
-  -b
+  --batch-mode
 
 PR_ID=[...]
 

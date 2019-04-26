@@ -18,7 +18,7 @@ git merge pr
 
 git push
 
-jx import -b
+jx import --batch-mode
 
 jx get activities -f go-demo-6 -w
 

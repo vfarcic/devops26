@@ -104,7 +104,7 @@ Such a situation might not be your case. Maybe you do have scripts for running t
 Let's see what happens when we try to import that repository into Jenkins X.
 
 ```bash
-jx import -b
+jx import --batch-mode
 ```
 
 The output is as follows.

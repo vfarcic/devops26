@@ -62,7 +62,7 @@ git push
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
 ```bash
-jx import -b
+jx import --batch-mode
 
 jx get activities -f go-demo-6 -w
 ```

@@ -285,7 +285,7 @@ W> Please execute the commands that follow only if you did not destroy the clust
 ```bash
 jx delete application \
     $GH_USER/go-demo-6 \
-    -b
+    --batch-mode
 
 kubectl -n jx delete act \
   -l owner=$GH_USER \
@@ -315,7 +315,7 @@ We replaced the `master` branch with `orig` and pushed the changes to GitHub.
 Now we're ready to import the project using the newly created `go-mongo` pack.
 
 ```bash
-jx import --pack go-mongo -b
+jx import --pack go-mongo --batch-mode
 ```
 
 The output should be almost the same as the one we saw when we imported the project based on the `go` pack. The only significant difference is that this time we can see in the output that it used the pack `go-mongo`.

@@ -386,7 +386,7 @@ Next up: AKS.
 
 ## Creating An Azure Kubernetes Service (AKS) Cluster With jx {#jx-create-cluster-aks}
 
-We'll create an AKS cluster with all the tools installed and configured. We'll name the cluster `jxrocks` (`-c`) and let it reside inside its own group `jxrocks-group` (`-n`). It'll run inside `eastus` location (`-l`) and on `Standard_B2s` (2 CPUs and 4 GB RAM) machines (`-s`). The number of nodes will be set to three (`--nodes`).
+We'll create an AKS cluster with all the tools installed and configured. We'll name the cluster `jxrocks` (`--cluster-name`) and let it reside inside its own group `jxrocks-group` (`--resource-group-name`). It'll run inside `eastus` location (`--location`) and on `Standard_B2s` (2 CPUs and 4 GB RAM) machines (`--node-vm-size`). The number of nodes will be set to three (`--nodes`).
 
 We'll also set the default Jenkins X password to `admin` ( `--default-admin-password`). Otherwise, the process will create a random one. Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create a few repositories (one for staging and the other for production), and that prefix will be used to form their names. We won't go into much detail about those environments and repositories just yet. That's reserved for one of the follow-up chapters.
 
@@ -394,10 +394,10 @@ Feel free to change any of the values in the command that follows to suit your n
 
 ```bash
 jx create cluster aks \
-    -c jxrocks \
-    -n jxrocks-group \
-    -l eastus \
-    -s Standard_B2s \
+    --cluster-name jxrocks \
+    --resource-group-name jxrocks-group \
+    --location eastus \
+    --node-vm-size Standard_B2s \
     --nodes 3 \
     --default-admin-password admin \
     --default-environment-prefix jx-rocks

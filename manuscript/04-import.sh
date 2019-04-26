@@ -29,7 +29,7 @@ jx repo -b
 
 ls -1
 
-jx import -b
+jx import --batch-mode
 
 ls -1
 

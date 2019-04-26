@@ -15,15 +15,15 @@ echo "nexus:
 " | tee myvalues.yaml
 
 jx create cluster aks \
-    -c jxrocks \
-    -n jxrocks-group \
-    -l eastus \
-    -s Standard_B2s \
+    --cluster-name jxrocks \
+    --resource-group-name jxrocks-group \
+    --location eastus \
+    --node-vm-size Standard_B2s \
     --nodes 3 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    -b
+    --batch-mode
 
 #######################
 # Destroy the cluster #

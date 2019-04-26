@@ -8,7 +8,7 @@ cd go-demo-6
 
 git checkout master
 
-jx import -b
+jx import --batch-mode
 
 jx get activities -f go-demo-6 -w
 

@@ -12,9 +12,9 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [X] 12-prow.md
-- [ ] 99-pipeline-extension-model.md
-- [ ] 99-buildpack-pipelines.md
-- [ ] 99-jenkins-x-yml-blank.md
+- [ ] 99-upgrade.md
+- [ ] 13-pipeline-extension-model.md
+- [ ] 99-advanced-pipelines.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -32,7 +32,6 @@
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
-- [ ] 99-upgrade.md
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
 - [ ] 99-no-tiller.md
