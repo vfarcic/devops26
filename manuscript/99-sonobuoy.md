@@ -12,7 +12,7 @@ open "https://github.com/heptio/sonobuoy/releases/tag/v0.13.0"
 
 * [gke-sonobuoy.sh](https://gist.github.com/658dc48a87ac4f9f7232a7e2a65886ce): **GKE** with 3 **n1-standard-1** worker nodes and Kubernetes version **v1.11.5** (or higher).
 * [eks-sonobuoy.sh](https://gist.github.com/99b42c1391fd488646137794350f3ba2): **EKS** with 3 **t2.small** worker nodes and Kubernetes version **v1.11** (or higher).
-* [aks-sonobuoy.sh](https://gist.github.com/8ced04f658847148632f880b01e0d9a6): **AKS** with 3 **Standard_B2s** worker nodes and Kubernetes version **v1.11.5** (or higher).
+* [aks-sonobuoy.sh](https://gist.github.com/8ced04f658847148632f880b01e0d9a6): **AKS** with 3 **Standard_D2s_v3** worker nodes and Kubernetes version **v1.11.5** (or higher).
 * [minikube-sonobuoy.sh](https://gist.github.com/6d3d10babf1be772f23c6942a7e3811e): **minikube** with **2 CPUs** and **2 GB RAM** and Kubernetes version **v1.11.5** (or higher).
 
 ```bash

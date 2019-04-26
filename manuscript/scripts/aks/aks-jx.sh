@@ -18,7 +18,7 @@ jx create cluster aks \
     --cluster-name jxrocks \
     --resource-group-name jxrocks-group \
     --location eastus \
-    --node-vm-size Standard_B2s \
+    --node-vm-size Standard_D2s_v3 \
     --nodes 3 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \

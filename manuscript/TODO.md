@@ -24,7 +24,7 @@
 - [ ] 99-domains.md
 - [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md
-- [ ] 99-teams-and-multi-cluster.md (Multiple Clusters)
+- [ ] 99-teams-and-multi-cluster.md
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
 - [ ] 99-storage.md
