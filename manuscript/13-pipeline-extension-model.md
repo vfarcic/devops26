@@ -2,14 +2,10 @@
 
 - [X] Code
 - [ ] Write
-- [-] Code review static GKE
 - [X] Code review serverless GKE
-- [-] Code review static EKS
 - [ ] Code review serverless EKS
-- [-] Code review static AKS
-- [ ] Code review serverless AKS
-- [-] Code review existing static cluster
-- [ ] Code review existing serverless cluster
+- [X] Code review serverless AKS
+- [-] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles
@@ -20,23 +16,71 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Using The Extension Model in jenkins-x.yaml
+# Using The Extension Model In jenkins-x.yaml
 
-NOTE: Serverless only
+W> The examples in this chapter work only with serverless Jenkins X.
 
-Copying and pasting coode is one of developer's major sins. One of the first things we learn as developers is that duplicated code is hard to maintain. That's why we are creating libraries. We do not want to repeat ourselves and we even came up with a commonly used acronym DRY (don't repeat yourself). Jenkins users are sinful.
+## The Evolution Of Jenkins Jobs
 
-TODO: Repetition results in reinvention of the wheel
+When Jenkins appeared, its pipelines were called FreeStyle jobs. There are no way to describe them in code and they were not kept in version control. We were creating and maintaining those jobs through Jenkins UI through input fields, checkboxes, and drop-down lists. The end result were impossible-to-read XML files stored in Jenkins home directory. That was so great that Jenkins become widely adopted over night. But, that was many years ago and what was great over a decade ago is not necessarily as good today. As a matter of fact, FreeStyle jobs are antitesis of the types of jobs we should be writing today. Tools that create code through drag-and-drop methods are extinct. Not having code in version control is a cardinal sin. Not being able to use our favorite IDE or code editor is unacceptable. Hence, Jenkins community created Jenkins pipelines.
 
-When we create pipelines thrugh static Jenkins X, every project gets a Jenkinsfile based on the pipeline residing in the buildpack we choose. If we have ten projects, there will be ten identical copies of the same Jenkinsfile. Over time, we'll modify those Jenkinsfiles and they might not all thee exactly the same. Even in those cases, most of Jenkinsfile contents will remain untouched. It does not matter whether 100% of Jenkinsfile contents is repeated across projects or that percentage drops. There is a high level of repetition.
+Jenkins pipelines are an attempt to rethink how we define Jenkins jobs. Instead of click-type-select approach of FreeStyle jobs. Jobs were defined in Jenkins-specific Groovy-based domain specific language (DSL) written in Jenkinsfile and stored in code repositories together with the rest of the code of our applications. That was a great improvement. We managed to accomplish many improvements when compared to FreeStyle jobs. A single job could define the whole pipeline, the definition is stored in code repository, and we could avoid part of the repetition through the usage of Jenkins Shared Libraries. But, for some users, there was a big problem with Jenkins pipelines.
 
-TODO: Plugins > shared libraries
+Using Groovy-based DSL was too big of a jump for some Jenkins users. Jumping from click-type-select with FreeStyle jobs into Groovy code was too much. We had a significant number of Jenkins users with over a year of experience in accomplishing results by clicking and selecting options, but without knowledge how to write code. I'll leave aside the discussion in which I'd argue that anyone working in software industry should be able to write code no matter their role. Instead, I'll admit that having non-coders transition from UI-based into code-only type of Jenkins jobs posed too much of a challenge. Even if we would agree that everyone in software industry should know how to write code, there is still the issue of Groovy.
 
-In the past, we fought repetition through Jenkins shared libraries. Whenever we
+The chances are that Groovy is not your favorite programming language is not Groovy. You might be working with NodeJS, Go, Python, .Net, C, C++, Scale, or one of the myriad of other languages. Even if you are Java developer, Groovy might not be your favorite. Even though syntax is somehow similar and the fact that both use JVM does not diminish the fact that Groovy and Java are different languages. Jenkins DSL tried to "hide" Groovy, but that did not remove the fact that you had to know (up to a level) Groovy to write Jenkins pipelines. That meant that many had to choose whether to learn Groovy, or switch to something else. So, even though Jenkins pipepelines were a great improvement over FreeStyle jobs, there was still work to be done to make them useful to anyone no matter their language preference. Hence, the community came up with declarative pipeline.
 
-TODO: Shared libraries > executables
+I> Declarative pipelines are not really declarative. No matter the format, pipelines are by their nature sequential.
 
-TODO: Extension model
+Declarative pipeline is a simplified way to write Jenkinsfile definitions. To distinguish one from the other, we call the older pipeline syntax scripted, and the newer declarative pipeline. Declarative pipeline brought much needed simplicity. There was no Groovy to learn, unless we employ shared libraries. If you're new to Jenkins, you might want to know that all the jobs you create with static Jenkins X are using declarative pipeline. It is simple to learn, and easy to write. It served us well. And yet, serverless Jenkins X introduced yet another change to the format of pipeline definitions.
+
+With serverless Jenkins X we moved into pipelines defined in YAML. Why did we do that? One argument could be that YAML is easier to understand and manage. Another could claim that YAML is the golden-standard for any type of definition. Kubernetes relies on YAML definitions. Most of the other tools, especially newer ones, switched to YAML definitions. While those and many other explanations are valid and certainly played the role in making the decision to switch to YAML, I believe that we should look at the change from a different angle.
+
+All Jenkins formats for defining pipelines were based on the fact that it will be Jenkins who will execute them. FreeStyle jobs used XML because Jenkins uses XML to store all sorts of information. At the time it was created, XML was all the rage. Scripted pipelines use Groovy DSL because pipelines need to interact with Jenkins. Since it is written in Java, Groovy is the natural choice. It is more dynamic than Java. It compiles at runtime allowing us to use it as a scripting mechanism. It can access Jenkins libraries written in Java, and it can access Jenkins itself at runtime. Then we add declarative pipeline that is something between Groovy DSL and YAML. It is a wrapper around scripted pipeline. What all those formats have in common is that they are all limited inby Jenkins' architecture. And now, with serverless Jenkins X, there is no Jenkins any more.
+
+Saying that Jenkins is gone is not fully correct. Jenkins lives in Jenkins X. The foundation that served us well is there. The experience from many years of being the leading CI/CD platform was combined with the need to solve challenges that did not exist before. We had to come up with a platform that is Kubernetes-first, cloud-native, fault-tollerant, highly-available, lightweight, with API-first design, and so on and so forth. The result is Jenkins X or, to be more precise, serverless flavor of Jenkins X. It combines some of the best tools on the market with custom code written specifically for Jenkins X. And the result is what we call serverless or next generation Jenkins X.
+
+The first generation of Jenkins X (static flavor) reduced the "traditional" Jenkins to a bare minimum. That allowed the community to focus on building all the new tools needed to bring Jenkins to the next level. It reduced Jenkins' surface and added a lot of new code around it. At the same time, static Jenkins X maintains compatibility with the "traditional" Jenkins. Teams can move to Jenkins X without having to rewrite everything they had before while, at the same time, keeping some level of familiarity.
+
+Serverless Jenkins X is the next stage in the evolution. While static flavor reduced the role of the "traditional" Jenkins, serverless removed it completely. The end result is a combination of Prow, Jenkins Pipeline Operator, Tekton, and quite a few other tools and processes. Some of them (e.g., Prow, Tekton) are open source projects bundled into Jenkins X while others (e.g., Jenkins Pipeline Operator) are written from scratch. On top of those, we got `jx` as the CLI that allows us to fully control any aspect of Jenkins X.
+
+Given that there is no "traditional" Jenkins in the serverless flavor of Jenkins X, there is no need to stick with the old formats to define pipelines. Those that do need to continue using `Jenkinsfile` can do so by using static Jenkins X. Those who want to get the most benefit from the new platform, should appreciate the benefits of the new YAML-based format defined in `jenkins-x.yml`. More often than not, organizations will combine both. There are use cases when static Jenkins with the support for Jenkinsfile file is a good choice, especially in cases when projects already have pipelines running in "traditional" Jenkins. On the other hand, new projects can be created directly in serverless Jenkins X and use `jenkins-x.yml` to define pipelines. Unless you just started a new company, there are all sorts of situations and some of them might be better fulfilled with static Jenkins X and Jenkinsfile, others with serverless Jenkins X and jenkins-x.yml, while there are likely going to exist projects that started long time ago and do not provide enough benefit to change. Those can stay in "traditional" Jenkins running outside Kubernetes or in any other tool they might be using.
+
+To summarize, static Jenkins is a "transition" between "traditional" Jenkins and the final solution (serverless flavor). The former has reduced Jenkins while the latter consists of a completely new code written specifically to solve problems we're facing today and leveraging all the latest and greatest technology can offer. Jenkins served us well and it will continue living for a long time since there are many applications that were written a while ago and might not be good candidates to fully embrace Kubernetes. Static Jenkins X is for all those who want to transition to Kubernetes without loosing all their investment (e.g., Jenkinsfile). Serverless Jenkins X is for all those who want the full power of Kubernetes and want to be truly cloud-native.
+
+I> For now (April 2019), serverless Jenkins X works only with GitHub. Until that is corrected, using any other Git platform might be yet another reason to stick with static Jenkins X. The rest of the text will assume that you do use GitHub or that you can wait for a while longer until support for other Git platforms is added.
+
+Longs story shortServerless Jenkins X uses YAML in jenkins-x.yml to describe pipelienes, while more traditional Jenkins as well as static Jenkins X rely on Groovy DSL defined in Jenkinsfile. Whether you prefer Jenkinsfile or jenkins-x.yml format will depends on quite a few factors, so let's break down those that matter the most.
+
+If you already use Jenkins, you are likely used to Jenkinsfile and might want to keep it for a while longer.
+
+If you have complex pipelines, you might want to stick with scripted pipeline in Jenkinsfile. That being said, I do not believe that anyone should have complex pipelines. Those that do usually tried to solve problems in a wrong place. Pipelines (of any kind) are not supposed to have complex logic. Instead, they are supposed to define orchestration of automated tasks defined somewhere else. For example, instead of having tens or hundreds of lines of pipeline that define how to deploy our application, we should move that logic into a script and simply invoke it from the pipeline. This logic is similar to what `jx promote` does. It perform semi-complex logic but from pipeline point of view it is a simple steps with a single command. If we do adopt that approach, there is no need for complex pipelines and, therefore, there is no need for Jenkins' scripted pipeline. Declarative is more than enough when using Jenkinsfile.
+
+If you do want to leverage all the latest and greatest that Jenkins X (serverless flavor) brings, you should switch to YAML format defined in `jenkins-x.yml` file.
+
+To summarize, use Jenkinsfile with static Jenkins X if you already have pipelines and you do not want to rewrite them, stop using scripted pipelines as an excuse for missplaced complexity, and adopt serverless Jenkins X with YAML based format for all other cases.
+
+But, you probably know all that by now. You might be even wondering why do we go through history lessons now? The reason for the reminiscence lies in the "real" subject I want to discuss. We'll talk about *code repetition* and we had to set the scene for what's coming next.
+
+## Getting Rid Of Repetition
+
+Copying and pasting code is a major sin among developers. One of the first things we learn as software engineers is that duplicated code is hard to maintain and prone to errors. That's why we are creating libraries. We do not want to repeat ourselves, so we even came up with a commonly used acronym DRY (don't repeat yourself).
+
+Having that in mind, all I can say is that Jenkins users are sinful.
+
+When we create pipelines thrugh static Jenkins X, every project gets a Jenkinsfile based on the pipeline residing in the buildpack we choose. If we have ten projects, there will be ten identical copies of the same Jenkinsfile. Over time, we'll modify those Jenkinsfiles and they might not all be exactly the same. Even in those cases, most of Jenkinsfile contents will remain untouched. It does not matter whether 100% of Jenkinsfile contents is repeated across projects or that percentage drops to 25%. There is a high level of repetition.
+
+In the past, we fought such repetition through shared libraries. We would encapsulate repeated lines into a Groovy library and invoke it from any pipeline that needs to use that feature. But, with Jenkins X, we abandoned that approach. Jenkins shared libraries have quite a few deficiencies. They can be written only in Groovy, and that might not be a language everyone wants to learn. They cannot be (easily) tested in isolation. We'd need to run a Jenkins pipeline that invokes the library as a way of testing it. Finally, we could not run them locally (without Jenkins).
+
+While shared libraries can be used with static Jenkins X, we probably should not go down that route. Instead, I believe that a much better way to encapsulate features is by writing executables. Instead of being limited to Groovy, we can write an executable in Bash, Go, Python, or any other language that allows us to execute a piece of code. Such executables (usually scripts) can be easily tested in local, can be used by developers with Jenkins X, and can be executed from inside pipelines. If you take another look at any Jenkins X pipeline, you'll see that there are no plugins, and there are no shared libraries. It's mostly a series of `sh` command that execute a Shell command (e.g., `cat`) or an executable (e.g., `jx`). Such pipelines are easy to understand, easy to run with or without Jenkins X (e.g., on a laptop), and easy to maintain. Both plugins and shared libraries are dead.
+
+Why do I believe that plugins are dead? To answer that question we need to take a look behind the reasons for their existence. Most plugins are created either to isolate users from even basic commands, or because the application they integrate with do not have a decent API. Isolating anyone from basic commands is just silly. For example, using a plugin that will build a Docker image instead of simply executing `docker image build` is beyond comprehension. On the other hand, if we do need to integrate with an application that does not have an API and CLI, we are better off throwing that application to thrash. It's not 1999 anymore. Every application has a good API and most have a CLI. Those that don't are not worty our attention.
+
+So, there are no more plugins nor we should use shared libraries. All repetitive features should be in executables (e.g., script). With that in mind, do we still have repetition? We do. Even if all the features (e.g., deployment to production) are in scripts reused across pipelines, we are still bound to repeat a lot of orchestration code.
+
+A good example are Jenkinsfile pipelines created when we import a project or create a new one through a Jenkins X quickstart. Each project gets around 80 lines in Jenkinsfile. All those based on the same language will have almost exactly the same Jenkinsfile. Even those based on different programming languages will be mostly the same. All have to check out the code, all will create release notes, run some form of tests, deploy releases to some environments, and so on and so forth. All those lines in Jenkinsfile only deal with orchestration since most of the features are in executables (e.g., `jx promote`). Otherwise, we'd jump from around 80 to hundreds or even thousands of repetitive code. Now, even if half of those 80 lines are repeated, that's still 40 lines of repetition. That is not bad by itself. However, if we need to apply a fix or change the logic across multiple projects, we are likely not going to be able to accomplish that easily.
+
+Serverless flavor of Jenkins X solves the problem of unnecessary repetition through the **pipeline extension model**. We'll see it in action soon. For now, we need a cluster with Jenkins X up-and-running.
 
 ## Creating A Kubernetes Cluster With Jenkins X
 
@@ -67,7 +111,9 @@ jx delete application \
 
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
-I> The commands that follow will reset your *go-demo-6* `master` with the contents of the `pr` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+TODO: Check whether `versioning` should be restored
+
+I> The commands that follow will reset your *go-demo-6* `master` with the contents of the `versioning` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
 cd go-demo-6
@@ -89,7 +135,9 @@ cd ..
 
 Now we can explore Jenkins X Pipeline Extension Model.
 
-## Pipeline Extension Model
+## Exploring Pipeline Extension Model
+
+TODO: Continue text
 
 ```bash
 cd go-demo-6
@@ -259,6 +307,9 @@ pipelines:
 ```
 
 ```bash
+TODO: It fails
+jx get activities -f go-demo-6 --watch
+
 git checkout -b extension
 
 # Increase the number of replicas
@@ -599,8 +650,6 @@ git add .
 git commit -m "Trying to extend the pipeline"
 
 git push
-
-# Wait for a few moments
 
 jx get build logs \
     --filter go-demo-6 \
@@ -1055,6 +1104,8 @@ TODO: Explain the `replace` mode
 ```bash
 cd ..
 
+GH_USER=[...]
+
 git clone \
     https://github.com/$GH_USER/environment-tekton-staging.git
 
@@ -1106,11 +1157,7 @@ pipelines:
               name: helm-build
 ```
 
-kubectl -n cd-staging get ing go-demo-6 -o jsonpath="{.spec.rules[0].host}"
-
 ```bash
-kubectl -n cd-staging get ing go-demo-6 -o jsonpath="{.spec.rules[0].host}"
-
 jx create step \
     --pipeline release \
     --lifecycle postbuild \
@@ -1258,12 +1305,10 @@ Running integ tests!!!
 ```
 
 ```bash
-cd ../go-demo-6
-
 open "$PR_ADDR"
 ```
 
-NOTE: Add a colleague to the `OWNERS` file and the repo collaborators list and let her write `/approve` as the comment. Or, click the *Merge pull request* button followed with *Confirm merge*. Click the *Delete branch* button.
+NOTE: Add a colleague to the `OWNERS` file in the *master* branch and the repo collaborators list and let her write `/approve` as the comment. Or, click the *Merge pull request* button followed with *Confirm merge*. Click the *Delete branch* button.
 
 https://jenkins-x.io/architecture/jenkins-x-pipelines/#customising-the-pipelines
 https://jenkins-x.io/architecture/build-packs

@@ -20,7 +20,7 @@ git push
 
 jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 
 jx get applications -e production
 

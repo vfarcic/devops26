@@ -37,26 +37,26 @@ For your convenience, the Gists from the previous chapter are available below as
 * Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
-We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
+TODO: Check whether `versioning` should be restored
+
+I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `versioning` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
 cd go-demo-6
-```
 
-I> The commands that follow will reset your `master` with the contents of the `pr` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
-
-```bash
 git pull
 
-git checkout pr
+git checkout versioning
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge pr
+git merge versioning
 
 git push
+
+cd ..
 ```
 
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
@@ -64,7 +64,7 @@ I> If you destroyed the cluster at the end of the previous chapter, you'll need 
 ```bash
 jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.

@@ -43,7 +43,7 @@ jx console
 
 jx get activities
 
-jx get activities -f jx-go -w
+jx get activities -f jx-go --watch
 
 jx get build logs
 

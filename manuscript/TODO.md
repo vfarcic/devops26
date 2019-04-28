@@ -18,9 +18,11 @@
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
+- [ ] Remove *For now (April 2019)* paragraph
 - [ ] Remove `docker-registry:`from `myvalues.yaml`
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
+- [ ] Switch to serverless Jenkins X in the cluster
 - [ ] 99-domains.md
 - [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md

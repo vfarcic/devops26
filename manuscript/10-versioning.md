@@ -70,7 +70,7 @@ I> If you destroyed the cluster at the end of the previous chapter, you'll need 
 ```bash
 jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
@@ -294,7 +294,7 @@ git commit -m "Finally 1.0.0"
 
 git push
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 ```
 
 We pushed the change to Makefile, and now we are watching *go-demo-6* activities. Soon, a new activity will start, and the output should be similar to the one that follows.
