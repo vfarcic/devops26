@@ -1,3 +1,25 @@
+## TODO
+
+- [ ] Code
+- [ ] Write
+- [ ] Code review static GKE
+- [ ] Code review serverless GKE
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
+- [ ] Text review
+- [ ] Gist
+- [ ] Review titles
+- [ ] Proofread
+- [ ] Diagrams
+- [ ] Add to slides
+- [ ] Publish on TechnologyConversations.com
+- [ ] Add to Book.txt
+- [ ] Publish on LeanPub.com
+
 # Progressive Delivery
 
 Progressive Delivery is the next step after Continuous Delivery, a term including deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. Progressive Delivery encompasses methodologies such as blue-green and canary deployments, where new versions are deployed to a subset of users and are evaluated in terms of correctness and performance before rolling them to the totality of the users and rolled back if not matching some key metrics.
@@ -37,15 +59,57 @@ Flagger requires Istio and Prometheus installed, plus the installation of the Fl
 
 The deployment rollout is defined by a Canary object that will generate primary and canary Deployment objects. When the Deployment is edited, for instance to use a new image version, the Flagger controller will shift the loads from 0% to 50% with 10% increases every minute, then it will shift to the new deployment or rollback if response errors and request duration metrics fail.
 
+## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
-TODO create cluster
-TODO import project
+TODO: Viktor: This text is from some other change. Rewrite it.
+
+If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
+
+I> All the commands from this chapter are available in the [TODO: Viktor](TODO: Viktor) Gist.
+
+For your convenience, the Gists from the previous chapter are available below as well.
+
+* Create new static **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
+* Create new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create new static **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
+* Create new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create new static **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
+* Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+
+TODO: Viktor: Check whether `versioning` or some other branch should be restored
+
+I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `versioning` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+
+```bash
+cd go-demo-6
+
+git pull
+
+git checkout versioning
+
+git merge -s ours master --no-edit
+
+git checkout master
+
+git merge versioning
+
+git push
+
+cd ..
+```
+
+Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
+
+Now we can promote our last release to production.
 
 ## Requirement Installation
 
 We can easily install Istio, Prometheus and Flagger with `jx`
 
 ```bash
+# TODO: Replace with `jx add app` when `app` are finished.
 jx create addon istio
 ```
 
@@ -55,13 +119,18 @@ We can find the external ip address of the ingress gateway service and configure
 Note the ip from the output of `jx create addon istio` or find it with this command, we will refer to it as `ISTIO_IP`.
 
 ```bash
-kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+ISTIO_IP=$(kubectl --namespace istio-system \
+    get service istio-ingressgateway \
+    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+echo $ISTIO_IP
 ```
 
 Let's continue with the other addons
 
 ```bash
 jx create addon prometheus
+
 jx create addon flagger
 ```
 
@@ -74,8 +143,37 @@ Let's say we want to deploy our new version to 10% of the users, and increase it
 
 This configuration can be done using Flagger's `Canary` objects, that we can add to our application helm chart under `charts/go-demo-6/templates/canary.yaml` 
 
-```yaml
-{{- if eq .Release.Namespace "jx-production" }}
+```bash
+cd go-demo-6
+
+# Only if not reusing the cluster from the previous chapter
+jx import --batch-mode
+
+# Only if not reusing the cluster from the previous chapter
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Only if not reusing the cluster from the previous chapter
+# Press *ctrl+c* when the activity is finished
+
+# Only if the applicatication was not already promoted to production
+jx get applications -e staging
+
+# Only if the applicatication was not already promoted to production
+VERSION=[...]
+
+# Only if the applicatication was not already promoted to production
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production º
+    --batch-mode
+
+# TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
+
+# TODO: Carlos: Does it make sense to remove comments from the YAML? While they do provide clarity to the options, they also make the YAML too big for the book format.
+
+echo '{{- if eq .Release.Namespace "jx-production" }}
 {{- if .Values.canary.enable }}
 apiVersion: flagger.app/v1alpha2
 kind: Canary
@@ -119,16 +217,20 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
+' | tee charts/go-demo-6/templates/canary.yaml
 ```
 
 And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.ISTIO_IP.nip.io`.
 
-```yaml
+```bash
+# TODO: Carlos: If canary can be enabled on any environment, than we should probably have `canary.enable` and `canary.service.hosts` set in the values.yaml inside the env. repo. That would also remove the need for `{{- if eq .Release.Namespace "jx-production" }}` in `canary.yaml`.
+
+echo "
 canary:
   enable: true
   service:
     hosts:
-    - go-demo-6.ISTIO_IP.nip.io
+    - go-demo-6.$ISTIO_IP.nip.io
     gateways:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
@@ -151,8 +253,10 @@ canary:
       # milliseconds
       threshold: 500
       interval: 60s
+" | tee -a charts/go-demo-6/values.yaml
 ```
 
+TODO: Carlos: Shouldn't we change `service.annotations.fabric8.io/expose` to `false` in `charts/go-demo-6/values.yaml`?
 
 Mongodb will not work by default with Istio because it runs under a non root `securityContext`, you would get this error in the `istio-init` init container.
 
@@ -164,13 +268,13 @@ In order to simplify things we will just enable Istio for the main web service, 
 
 Under `go-demo-6` entry, add the `podAnnotations` section with `sidecar.istio.io/inject` set to `"false"`.
 
-```yaml
-go-demo-6-db:
-  replicaSet:
-    enabled: true
-  usePassword: false
-  podAnnotations:
-    sidecar.istio.io/inject: "false"
+```bash
+cat charts/go-demo-6/values.yaml \
+    | sed -e \
+    's@go-demo-6-db:@go-demo-6-db:\
+  podAnnotations:\
+    sidecar.istio.io/inject: "false"@g' \
+    | tee charts/go-demo-6/values.yaml
 ```
 
 
@@ -183,7 +287,10 @@ jx get applications -e staging
 
 VERSION=[...]
 
-jx promote go-demo-6 --version $VERSION --env production -b
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
 ```
 
 After detecting a new `Canary` object Flagger will automatically create some other objects to manage the canary deployment:
@@ -211,7 +318,10 @@ jx get applications -e staging
 
 VERSION=[...]
 
-jx promote go-demo-6 --version $VERSION --env production -b
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
@@ -318,6 +428,8 @@ to see metrics side by side of the previous version and the new version, such as
 
 ## What Now?
 
+TODO: Viktor: Rewrite
+
 Now is a good time for you to take a break.
 
 If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
@@ -325,6 +437,10 @@ If you created a cluster only for the purpose of the exercises we executed, plea
 If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that. Just remember to replace `[...]` with your GitHub user.
 
 ```bash
+cd ..
+
+GH_USER=[...]
+
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
 

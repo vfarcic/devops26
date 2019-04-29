@@ -17,7 +17,9 @@ jx create quickstart \
 
 cd jx-prow
 
-jx get activities -f jx-prow --watch
+jx get activities \
+  --filter jx-prow \
+  --watch
 
 git checkout -b chat-ops
 

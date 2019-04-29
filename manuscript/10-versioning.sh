@@ -10,7 +10,9 @@ git checkout master
 
 jx import --batch-mode
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 jx get applications
 
@@ -53,7 +55,9 @@ git commit -m "Finally 1.0.0"
 
 git push
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 jx get applications
 

@@ -35,10 +35,10 @@ jx version
 
 # Added `--gitops`. Replaced `-r` with `-z`. Removed `-b`
 jx create cluster gke \
-    -n jx-rocks \
-    -p $PROJECT \
-    -z us-east1-b \
-    -m n1-standard-2 \
+    --cluster-name jx-rocks \
+    --project-id $PROJECT \
+    --region us-east1 \
+    --machine-type n1-standard-2 \
     --min-num-nodes 3 \
     --max-num-nodes 6 \
     --default-admin-password=admin \

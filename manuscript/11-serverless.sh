@@ -53,7 +53,7 @@ ls -l
 cat jenkins-x.yml
 
 jx get activities \
-    -f jx-serverless \
+    --filter jx-serverless \
     --watch
 
 kubectl -n cd get pods

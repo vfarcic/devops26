@@ -18,7 +18,9 @@ git push
 
 jx import --batch-mode
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 cat Jenkinsfile
 

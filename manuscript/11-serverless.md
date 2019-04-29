@@ -243,7 +243,7 @@ Now that we discovered the first change introduced through serverless Jenkins X,
 
 ```bash
 jx get activities \
-    -f jx-serverless \
+    --filter jx-serverless \
     --watch
 ```
 

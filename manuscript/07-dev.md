@@ -74,7 +74,9 @@ I> If you destroyed the cluster at the end of the previous chapter, we'll need t
 ```bash
 jx import --batch-mode
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.

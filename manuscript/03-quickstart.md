@@ -346,7 +346,7 @@ The last activity is of the *jx-go* pipeline. So far, we did not push any change
 While listing the most recent activities is very useful since we have only a few pipelines, when their number grows, we'll need to be more specific. For example, we might want to retrieve only the activities related to the *jx-go* pipeline.
 
 ```bash
-jx get activities -f jx-go --watch
+jx get activities --filter jx-go --watch
 ```
 
 This time, the output is limited to all the activities related to *jx-go* which, in our case, is a single build of the *master* branch.

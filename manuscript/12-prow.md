@@ -100,7 +100,8 @@ jx create quickstart \
 
 cd jx-prow
 
-jx get activities -f jx-prow --watch
+jx get activities \
+    --filter jx-prow --watch
 ```
 
 We created a Go-based project called `jx-prow`, entered into the local copy of the Git repository `jx` created for us, and started watching the activity. After a while, all the steps in the output will be in the `Succeeded` status, and we can stop the watcher by pressing *ctrl+c*.

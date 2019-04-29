@@ -12,8 +12,9 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [X] 12-prow.md
-- [ ] 99-upgrade.md
-- [ ] 13-pipeline-extension-model.md
+- [ ] 99-progressive-delivery.md
+- [ ] 99-other-git-providers.md
+- [ ] 99-pipeline-extension-model.md
 - [ ] 99-advanced-pipelines.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
@@ -33,10 +34,8 @@
 - [ ] 99-container-registry.md
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-create-step.md
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
-- [ ] 99-no-tiller.md
 - [ ] 99-vault.md
 - [ ] 99-ng-arg.md
 - [ ] 99-import-serverless.md
@@ -44,10 +43,13 @@
 - [ ] 99-chatops-from-slack-to-jx.md
 - [ ] 99-rbac.md
 - [ ] 99-addons.md
-- [ ] 99-progressive-delivery.md
 - [ ] 99-create-chat.md
 - [ ] 99-custom-builders-and-pod-templates.md
 - [ ] 99-logging.md
+- [ ] 99-gitops.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
+- [ ] 99-cloudbees.md
+- [ ] 99-kaniko.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -57,10 +59,6 @@
 - [ ] Preface to TechnologyConversations.com
 - [ ] Cover to TechnologyConversations.com
 - [ ] Amazon marketing
-- [ ] 99-gitops.md
-- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
-- [ ] 99-cloudbees.md
-- [ ] 99-kaniko.md
 
 ## TODO
 

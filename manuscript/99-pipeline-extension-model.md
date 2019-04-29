@@ -20,7 +20,12 @@
 
 W> The examples in this chapter work only with serverless Jenkins X.
 
+TODO: Write intro
+
 ## The Evolution Of Jenkins Jobs
+
+TODO: https://github.com/jenkins-x/jx/issues/3788
+TODO: https://github.com/jenkins-x/jx/issues/3800
 
 When Jenkins appeared, its pipelines were called FreeStyle jobs. There are no way to describe them in code and they were not kept in version control. We were creating and maintaining those jobs through Jenkins UI through input fields, checkboxes, and drop-down lists. The end result were impossible-to-read XML files stored in Jenkins home directory. That was so great that Jenkins become widely adopted over night. But, that was many years ago and what was great over a decade ago is not necessarily as good today. As a matter of fact, FreeStyle jobs are antitesis of the types of jobs we should be writing today. Tools that create code through drag-and-drop methods are extinct. Not having code in version control is a cardinal sin. Not being able to use our favorite IDE or code editor is unacceptable. Hence, Jenkins community created Jenkins pipelines.
 
@@ -308,7 +313,9 @@ pipelines:
 
 ```bash
 TODO: It fails
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 git checkout -b extension
 

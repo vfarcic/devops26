@@ -2,10 +2,14 @@
 
 - [ ] Code
 - [ ] Write
-- [ ] Code review GKE
-- [ ] Code review EKS
-- [ ] Code review AKS
-- [ ] Code review existing cluster
+- [ ] Code review static GKE
+- [ ] Code review serverless GKE
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles
@@ -16,11 +20,15 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Domains
+# Upgrading
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
-TODO: Rewrite
+TODO: Fix `upgrade_ingress.go` so that GH user can be used besides the organization.
+
+TODO: https://github.com/jenkins-x/jx/pull/3527
+
+TODO: https://github.com/jenkins-x/jx/issues/3115
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
@@ -64,21 +72,23 @@ I> If you destroyed the cluster at the end of the previous chapter, you'll need 
 ```bash
 jx import --batch-mode
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
 
 Now we can promote our last release to production.
 
+## Upgrading The Cluster
+
+TODO: Code
+
 ## Adding TLS Certificates
 
 ```bash
 jx get applications
-
-# NOTE: Domain can be changed only if not in batch mode.
-
-# Must be version 1.3.1068+.
 
 kubectl -n kube-system \
     get svc jxing-nginx-ingress-controller \
@@ -96,8 +106,10 @@ jx upgrade ingress \
     --cluster true \
     --domain $DOMAIN \
     -b
+```
 
-# Batch mode does not work with `--domain` (https://github.com/jenkins-x/jx/pull/3499)
+```
+# NOTE: It takes a while...
 
 jx get applications
 
@@ -134,7 +146,7 @@ jx get applications
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
-    -b
+    --batch-mode
 
 jx get env
 
@@ -197,7 +209,7 @@ VERSION=[...]
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
-    -b
+    --batch-mode
 
 jx get applications
 
@@ -208,7 +220,7 @@ curl "http://$DOMAIN/demo/hello"
 
 ## What Now?
 
-TODO: Conclusion
+TODO: Rewrite
 
 Now you need to decide whether to continue using the cluster or to destroy it. If you choose to destroy it or to uninstall Jenkins X, you'll find the instructions at the bottom of the Gist you chose at the beginning of this chapter.
 

@@ -20,7 +20,9 @@ git push
 
 jx import --batch-mode
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 jx get applications -e production
 
@@ -31,7 +33,7 @@ VERSION=[...]
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
-    -b
+    --batch-mode
 
 jx get applications -e production
 

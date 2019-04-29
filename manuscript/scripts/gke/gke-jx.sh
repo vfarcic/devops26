@@ -25,16 +25,16 @@ docker-registry:
 # Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
 jx create cluster gke \
-    -n jx-rocks \
-    -p $PROJECT \
-    -r us-east1 \
-    -m n1-standard-2 \
+    --cluster-name jx-rocks \
+    --project-id $PROJECT \
+    --region us-east1 \
+    --machine-type n1-standard-2 \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    -b
+    --batch-mode
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 

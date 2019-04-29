@@ -45,7 +45,7 @@
 ```bash
 # jx import --batch-mode
 
-# jx get activities -f go-demo-6 --watch
+# jx get activities --filter go-demo-6 --watch
 ```
 
 ## Kaniko Manually
@@ -64,7 +64,9 @@ jx create quickstart \
   -p jx-kaniko \
   -b
 
-jx get activities -f jx-kaniko --watch
+jx get activities \
+    --filter jx-kaniko \
+    --watch
 ```
 
 ## What Now?

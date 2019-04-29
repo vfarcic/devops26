@@ -33,7 +33,9 @@ jx import --batch-mode
 
 ls -1
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 STAGING_ADDR=[...]
 

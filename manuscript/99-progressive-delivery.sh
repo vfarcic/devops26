@@ -35,7 +35,9 @@ jx import --batch-mode
 
 ls -1
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 STAGING_ADDR=[...]
 
@@ -145,13 +147,18 @@ git commit -am "Enable canary deployments"
 
 git push
 
-jx get activities -f go-demo-6 -w
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
 # wait for new version to be built
 
 jx get applications
 
-jx promote go-demo-6 --version 1.0.1 --env production
+jx promote go-demo-6 \
+    --version 1.0.1 \
+    --env production \
+    --batch-mode
 
 # deploy a new app
 
@@ -164,7 +171,10 @@ git push
 
 jx get applications
 
-jx promote go-demo-6 --version 1.0.2 --env production
+jx promote go-demo-6 \
+    --version 1.0.2 \
+    --env production \
+    --batch-mode
 
 kubectl -n istio-system logs -f deploy/flagger
 

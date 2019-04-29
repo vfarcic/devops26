@@ -48,7 +48,9 @@ I> If you destroyed the cluster at the end of the previous chapter, you'll need 
 ```bash
 jx import --batch-mode
 
-jx get activities -f go-demo-6 --watch
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
@@ -92,7 +94,7 @@ Now we can promote the specific version of *go-demo-6* to the production environ
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
-    -b
+    --batch-mode
 ```
 
 It'll take a minute or two until the promotion process is finished.

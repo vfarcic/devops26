@@ -180,10 +180,10 @@ Feel free to change any of the values in the command that follows to suit your n
 
 ```bash
 jx create cluster gke \
-    -n jx-rocks \
-    -p $PROJECT \
-    -r us-east1 \
-    -m n1-standard-2 \
+    --cluster-name jx-rocks \
+    --project-id $PROJECT \
+    --region us-east1 \
+    --machine-type n1-standard-2 \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password admin \
