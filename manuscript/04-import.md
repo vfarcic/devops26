@@ -104,7 +104,7 @@ Such a situation might not be your case. Maybe you do have scripts for running t
 Let's see what happens when we try to import that repository into Jenkins X.
 
 ```bash
-jx import -b
+jx import --batch-mode
 ```
 
 The output is as follows.
@@ -168,7 +168,7 @@ Do not think that is the only explanation you'll get about those files. We'll ex
 Now that the project is in Jenkins X, we should see it as one of the activities and observe the first build in action. You already know that we can limit the retrieval of Jenkins X activities to a specific project and that we can use `-w` to watch the progress.
 
 ```bash
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 ```
 
 By the time the build is finished, the output, without the entries repeated due to changes in statuses, should be as follows.
@@ -470,6 +470,4 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```

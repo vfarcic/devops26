@@ -31,7 +31,6 @@ jx install \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
     -b
@@ -53,7 +52,9 @@ ls -l
 
 cat jenkins-x.yml
 
-jx get activities -f jx-serverless -w
+jx get activities \
+    -f jx-serverless \
+    --watch
 
 kubectl -n cd get pods
 
@@ -86,5 +87,3 @@ rm -rf jx-serverless
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

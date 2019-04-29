@@ -1,0 +1,1 @@
+https://jenkins-x.io/architecture/custom-jenkins/

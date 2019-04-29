@@ -16,6 +16,8 @@ PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
 echo "nexus:
   enabled: false
+docker-registry:
+  enabled: true
 " | tee myvalues.yaml
 
 # The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
@@ -32,7 +34,6 @@ jx create cluster gke \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --no-tiller \
     -b
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
@@ -62,3 +63,14 @@ gcloud compute disks delete \
     $(gcloud compute disks list \
     --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)") --quiet
+
+# Remove container images from GCR
+IMAGE=go-demo-6
+for TAG in $(gcloud container images \
+    list-tags gcr.io/$PROJECT/$IMAGE \
+    --format='get(tags)')
+do
+	gcloud container images \
+        delete gcr.io/$PROJECT/$IMAGE:$TAG \
+        --quiet
+done

@@ -8,7 +8,7 @@ GH_USER=[...]
 
 jx delete application \
     $GH_USER/jx-serverless \
-    -b
+    --batch-mode
 
 jx create quickstart \
   -l go \
@@ -17,7 +17,7 @@ jx create quickstart \
 
 cd jx-prow
 
-jx get activities -f jx-prow -w
+jx get activities -f jx-prow --watch
 
 git checkout -b chat-ops
 
@@ -29,10 +29,10 @@ git commit -m "My first PR with prow"
 
 git push --set-upstream origin chat-ops
 
-jx create pr \
-    -t "PR with prow" \
+jx create pullrequest \
+    --title "PR with prow" \
     --body "What I can say?" \
-    -b
+    --batch-mode
 
 git checkout master
 
@@ -72,10 +72,10 @@ git commit -m "My second PR with prow"
 
 git push --set-upstream origin my-pr
 
-jx create pr \
-    -t "My PR" \
+jx create pullrequest \
+    --title "My PR" \
     --body "What I can say?" \
-    -b
+    --batch-mode
 
 kubectl -n cd describe cm plugins
 
@@ -94,5 +94,3 @@ hub delete -y $GH_USER/jx-prow
 rm -rf jx-prow
 
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

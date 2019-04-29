@@ -46,9 +46,9 @@ git push
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
 ```bash
-jx import -b
+jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
@@ -156,6 +156,4 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```

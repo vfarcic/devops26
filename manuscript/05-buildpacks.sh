@@ -74,7 +74,7 @@ cd go-demo-6
 # Execute only if you retained the cluster and Jenkins X from the previous chapter.
 jx delete application \
     $GH_USER/go-demo-6 \
-    -b
+    --batch-mode
 
 # Execute only if you retained the cluster and Jenkins X from the previous chapter.
 kubectl -n jx delete act \
@@ -93,7 +93,7 @@ rm -rf charts
 
 git push
 
-jx import --pack go-mongo -b
+jx import --pack go-mongo --batch-mode
 
 ls -1 ~/.jx/draft/packs/github.com/$GH_USER/jenkins-x-kubernetes/packs
 
@@ -139,5 +139,3 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

@@ -35,7 +35,6 @@ jx create cluster eks -n jx-rocks \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --no-tiller \
     -b
 
 # When in doubt, use the default answers, except in the case listed below

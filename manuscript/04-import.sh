@@ -29,11 +29,11 @@ jx repo -b
 
 ls -1
 
-jx import -b
+jx import --batch-mode
 
 ls -1
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 
 STAGING_ADDR=[...]
 
@@ -88,5 +88,3 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

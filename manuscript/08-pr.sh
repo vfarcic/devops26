@@ -16,9 +16,9 @@ git merge dev
 
 git push
 
-jx import -b
+jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 
 cat Jenkinsfile
 
@@ -48,11 +48,11 @@ git commit -m "This is a PR"
 
 git push --set-upstream origin my-pr
 
-jx create pr \
-  -t "My PR" \
+jx create pullrequest \
+  --title "My PR" \
   --body "This is the text that describes the PR
 and it can span multiple lines" \
-  -b
+  --batch-mode
 
 jx get previews
 
@@ -141,5 +141,3 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

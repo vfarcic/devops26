@@ -49,7 +49,6 @@ jx install \
     --ingress-deployment nginx-ingress-controller \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --no-tiller \
     -b
 
 # Serverless
@@ -63,7 +62,6 @@ jx install \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
     -b

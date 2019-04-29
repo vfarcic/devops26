@@ -18,9 +18,9 @@ git merge pr
 
 git push
 
-jx import -b
+jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 
 jx get applications -e production
 
@@ -50,5 +50,3 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

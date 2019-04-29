@@ -37,8 +37,7 @@ jx create cluster gke \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 
 # If EKS
 export AWS_ACCESS_KEY_ID=[...]
@@ -58,8 +57,7 @@ jx create cluster eks \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 
 # If EKS
 ASG_NAME=$(aws autoscaling \
@@ -123,14 +121,13 @@ kubectl apply \
 
 # If AKS
 jx create cluster aks \
-    -c jxrocks \
-    -n jxrocks-group \
-    -l eastus \
-    -s Standard_B2s \
+    --cluster-name jxrocks \
+    --resource-group-name jxrocks-group \
+    --location eastus \
+    --node-vm-size Standard_D2s_v3 \
     --nodes 3 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 
 jx compliance run
 
@@ -180,8 +177,7 @@ jx install \
     --default-admin-password admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 
 kubectl -n jx get pods
 
@@ -196,8 +192,6 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 
 # If GKE
 gcloud container clusters \

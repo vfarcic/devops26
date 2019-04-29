@@ -35,7 +35,6 @@ jx create cluster gke \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
     -b
@@ -67,3 +66,14 @@ gcloud compute disks delete \
     $(gcloud compute disks list \
     --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)") --quiet
+
+# Remove container images from GCR
+IMAGE=go-demo-6
+for TAG in $(gcloud container images \
+    list-tags gcr.io/$PROJECT/$IMAGE \
+    --format='get(tags)')
+do
+	gcloud container images \
+        delete gcr.io/$PROJECT/$IMAGE:$TAG \
+        --quiet
+done

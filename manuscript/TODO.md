@@ -12,26 +12,21 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [X] 12-prow.md
-- [ ] 13-buildpack-pipelines.md
-- [ ] Publish "Going Serverless" on TechnologyConversations.com 
+- [ ] 99-upgrade.md
+- [ ] 13-pipeline-extension-model.md
+- [ ] 99-advanced-pipelines.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
-- [ ] Remove `--no-tiller` (it's default since v2.x.x)
+- [ ] Remove *For now (April 2019)* paragraph
 - [ ] Remove `docker-registry:`from `myvalues.yaml`
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
-- [ ] Remove `jenkinsAuth.yaml`
-- [ ] Publish "Exploring The Basic Pull Request Process Through ChatOps" (from "We need to define who is allowed to review and who can approve our pull...") on TechnologyConversations.com 
-- [ ] 99-pipeline-extension-model.md
-- [ ] 99-jenkins-x-yml-blank.md
-- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
-- [ ] 99-cloudbees.md
-- [ ] 99-kaniko.md
+- [ ] Switch to serverless Jenkins X in the cluster
 - [ ] 99-domains.md
 - [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md
-- [ ] 99-teams-and-multi-cluster.md (Multiple Clusters)
+- [ ] 99-teams-and-multi-cluster.md
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
 - [ ] 99-storage.md
@@ -39,14 +34,11 @@
 - [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-create-step.md
-- [ ] 99-gitops.md
-- [ ] 99-upgrade.md
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
 - [ ] 99-no-tiller.md
 - [ ] 99-vault.md
 - [ ] 99-ng-arg.md
-- [ ] 99-buildpacks-tekton.md
 - [ ] 99-import-serverless.md
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-chatops-from-slack-to-jx.md
@@ -55,6 +47,7 @@
 - [ ] 99-progressive-delivery.md
 - [ ] 99-create-chat.md
 - [ ] 99-custom-builders-and-pod-templates.md
+- [ ] 99-logging.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
@@ -64,17 +57,23 @@
 - [ ] Preface to TechnologyConversations.com
 - [ ] Cover to TechnologyConversations.com
 - [ ] Amazon marketing
-- [ ] Workshop
-- [ ] Create talks
+- [ ] 99-gitops.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
+- [ ] 99-cloudbees.md
+- [ ] 99-kaniko.md
 
 ## TODO
 
 - [ ] Code
 - [ ] Write
-- [ ] Code review GKE
-- [ ] Code review EKS
-- [ ] Code review AKS
-- [ ] Code review existing cluster
+- [ ] Code review static GKE
+- [ ] Code review serverless GKE
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles

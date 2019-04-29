@@ -5,7 +5,7 @@ cd go-demo-6
 # TODO: Restroy from buildpacks branch
 
 # Only if destroyed the cluster in the previous chapter
-jx import --pack go-mongo -b
+jx import --pack go-mongo --batch-mode
 
 # Only if destroyed the cluster in the previous chapter
 jx get activity -f go-demo-6 -w

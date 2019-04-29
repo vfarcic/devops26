@@ -8,9 +8,9 @@ cd go-demo-6
 
 git checkout master
 
-jx import -b
+jx import --batch-mode
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 
 jx get applications
 
@@ -53,7 +53,7 @@ git commit -m "Finally 1.0.0"
 
 git push
 
-jx get activities -f go-demo-6 -w
+jx get activities -f go-demo-6 --watch
 
 jx get applications
 
@@ -84,5 +84,3 @@ hub delete -y \
 rm -rf environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml

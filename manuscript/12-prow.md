@@ -26,7 +26,7 @@ In a ChatOps environment, a chat client is the primary source of communication f
 
 If we assume that only Git should be able to initiate a change in our clusters, it stands to reason that such changes can be started either by a change in the source code, by writing comments in Git, or by creating an issue.
 
-We can define ChatOps as conversation driven development. Communication is essential for all but single-person teams. We need to communicate with others when the feature we're developing is ready. We need to ask others to review our changes. We might need to ask for permission to merge to the master branch. The list of the things we might need to communicate is infinite. That does not mean that all communication becomes ChatOps, but rather that parts of our communication does. It's up to the system to figure out what which parts of communication should result in actions, and what is a pure human-to-human messaging without tangible outcomes.
+We can define ChatOps as conversation driven development. Communication is essential for all but single-person teams. We need to communicate with others when the feature we're developing is ready. We need to ask others to review our changes. We might need to ask for permission to merge to the master branch. The list of the things we might need to communicate is infinite. That does not mean that all communication becomes ChatOps, but rather that parts of our communication does. It's up to the system to figure out which parts of communication should result in actions, and what is a pure human-to-human messaging without tangible outcomes.
 
 As we already saw, four elements need to be combined into a process. We need communication (comments), permissions (RBAC), notifications (email), and actions. All but the last are already solved in every Git platform. We just need to figure out how to combine comments, permissions, and notifications into concrete actions. We'll do that by introducing Prow to our solution.
 
@@ -81,7 +81,7 @@ GH_USER=[...]
 
 jx delete application \
     $GH_USER/jx-serverless \
-    -b
+    --batch-mode
 ```
 
 Now we can explore Prow inside the serverless Jenkins X bundle.
@@ -100,7 +100,7 @@ jx create quickstart \
 
 cd jx-prow
 
-jx get activities -f jx-prow -w
+jx get activities -f jx-prow --watch
 ```
 
 We created a Go-based project called `jx-prow`, entered into the local copy of the Git repository `jx` created for us, and started watching the activity. After a while, all the steps in the output will be in the `Succeeded` status, and we can stop the watcher by pressing *ctrl+c*.
@@ -123,15 +123,15 @@ git commit -m "My first PR with prow"
 git push --set-upstream origin chat-ops
 ```
 
-We created a new branch `chat-ops`, we make a silly change to `README.md`, and we pushed the commit.
+We created a new branch `chat-ops`, we made a silly change to `README.md`, and we pushed the commit.
 
 Now that we have the branch with the change to the source code, we should create a pull request. We could do that by going to GitHub UI but, as you already know from the [Working With Pull Requests And Preview Environments][#pr] chapter, `jx` already allows us to do that through the command line. Given that I prefer terminal screen over UIs (and you don't have a say in that matter), we'll go with the latter option.
 
 ```bash
-jx create pr \
-    -t "PR with prow" \
+jx create pullrequest \
+    --title "PR with prow" \
     --body "What I can say?" \
-    -b
+    --batch-mode
 ```
 
 We created a pull request and are presented with a confirmation message with a link. Please open it in your favorite browser.
@@ -327,10 +327,10 @@ git push --set-upstream origin my-pr
 We are finally ready to create a pull request.
 
 ```bash
-jx create pr \
-    -t "My PR" \
+jx create pullrequest \
+    --title "My PR" \
     --body "What I can say?" \
-    -b
+    --batch-mode
 ```
 
 Please open the link from the output in your favorite browser.
@@ -435,6 +435,4 @@ hub delete -y $GH_USER/jx-prow
 rm -rf jx-prow
 
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```

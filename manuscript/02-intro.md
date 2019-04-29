@@ -187,8 +187,7 @@ jx create cluster gke \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -260,8 +259,7 @@ jx create cluster eks \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -346,7 +344,7 @@ aws iam put-role-policy \
     --policy-document https://raw.githubusercontent.com/vfarcic/k8s-specs/master/scaling/eks-autoscaling-policy.json
 ```
 
-Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. All we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, we used `--no-tiller` flag when we created the cluster. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
+Now that we have added the required tags to the Autoscaling Group and created the additional permissions that will allow Kubernetes to interact with the group, we can install the *cluster-autoscaler* Helm Chart from the stable channel. All we have to do now is execute `helm install stable/cluster-autoscaler`. However, since tiller (server-side Helm) has a lot of problems, Jenkins X does not use it by default. So, instead of using `helm install` command, we'll run `helm template` to output YAML files that we can use with `kubectl apply`.
 
 ```bash
 mkdir -p charts
@@ -388,7 +386,7 @@ Next up: AKS.
 
 ## Creating An Azure Kubernetes Service (AKS) Cluster With jx {#jx-create-cluster-aks}
 
-We'll create an AKS cluster with all the tools installed and configured. We'll name the cluster `jxrocks` (`-c`) and let it reside inside its own group `jxrocks-group` (`-n`). It'll run inside `eastus` location (`-l`) and on `Standard_B2s` (2 CPUs and 4 GB RAM) machines (`-s`). The number of nodes will be set to three (`--nodes`).
+We'll create an AKS cluster with all the tools installed and configured. We'll name the cluster `jxrocks` (`--cluster-name`) and let it reside inside its own group `jxrocks-group` (`--resource-group-name`). It'll run inside `eastus` location (`--location`) and on `Standard_D2s_v3` (2 CPUs and 8GB RAM) machines (`--node-vm-size`). The number of nodes will be set to three (`--nodes`).
 
 We'll also set the default Jenkins X password to `admin` ( `--default-admin-password`). Otherwise, the process will create a random one. Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create a few repositories (one for staging and the other for production), and that prefix will be used to form their names. We won't go into much detail about those environments and repositories just yet. That's reserved for one of the follow-up chapters.
 
@@ -396,14 +394,13 @@ Feel free to change any of the values in the command that follows to suit your n
 
 ```bash
 jx create cluster aks \
-    -c jxrocks \
-    -n jxrocks-group \
-    -l eastus \
-    -s Standard_B2s \
+    --cluster-name jxrocks \
+    --resource-group-name jxrocks-group \
+    --location eastus \
+    --node-vm-size Standard_D2s_v3 \
     --nodes 3 \
     --default-admin-password admin \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
@@ -637,8 +634,7 @@ jx install \
     --default-admin-password admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --default-environment-prefix jx-rocks \
-    --no-tiller
+    --default-environment-prefix jx-rocks
 ```
 
 If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll notice that `jx install` executes the same steps as those performed by `jx cluster create`, except that the latter creates a cluster first. You can think of `jx install` as a subset of `jx cluster create`.
@@ -744,13 +740,9 @@ hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```
 
 We deleted the two repositories dedicated to environments, even though we did not explore them just yet. Environments are critical, and we will go into details in one of the next chapters.
-
-We also removed `jenkinsAuth.yaml` file. While it is not mandatory to delete it, it can cause problems the next time we install Jenkins X.
 
 The rest of the instructions depend on the Kubernetes flavor you used and whether you chose to create a cluster with `jx cluster create` or you installed Jenkins X in an existing cluster.
 

@@ -133,7 +133,6 @@ jx install \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
     -b
@@ -243,7 +242,9 @@ While it might be tempting to jump straight into the new pipeline format, we'll 
 Now that we discovered the first change introduced through serverless Jenkins X, let's see whether we can spot a difference by observing the activities.
 
 ```bash
-jx get activities -f jx-serverless -w
+jx get activities \
+    -f jx-serverless \
+    --watch
 ```
 
 The output is the same as with static Jenkins X, so there's nothing new there.
@@ -409,6 +410,4 @@ rm -rf jx-serverless
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
-
-rm -f ~/.jx/jenkinsAuth.yaml
 ```

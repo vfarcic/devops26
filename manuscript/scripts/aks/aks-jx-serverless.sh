@@ -17,19 +17,18 @@ docker-registry:
 " | tee myvalues.yaml
 
 jx create cluster aks \
-    -c jxrocks \
-    -n jxrocks-group \
-    -l eastus \
-    -s Standard_B2s \
+    --cluster-name jxrocks \
+    --resource-group-name jxrocks-group \
+    --location eastus \
+    --node-vm-size Standard_D2s_v3 \
     --nodes 3 \
     --default-admin-password=admin \
     --default-environment-prefix tekton \
     --git-provider-kind github \
     --namespace cd \
-    --no-tiller \
     --prow \
     --tekton \
-    -b
+    --batch-mode
 
 #######################
 # Destroy the cluster #
