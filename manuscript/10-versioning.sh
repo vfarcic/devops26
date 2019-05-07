@@ -51,7 +51,8 @@ cat Jenkinsfile
 
 git add .
 
-git commit -m "Finally 1.0.0"
+git commit \
+    --message "Finally 1.0.0"
 
 git push
 
@@ -69,7 +70,8 @@ echo "A silly change" | tee README.md
 
 git add .
 
-git commit -m "A silly change"
+git commit \
+    --message "A silly change"
 
 git push
 

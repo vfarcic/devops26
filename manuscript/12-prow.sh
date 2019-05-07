@@ -11,9 +11,9 @@ jx delete application \
     --batch-mode
 
 jx create quickstart \
-  -l go \
-  -p jx-prow \
-  -b
+  --language go \
+  --project-name jx-prow \
+  --batch-mode
 
 cd jx-prow
 
@@ -27,7 +27,8 @@ echo "ChatOps" | tee README.md
 
 git add .
 
-git commit -m "My first PR with prow"
+git commit \
+    --message "My first PR with prow"
 
 git push --set-upstream origin chat-ops
 
@@ -54,7 +55,8 @@ reviewers:
 
 git add .
 
-git commit -m "Added an owner"
+git commit \
+    --message "Added an owner"
 
 git push
 
@@ -70,7 +72,8 @@ echo "My PR" | tee README.md
 
 git add .
 
-git commit -m "My second PR with prow"
+git commit \
+    --message "My second PR with prow"
 
 git push --set-upstream origin my-pr
 

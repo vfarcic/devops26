@@ -210,9 +210,9 @@ W> Make sure that you are not inside an existing repository before executing the
 
 ```bash
 jx create quickstart \
-  -l go \
-  -p jx-serverless \
-  -b
+  --language go \
+  --project-name jx-serverless \
+  --batch-mode
 ```
 
 Judging from the output, there are no differences between creating a quickstart project with static and serverless Jenkins X. So, let's take a look at the files that were created for us.
@@ -229,11 +229,11 @@ If you take a closer look at the files, you'll notice that there is no Jenkinsfi
 cat jenkins-x.yml
 ```
 
-The output is a single line `buildPack: go`. Now that is much shorter than what we observed before with Jenkinsfile. The definition of our pipeline is now hidden from us. It inherits the pipeline from the buildpack `go`. That dramatically simplifies the work we need to do, at the expense of control. We do not need to deal with the entire pipeline anymore, but we also do not have direct visibility into its definition. If we'd want to see the details of the pipeline, we'd need to explore `pipeline.yaml` in the buildpack repository.
+The output is a single line `buildPack: go`. Now that is much shorter than what we observed before with Jenkinsfile. The definition of our pipeline is now hidden from us. It inherits the pipeline from the build pack `go`. That dramatically simplifies the work we need to do, at the expense of control. We do not need to deal with the entire pipeline anymore, but we also do not have direct visibility into its definition. If we'd want to see the details of the pipeline, we'd need to explore `pipeline.yaml` in the build pack repository.
 
-Our buildpacks (or those from the community) should provide most of the standard configurations and code through the assumption that projects based on the same language and frameworks should use the same tools and the same pipeline. That's why project pipelines now extend those fro buildpacks, instead of creating a copy in a similar way static Jenkins creates Jenkinsfile with the full definition of a pipeline.
+Our build packs (or those from the community) should provide most of the standard configurations and code through the assumption that projects based on the same language and frameworks should use the same tools and the same pipeline. That's why project pipelines now extend those fro build packs, instead of creating a copy in a similar way static Jenkins creates Jenkinsfile with the full definition of a pipeline.
 
-Single-line pipeline defined in `jenkins-x.yml` is shorter than its Jenkinsfile equivalent, but there will be almost certain need to customize it. We might need to add unit tests, functional tests, and other types of validations that are not included in the buildpack. While we could certainly do that in a custom buildpack and let `jenkins-x.yml` inherit it, sooner or later we will be faced with the need to add a step that is specific to a project and, therefore, not a good candidate for the buildpack. Consequently, we will need to figure out how to extend pipelines based on buildpacks, or to write a completely new pipeline from scratch. We'll explore both of those options in one of the subsequent chapters. For now, remember that `jenkins-x.yml` contains a reference to the pipeline in a specific buildpack and that it can be extended with custom steps or even rewritten from scratch.
+Single-line pipeline defined in `jenkins-x.yml` is shorter than its Jenkinsfile equivalent, but there will be almost certain need to customize it. We might need to add unit tests, functional tests, and other types of validations that are not included in the build pack. While we could certainly do that in a custom build pack and let `jenkins-x.yml` inherit it, sooner or later we will be faced with the need to add a step that is specific to a project and, therefore, not a good candidate for the build pack. Consequently, we will need to figure out how to extend pipelines based on build packs, or to write a completely new pipeline from scratch. We'll explore both of those options in one of the subsequent chapters. For now, remember that `jenkins-x.yml` contains a reference to the pipeline in a specific build pack and that it can be extended with custom steps or even rewritten from scratch.
 
 There is a lot to be said about the new format for Jenkins X pipelines. While Jenkinsfile-based pipelines used a lot of steps that did not exist before Jenkins X, the format itself is still the same old Jenkinsfile. `jenkins-x.yml` is an entirely new format for defining pipelines.
 

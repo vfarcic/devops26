@@ -58,7 +58,8 @@ cat env/requirements.yaml
 
 git add .
 
-git commit -m "Added tests"
+git commit \
+    --message "Added tests"
 
 git push
 
@@ -79,7 +80,7 @@ jx create env \
     --label Pre-Production \
     --namespace jx-pre-production \
     --promotion Manual \
-    -b
+    --batch-mode
 
 jx get env
 

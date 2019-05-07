@@ -597,7 +597,7 @@ kube-public   Active 10m
 kube-system   Active 10m
 ```
 
-In my case, it's `ingress-nginx`. In yours, it might be something else. Or, it might be inside the `kube-system` Namespace. If that's the case, list the Pods with `kubectl -n kube-system get pods` to confirm that it's there.
+In my case, it's `ingress-nginx`. In yours, it might be something else. Or, it might be inside the `kube-system` Namespace. If that's the case, list the Pods with `kubectl --namespace kube-system get pods` to confirm that it's there.
 
 Before executing the command that follows, please replace `[...]` with the Namespace where Ingress resides.
 
@@ -608,7 +608,7 @@ INGRESS_NS=[...]
 Next, we need to find out the name of the Ingress Deployment.
 
 ```bash
-kubectl -n $INGRESS_NS get deployments
+kubectl --namespace $INGRESS_NS get deployments
 ```
 
 The output, in the case of my cluster, is as follows (yours might differ).
@@ -682,7 +682,7 @@ No matter whether you executed `jx cluster create` or `jx install`, it was a sin
 We created a Kubernetes cluster (unless you executed `jx install`). We got a few Namespaces, a few GitHub repositories. We got Ingress (unless it already existed in the cluster). We got a bunch of ConfigMaps and Secrets that are essential for what we're trying to accomplish, and yet we will not discuss them just yet. Most importantly, we got quite a few applications that are essential for our yet-to-be-discovered goals. What are those applications? Let's check it out.
 
 ```bash
-kubectl -n jx get pods
+kubectl --namespace jx get pods
 ```
 
 The output is as follows.

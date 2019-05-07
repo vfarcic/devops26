@@ -246,7 +246,8 @@ Now we can push our changes to the forked repository.
 ```bash
 git add .
 
-git commit -m "Added go-mongo build pack"
+git commit \
+    --message "Added go-mongo build pack"
 
 git push
 ```
@@ -426,7 +427,8 @@ All that's left is to push the changes and wait until Jenkins updates the applic
 ```bash
 git add .
 
-git commit -m "Fixed the probe"
+git commit \
+    --message "Fixed the probe"
 
 git push
 

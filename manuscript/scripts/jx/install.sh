@@ -49,7 +49,7 @@ jx install \
     --ingress-deployment $INGRESS_DEP \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    -b
+    --batch-mode
 
 #######################
 # Uninstall Jenkins X #

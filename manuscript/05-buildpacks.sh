@@ -58,7 +58,8 @@ echo '
 
 git add .
 
-git commit -m "Added go-mongo buildpack"
+git commit \
+    --message "Added go-mongo buildpack"
 
 git push
 
@@ -118,7 +119,8 @@ echo '
 
 git add .
 
-git commit -m "Fixed the probe"
+git commit \
+    --message "Fixed the probe"
 
 git push
 

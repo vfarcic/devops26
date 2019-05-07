@@ -41,7 +41,7 @@ STAGING_ADDR=[...]
 
 curl "$STAGING_ADDR/demo/hello"
 
-kubectl -n jx-staging logs \
+kubectl --namespace jx-staging logs \
     -l app=jx-staging-go-demo-6
 
 echo "dependencies:
@@ -59,27 +59,29 @@ echo "go-demo-6-db:
 
 git add .
 
-git commit -m "Added dependencies"
+git commit \
+    --message "Added dependencies"
 
 git push
 
 jx get activity -f go-demo-6 -w
 
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 
-kubectl -n jx-staging \
+kubectl --namespace jx-staging \
     describe pod \
     -l app=jx-staging-go-demo-6
 
 git add .
 
-git commit -m "Added dependencies"
+git commit \
+    --message "Added dependencies"
 
 git push
 
 jx get activity -f go-demo-6 -w
 
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 
 curl "$STAGING_ADDR/demo/hello"
 

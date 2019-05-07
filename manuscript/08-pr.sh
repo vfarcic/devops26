@@ -46,7 +46,8 @@ preview-db:
 
 git add .
 
-git commit -m "This is a PR"
+git commit \
+    --message "This is a PR"
 
 git push --set-upstream origin my-pr
 
@@ -71,7 +72,7 @@ ISSUE_ID=[...]
 git add .
 
 git commit \
-  -m "Added unit tests (fixes #$ISSUE_ID)"
+    --message "Added unit tests (fixes #$ISSUE_ID)"
 
 git push
 
@@ -94,7 +95,8 @@ integtest:
 
 git add .
 
-git commit -m "Added integration tests"
+git commit \
+    --message "Added integration tests"
 
 git push
 
@@ -112,7 +114,8 @@ echo "
 
 git add .
 
-git commit -m "Removed MongoDB password"
+git commit \
+    --message "Removed MongoDB password"
 
 git push
 

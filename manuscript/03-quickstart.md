@@ -93,7 +93,10 @@ Don't worry if you do not work with Go. We'll use it only as an example. The pri
 Here we go.
 
 ```bash
-jx create quickstart -l go -p jx-go -b
+jx create quickstart \
+    --language go \
+    --project-name jx-go \
+    --batch-mode
 ```
 
 The output is too big to be presented here, so I'll walk you through the steps `jx` performed while you're looking at your screen.
@@ -366,7 +369,7 @@ vfarcic/jx-go/master #1           21m46s    4m17s Succeeded Version: 0.0.1
 
 This time, we used the `-w` flag to tell Jenkins X that we'd like to *watch* the activities. Since there are no pending builds, the output will stay intact, so please press *ctrl+c* to stop the watch and return to the prompt.
 
-I> Internally, Jenkins X activities are stored as Kubernetes Custom Resources (CRDs). If you're curious, you can see them by executing `kubectl -n jx get act`.
+I> Internally, Jenkins X activities are stored as Kubernetes Custom Resources (CRDs). If you're curious, you can see them by executing `kubectl --namespace jx get act`.
 
 Activities provide only a high-level overview of what happened. When everything is successful, that is often all the information we need. However, when things go wrong (e.g., some of the tests fail), we might need to dig deeper into a build by retrieving the logs.
 
@@ -468,7 +471,7 @@ For now, we have only one release that is not very descriptive, since we did not
 Finally, we did not yet confirm whether the new application is indeed deployed and can be accessed.
 
 ```bash
-ADDR=$(kubectl -n jx-staging \
+ADDR=$(kubectl --namespace jx-staging \
     get ing jx-go \
     -o jsonpath="{.spec.rules[0].host}")
 

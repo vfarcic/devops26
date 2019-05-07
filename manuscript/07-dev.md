@@ -537,7 +537,8 @@ Next, we'll imagine that we continued making changes to the code until the new f
 ```bash
 git add .
 
-git commit -m "devpod"
+git commit \
+    --message "devpod"
 
 git push
 ```

@@ -111,7 +111,8 @@ curl "$URL/demo/hello"
 
 git add .
 
-git commit -m "devpod"
+git commit \
+    --message "devpod"
 
 git push
 

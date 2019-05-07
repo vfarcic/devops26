@@ -292,7 +292,8 @@ We can see that the output of `jx-release-version` is stored in the file `VERSIO
 ```bash
 git add .
 
-git commit -m "Finally 1.0.0"
+git commit \
+    --message "Finally 1.0.0"
 
 git push
 
@@ -347,7 +348,8 @@ echo "A silly change" | tee README.md
 
 git add .
 
-git commit -m "A silly change"
+git commit \
+    --message "A silly change"
 
 git push
 

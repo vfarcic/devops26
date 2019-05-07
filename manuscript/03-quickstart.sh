@@ -9,7 +9,10 @@ jx console
 
 jx create quickstart
 
-jx create quickstart -l go -p jx-go -b
+jx create quickstart \
+    --language go \
+    --project-name jx-go \
+    --batch-mode
 
 open "https://github.com/jenkins-x-quickstarts"
 
@@ -63,7 +66,7 @@ jx get applications -e production
 
 open "https://github.com/$GH_USER/jx-go/releases"
 
-ADDR=$(kubectl -n jx-staging \
+ADDR=$(kubectl --namespace jx-staging \
     get ing jx-go \
     -o jsonpath="{.spec.rules[0].host}")
 

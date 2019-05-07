@@ -161,7 +161,7 @@ kubectl get ns
 INGRESS_NS=[...]
 
 # If existing cluster
-kubectl -n $INGRESS_NS get deployments
+kubectl --namespace $INGRESS_NS get deployments
 
 # If existing cluster
 INGRESS_DEP=nginx-ingress-controller
@@ -179,7 +179,7 @@ jx install \
     --ingress-deployment $INGRESS_DEP \
     --default-environment-prefix jx-rocks
 
-kubectl -n jx get pods
+kubectl --namespace jx get pods
 
 jx console
 

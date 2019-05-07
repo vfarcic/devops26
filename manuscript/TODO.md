@@ -12,19 +12,21 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [X] 12-prow.md
-- [ ] 99-progressive-delivery.md
-- [ ] 99-other-git-providers.md
-- [ ] 99-pipeline-extension-model.md
+- [ ] 13-pipeline-extension-model.md
+- [ ] Publish *The Evolution Of Jenkins Jobs And How We Got To The jenkins-x.yml Format* and/or *Getting Rid Of Repetition*
+- [ ] 99-gitops.md
 - [ ] 99-advanced-pipelines.md
+- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
+- [ ] 99-progressive-delivery.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
 - [ ] Remove `docker-registry:`from `myvalues.yaml`
 - [ ] Rewrite the *Due to the current limitation...* warning
+- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
 - [ ] Switch to serverless Jenkins X in the cluster
-- [ ] 99-domains.md
 - [ ] 99-knative.md
 - [ ] 99-additional-apps-in-environment-repos.md
 - [ ] 99-teams-and-multi-cluster.md
@@ -32,7 +34,6 @@
 - [ ] 99-add-app.md
 - [ ] 99-storage.md
 - [ ] 99-container-registry.md
-- [ ] 99-using-other-code-repositories.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-build-notifications.md
 - [ ] 99-custom-build-images.md
@@ -46,10 +47,10 @@
 - [ ] 99-create-chat.md
 - [ ] 99-custom-builders-and-pod-templates.md
 - [ ] 99-logging.md
-- [ ] 99-gitops.md
-- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-cloudbees.md
-- [ ] 99-kaniko.md
+- [ ] 99-domains.md
+- [ ] 99-git-server.md
+- [ ] 99-alibaba.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

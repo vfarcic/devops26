@@ -10,3 +10,4 @@
 10-versioning.md
 11-serverless.md
 12-prow.md
+13-pipeline-extension-model.md

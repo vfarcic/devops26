@@ -194,7 +194,8 @@ echo "This application uses Anchore" \
 
 git add .
 
-git commit -m "Testing anchore"
+git commit \
+    --message "Testing anchore"
 
 git push --set-upstream origin anchore
 
@@ -261,7 +262,8 @@ Image Severity Vulnerability URL Package Fix
 ```bash
 git add .
 
-git commit -m "Still testing anchore"
+git commit \
+    --message "Still testing anchore"
 
 git push
 

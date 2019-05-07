@@ -227,7 +227,7 @@ Now that was unexpected. Everything looks ok from Jenkins X perspective, but the
 When in doubt, we can always take a look at the logs.
 
 ```bash
-kubectl -n jx-staging logs \
+kubectl --namespace jx-staging logs \
     -l app=jx-staging-go-demo-6
 ```
 
@@ -313,7 +313,8 @@ Now, that we learned how to add dependencies to our applications, we should push
 ```bash
 git add .
 
-git commit -m "Added dependencies"
+git commit \
+    --message "Added dependencies"
 
 git push
 ```
@@ -345,7 +346,7 @@ The `Promoted` step is the last one in that build. Once we reach it, we can stop
 Let's see whether we got the Pods that belong to the database and, more importantly, whether the application is indeed running.
 
 ```bash
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 ```
 
 The output is as follows.
@@ -363,7 +364,7 @@ The good news is that the database is indeed running. The bad news is that the a
 Given that the problem is this time probably not related to the database, the logical course of action is to describe the Pod and see whether we can get a clue about the issue from the events.
 
 ```bash
-kubectl -n jx-staging \
+kubectl --namespace jx-staging \
     describe pod \
     -l app=jx-staging-go-demo-6
 ```
@@ -403,7 +404,8 @@ Please edit the *charts/go-demo-6/values.yaml* file by changing `probePath: /` e
 ```bash
 git add .
 
-git commit -m "Added dependencies"
+git commit \
+    --message "Added dependencies"
 
 git push
 ```
@@ -419,7 +421,7 @@ Once the new build is finished, we can stop watching the activity by pressing *c
 What do you think? Is our application finally up-and-running? Let's check it out.
 
 ```bash
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 ```
 
 The output is as follows.

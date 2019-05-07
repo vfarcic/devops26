@@ -60,9 +60,9 @@
 
 ```bash
 jx create quickstart \
-  -l go \
-  -p jx-kaniko \
-  -b
+  --language go \
+  --project-name jx-kaniko \
+  --batch-mode
 
 jx get activities \
     --filter jx-kaniko \

@@ -70,11 +70,15 @@ cd ..
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
 ```bash
+cd go-demo-6
+
 jx import --batch-mode
 
 jx get activities \
     --filter go-demo-6 \
     --watch
+
+cd ..
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
@@ -83,12 +87,46 @@ Now we can promote our last release to production.
 
 ## Upgrading The Cluster
 
-TODO: Code
+```bash
+open "https://github.com/jenkins-x/jenkins-x-versions/blob/master/charts/jenkins-x/jenkins-x-platform.yml"
+
+jx upgrade --help
+
+jx upgrade platform --help
+
+# It should be `jx upgrade platform --version ...`, just as version should be specified in `jx create cluster` or `jx install`.
+
+jx upgrade platform
+
+jx get addons
+
+jx upgrade addons prow
+
+jx get apps
+
+jx upgrade app [...]
+
+jx upgrade binaries
+
+jx upgrade binaries
+
+jx upgrade cli
+
+jx upgrade crd
+
+jx upgrade extensions
+
+# jx upgrade ingress?
+```
 
 ## Adding TLS Certificates
 
 ```bash
 jx get applications
+
+STAGING_ADDR=[...]
+
+curl "$STAGING_ADDR/demo/hello"
 
 kubectl -n kube-system \
     get svc jxing-nginx-ingress-controller \
@@ -102,14 +140,15 @@ ping $DOMAIN
 
 jx upgrade ingress --help
 
+# Switch to the batch mode
 jx upgrade ingress \
     --cluster true \
-    --domain $DOMAIN \
-    -b
-```
+    --domain $DOMAIN
 
-```
 # NOTE: It takes a while...
+
+kubectl --namespace cert-manager \
+    logs --selector app=cert-manager
 
 jx get applications
 
@@ -117,21 +156,27 @@ STAGING_ADDR=[...]
 
 curl "$STAGING_ADDR/demo/hello"
 
+# Wait in case of an error.
+# TODO: It does not work
+
 jx console
 
-# TODO: Confirm an app
+cd go-demo-6
 
-# TODO: confirm a webhook
+jx repo --batch-mode
+
+# Settings > Webhooks
 ```
 
 ## Changing Domain Patterns
 
 ```bash
+jx get applications
+
 jx upgrade ingress \
     --namespaces jx-staging \
-    --skip-certmanager true \
     --urltemplate "{{.Service}}.staging.{{.Domain}}" \
-    -b
+    --batch-mode
 
 jx get applications
 
@@ -194,7 +239,8 @@ spec:
 
 git add .
 
-git commit -m "Added Ingress"
+git commit \
+    --message "Added Ingress"
 
 git push
 

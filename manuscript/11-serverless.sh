@@ -42,9 +42,9 @@ jx team jx
 jx team cd
 
 jx create quickstart \
-  -l go \
-  -p jx-serverless \
-  -b
+  --language go \
+  --project-name jx-serverless \
+  --batch-mode
 
 cd jx-serverless
 

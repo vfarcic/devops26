@@ -445,7 +445,8 @@ The last entry (`go-demo-6`) is new. Or, to be more precise, it did not exist fr
 ```bash
 git add .
 
-git commit -m "Added tests"
+git commit \
+    --message "Added tests"
 
 git push
 ```
@@ -537,7 +538,7 @@ jx create env \
     --label Pre-Production \
     --namespace jx-pre-production \
     --promotion Manual \
-    -b
+    --batch-mode
 ```
 
 The arguments of the command should be self-explanatory. We just created a new Jenkins X environment called `pre-production` inside the Kubernetes Namespace `jx-pre-production`. We set its promotion policy to `Manual`, so new releases will not be installed on every push of the master branch of an application repository, but rather when we choose to promote it there.
