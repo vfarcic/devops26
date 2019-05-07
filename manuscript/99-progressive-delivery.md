@@ -78,22 +78,28 @@ For your convenience, the Gists from the previous chapter are available below as
 * Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
-TODO: Viktor: Check whether `versioning` or some other branch should be restored
+TODO: Viktor: Check whether `extension-model` or some other branch should be restored
 
-I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `versioning` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `extension-model` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
 cd go-demo-6
 
 git pull
 
-git checkout versioning
+# Only if serverless
+BRANCH=extension-model
+
+# Only if static
+BRANCH=versioning
+
+git checkout $BRANCH
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge versioning
+git merge $BRANCH
 
 git push
 
@@ -109,7 +115,6 @@ Now we can promote our last release to production.
 We can easily install Istio, Prometheus and Flagger with `jx`
 
 ```bash
-# TODO: Replace with `jx add app` when `app` are finished.
 jx create addon istio
 ```
 
@@ -119,7 +124,8 @@ We can find the external ip address of the ingress gateway service and configure
 Note the ip from the output of `jx create addon istio` or find it with this command, we will refer to it as `ISTIO_IP`.
 
 ```bash
-ISTIO_IP=$(kubectl --namespace istio-system \
+ISTIO_IP=$(kubectl \
+    --namespace istio-system \
     get service istio-ingressgateway \
     -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
@@ -146,8 +152,10 @@ This configuration can be done using Flagger's `Canary` objects, that we can add
 ```bash
 cd go-demo-6
 
+git checkout master
+
 # Only if not reusing the cluster from the previous chapter
-jx import --batch-mode
+jx import --pack go --batch-mode
 
 # Only if not reusing the cluster from the previous chapter
 jx get activities \
@@ -157,16 +165,30 @@ jx get activities \
 # Only if not reusing the cluster from the previous chapter
 # Press *ctrl+c* when the activity is finished
 
+# TODO: Remove
 # Only if the application was not already promoted to production
+jx get activities \
+    --filter environment-tekton-staging \
+    --watch
+
+# TODO: Remove
+# Only if the application was not already promoted to production
+# Press *ctrl+c* when the activity is finished
+
+# TODO: Remove
+# Only if the application was not already promoted to production
+# NOTE: It might take a while since the application pipeline does not wait until promotion is finished
 jx get applications -e staging
 
+# TODO: Remove
 # Only if the application was not already promoted to production
 VERSION=[...]
 
+# TODO: Remove
 # Only if the application was not already promoted to production
 jx promote go-demo-6 \
     --version $VERSION \
-    --env production º
+    --env production \
     --batch-mode
 
 # TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
@@ -246,7 +268,6 @@ Explanation of the values in the configuration:
   * `istio_requests_total` minimum request success rate (non 5xx responses) percentage (0-100).
   * `istio_request_duration_seconds_bucket` maximum request duration in milliseconds, in the 99th percentile.
 
-
 TODO: Carlos: Shouldn't we change `service.annotations.fabric8.io/expose` to `false` in `charts/go-demo-6/values.yaml`?
 
 Mongodb will not work by default with Istio because it runs under a non root `securityContext`, you would get this error in the `istio-init` init container.
@@ -266,14 +287,42 @@ cat charts/go-demo-6/values.yaml \
   podAnnotations:\
     sidecar.istio.io/inject: "false"@g' \
     | tee charts/go-demo-6/values.yaml
+
+cat main.go | sed -e \
+    "s@hello, PR@hello, progressive@g" \
+    | tee main.go
+
+cat main_test.go | sed -e \
+    "s@hello, PR@hello, progressive@g" \
+    | tee main_test.go
+
+git add .
+
+git commit \
+    -m "Added progressive deployment"
+
+git push
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
 ```
 
+NOTE: Nothing happens since it is automatically promoted to staging and `{{- if eq .Release.Namespace "jx-production" }}` applies only to production.
 
 ## Canary Deployments
 
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash
+jx get activities \
+    --filter environment-tekton-staging \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
+    
 jx get applications -e staging
 
 VERSION=[...]
@@ -313,13 +362,15 @@ jx promote go-demo-6 \
     --version $VERSION \
     --env production \
     --batch-mode
+
+# TODO: Send requests in a loop so that the deployment does not fail
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
 
 Flagger will detect this deployment change update the Istio `VirtualService` to send 10% of the traffic to the new version service `service/jx-go-demo-6` while 90% is sent to the previous version `service/jx-go-demo-6-primary`. We can see this Istio configuration with `kubectl -n jx-production get virtualservice/jx-go-demo-6 -o yaml` under the http route weight parameter.
 
-```
+```yaml
 ...
 spec:
   gateways:
@@ -342,13 +393,18 @@ spec:
       weight: 10
 ```
 
+TODO: Make it work in some kind of a loop (e.g., 20 times) so that people see the change, instead of only having the text below.
+
 We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl -skL "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
 
 Describing the canary object will also give us information about the deployment progress.
 
+```bash
+kubectl --namespace jx-production \
+  describe canary jx-go-demo-6
 ```
-kubectl -n jx-production describe canary/jx-go-demo-6
 
+```
 Events:
   Type     Reason  Age   From     Message
   ----     ------  ----  ----     -------
@@ -361,9 +417,14 @@ Events:
 
 Every minute 10% more traffic will be directed to our new version if the metrics are successful. Note that we need to generate some traffic otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
 
-```
-kubectl -n jx-production describe canary/jx-go-demo-6
+```bash
+# TODO: Create a new promotion to production and do NOT sent requests in a loop so that people see it fail this time.
 
+kubectl -n jx-production \
+  describe canary jx-go-demo-6
+```
+
+```
 Events:
   Type     Reason  Age                From     Message
   ----     ------  ----               ----     -------
@@ -379,7 +440,8 @@ Events:
 If the metrics fail we would see events similar to the following
 
 ```
-kubectl -n jx-production describe canary/jx-go-demo-6
+kubectl -n jx-production \
+  describe canary jx-go-demo-6
 
 Status:
   Canary Revision:  16695041
@@ -404,7 +466,9 @@ Events:
 Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. To access it we need to create a tunnel to the Grafana service running in the cluster as it is not publicly exposed.
 
 ```bash
-kubectl --namespace istio-system port-forward deploy/flagger-grafana 3000
+# TODO: Let's try to do this more elegantly. Shouldn't we use Ingress to access Gradana?
+
+kubectl --namespace istio-system port-forward deploy flagger-grafana 3000
 ```
 
 Then we can access Grafana at [http://localhost:3000](http://localhost:3000) using `admin/admin` credentials.
@@ -432,13 +496,27 @@ cd ..
 
 GH_USER=[...]
 
+# If static
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
 
+# If static
 hub delete -y \
   $GH_USER/environment-jx-rocks-production
 
+# If serverless
+hub delete -y \
+  $GH_USER/environment-tekton-staging
+
+# If serverless
+hub delete -y \
+  $GH_USER/environment-tekton-production
+
+# If static
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
+
+# If serverless
+rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
 ```
 
 Finally, you might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just keep reading.
