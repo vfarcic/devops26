@@ -165,26 +165,21 @@ jx get activities \
 # Only if not reusing the cluster from the previous chapter
 # Press *ctrl+c* when the activity is finished
 
-# TODO: Remove
 # Only if the application was not already promoted to production
 jx get activities \
     --filter environment-tekton-staging \
     --watch
 
-# TODO: Remove
 # Only if the application was not already promoted to production
 # Press *ctrl+c* when the activity is finished
 
-# TODO: Remove
 # Only if the application was not already promoted to production
 # NOTE: It might take a while since the application pipeline does not wait until promotion is finished
 jx get applications -e staging
 
-# TODO: Remove
 # Only if the application was not already promoted to production
 VERSION=[...]
 
-# TODO: Remove
 # Only if the application was not already promoted to production
 jx promote go-demo-6 \
     --version $VERSION \
