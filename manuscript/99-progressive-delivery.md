@@ -157,13 +157,13 @@ jx get activities \
 # Only if not reusing the cluster from the previous chapter
 # Press *ctrl+c* when the activity is finished
 
-# Only if the applicatication was not already promoted to production
+# Only if the application was not already promoted to production
 jx get applications -e staging
 
-# Only if the applicatication was not already promoted to production
+# Only if the application was not already promoted to production
 VERSION=[...]
 
-# Only if the applicatication was not already promoted to production
+# Only if the application was not already promoted to production
 jx promote go-demo-6 \
     --version $VERSION \
     --env production º
@@ -171,45 +171,32 @@ jx promote go-demo-6 \
 
 # TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
 
-# TODO: Carlos: Does it make sense to remove comments from the YAML? While they do provide clarity to the options, they also make the YAML too big for the book format.
-
 echo '{{- if eq .Release.Namespace "jx-production" }}
 {{- if .Values.canary.enable }}
 apiVersion: flagger.app/v1alpha2
 kind: Canary
 metadata:
-  # canary name must match deployment name
   name: {{ template "fullname" . }}
 spec:
-  # deployment reference
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ template "fullname" . }}
   progressDeadlineSeconds: 60
   service:
-    # container port
     port: {{.Values.service.internalPort}}
 {{- if .Values.canary.service.gateways }}
-    # Istio gateways (optional)
     gateways:
 {{ toYaml .Values.canary.service.gateways | indent 4 }}
 {{- end }}
 {{- if .Values.canary.service.hosts }}
-    # Istio virtual service host names (optional)
     hosts:
 {{ toYaml .Values.canary.service.hosts | indent 4 }}
 {{- end }}
   canaryAnalysis:
-    # schedule interval (default 60s)
     interval: {{ .Values.canary.canaryAnalysis.interval }}
-    # max number of failed metric checks before rollback
     threshold: {{ .Values.canary.canaryAnalysis.threshold }}
-    # max traffic percentage routed to canary
-    # percentage (0-100)
     maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
-    # canary increment step
-    # percentage (0-100)
     stepWeight: {{ .Values.canary.canaryAnalysis.stepWeight }}
 {{- if .Values.canary.canaryAnalysis.metrics }}
     metrics:
@@ -235,26 +222,30 @@ canary:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
     interval: 60s
-    # number of times a metric must fail before aborting the rollout
     threshold: 5
-    # max percentage sent to the canary deployment, after it go to 100%
     maxWeight: 50
-    # increase the percentage this much in each interval
     stepWeight: 10
-    # metrics from Prometheus, automatically populated by Istio
     metrics:
     - name: istio_requests_total
-      # minimum request success rate (non 5xx responses)
-      # percentage (0-100)
       threshold: 99
       interval: 60s
     - name: istio_request_duration_seconds_bucket
-      # maximum req duration P99
-      # milliseconds
       threshold: 500
       interval: 60s
 " | tee -a charts/go-demo-6/values.yaml
 ```
+
+Explanation of the values in the configuration:
+
+* `canary.service.hosts` list of host names that Istio will send to our application.
+* `canary.service.gateways` list of Istio gateways that will send traffic to our application. `jx-gateway.istio-system.svc.cluster.local` is the gateway created by the Flagger addon on installation.
+* `canary.canaryAnalysis.threshold` number of times a metric must fail before aborting the rollout.
+* `canary.canaryAnalysis.maxWeight` max percentage sent to the canary deployment, when reached all traffic is sent to the new new version.
+* `canary.canaryAnalysis.stepWeight` increase the percentage this much in each interval (10%, 20%, 30%, 40%).
+* `canary.canaryAnalysis.metrics` metrics from Prometheus, some are automatically populated by Istio and you can add your own from your application.
+  * `istio_requests_total` minimum request success rate (non 5xx responses) percentage (0-100).
+  * `istio_request_duration_seconds_bucket` maximum request duration in milliseconds, in the 99th percentile.
+
 
 TODO: Carlos: Shouldn't we change `service.annotations.fabric8.io/expose` to `false` in `charts/go-demo-6/values.yaml`?
 
