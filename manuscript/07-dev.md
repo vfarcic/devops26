@@ -72,7 +72,7 @@ git push
 I> If you destroyed the cluster at the end of the previous chapter, we'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
 ```bash
-jx import --batch-mode
+jx import --pack go --batch-mode
 
 jx get activities \
     --filter go-demo-6 \
@@ -106,7 +106,7 @@ cd go-demo-6
 We'll create a whole development environment that will be custom tailored for the *go-demo-6* project. It will be the environment for a single user (a developer, you), and it will run inside our cluster. And we'll do that through a single command.
 
 ```bash
-jx create devpod -b
+jx create devpod --batch-mode
 ```
 
 Right now, a Jenkins X DevPod is being created in the batch mode (no questions asked), and we can deduce what's happening from the output.
@@ -124,7 +124,7 @@ Finally, it cloned the *go-demo-6* code inside the Pod.
 Many other things happened in the background. We'll explore them in due time. For now, assuming that the process finished, we'll enter inside the Pod and explore the newly created development environment.
 
 ```bash
-jx rsh -d
+jx rsh --devpod
 ```
 
 The `jx rsh` command opens a terminal inside a Pod. The `-d` argument indicated that we want to connect to the DevPod we just created.
@@ -258,7 +258,7 @@ Is> We are using `tiller` only to simplify the development. For a more secure cl
 Now we're ready to build and deploy our application in the personal development environment.
 
 ```bash
-skaffold run -p dev
+skaffold run --profile dev
 ```
 
 We run skaffold using the `dev` profile.
@@ -473,7 +473,7 @@ It'll take a few moments until everything is up and running. The final message s
 Now we can create yet another DevPod. This time, however, we'll add `--sync` argument. That will give it a signal that we want to use `ksync` to synchronize our local file system with the files in the DevPod.
 
 ```bash
-jx create devpod --sync -b
+jx create devpod --sync --batch-mode
 ```
 
 Now we need to repeat the same commands as before to start the watcher inside the DevPod. However, this time we will not run it in the background since it might be useful to see the output in case one of our tests fail and we might need to apply a fix before we proceed with the development. For that reason, we'll open a second terminal. I recommend that you resize two terminals so that both occupy half of the screen. That way you can see them both.
@@ -485,7 +485,7 @@ W> If you are using EKS, you'll need to recreate the environment variables `AWS_
 Next, we'll enter the DevPod and execute the same commands that will end with running the `watch.sh` script.
 
 ```bash
-jx rsh -d
+jx rsh --devpod
 
 go mod init
 

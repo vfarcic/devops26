@@ -83,15 +83,15 @@ TODO: Viktor: Check whether `extension-model` or some other branch should be res
 I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `extension-model` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
-cd go-demo-6
-
-git pull
-
 # Only if serverless
 BRANCH=extension-model
 
 # Only if static
 BRANCH=versioning
+
+cd go-demo-6
+
+git pull
 
 git checkout $BRANCH
 
@@ -102,6 +102,9 @@ git checkout master
 git merge $BRANCH
 
 git push
+
+# Only if not reusing the cluster from the previous chapter
+jx import --pack go --batch-mode
 
 cd ..
 ```
@@ -153,38 +156,6 @@ This configuration can be done using Flagger's `Canary` objects, that we can add
 cd go-demo-6
 
 git checkout master
-
-# Only if not reusing the cluster from the previous chapter
-jx import --pack go --batch-mode
-
-# Only if not reusing the cluster from the previous chapter
-jx get activities \
-    --filter go-demo-6 \
-    --watch
-
-# Only if not reusing the cluster from the previous chapter
-# Press *ctrl+c* when the activity is finished
-
-# Only if the application was not already promoted to production
-jx get activities \
-    --filter environment-tekton-staging \
-    --watch
-
-# Only if the application was not already promoted to production
-# Press *ctrl+c* when the activity is finished
-
-# Only if the application was not already promoted to production
-# NOTE: It might take a while since the application pipeline does not wait until promotion is finished
-jx get applications -e staging
-
-# Only if the application was not already promoted to production
-VERSION=[...]
-
-# Only if the application was not already promoted to production
-jx promote go-demo-6 \
-    --version $VERSION \
-    --env production \
-    --batch-mode
 
 # TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
 
@@ -238,7 +209,7 @@ canary:
     gateways:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
-    interval: 60s
+    interval: 10s
     threshold: 5
     maxWeight: 50
     stepWeight: 10
@@ -283,13 +254,12 @@ cat charts/go-demo-6/values.yaml \
     sidecar.istio.io/inject: "false"@g' \
     | tee charts/go-demo-6/values.yaml
 
-cat main.go | sed -e \
-    "s@hello, PR@hello, progressive@g" \
-    | tee main.go
-
-cat main_test.go | sed -e \
-    "s@hello, PR@hello, progressive@g" \
-    | tee main_test.go
+cat charts/go-demo-6/values.yaml \
+    | sed -e \
+    's@replicaCount: 1@replicaCount: 20@g' \
+    | sed -e \
+    's@replicaCount: 3@replicaCount: 20@g' \
+    | tee charts/go-demo-6/values.yaml
 
 git add .
 
@@ -312,15 +282,21 @@ NOTE: Nothing happens since it is automatically promoted to staging and `{{- if 
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash
+# Only if serverless
 jx get activities \
     --filter environment-tekton-staging \
     --watch
 
+# Only if serverless
 # Press *ctrl+c* when the activity is finished
     
 jx get applications -e staging
 
 VERSION=[...]
+
+jx get applications -e production
+
+PROD_ADDR=[...]
 
 jx promote go-demo-6 \
     --version $VERSION \
@@ -342,13 +318,43 @@ We are going to create a trivial change in the demo application, replacing `hell
 
 Now in another terminal let's tail Flagger logs so we can get insights in the deployment process.
 
-```
-kubectl -n istio-system -f deploy/flagger
+```bash
+# What is this command?
+# kubectl -n istio-system -f deploy/flagger
+kubectl --namespace jx-production \
+  describe canary jx-go-demo-6
 ```
 
 And once the new version is built we can promote to production the new version.
 
 ```bash
+cat main.go | sed -e \
+    "s@hello, PR@hello, progressive@g" \
+    | tee main.go
+
+cat main_test.go | sed -e \
+    "s@hello, PR@hello, progressive@g" \
+    | tee main_test.go
+
+git add .
+
+git commit \
+    -m "Added progressive deployment"
+
+git push
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Only if not reusing the cluster from the previous chapter
+# Press *ctrl+c* when the activity is finished
+
+# Only if serverless and the application was not already promoted to production
+jx get activities \
+    --filter environment-tekton-staging \
+    --watch
+
 jx get applications -e staging
 
 VERSION=[...]
@@ -358,12 +364,21 @@ jx promote go-demo-6 \
     --env production \
     --batch-mode
 
-# TODO: Send requests in a loop so that the deployment does not fail
+for i in {1..1000}
+do
+    curl "$PROD_ADDR/demo/hello"
+    sleep 1
+done
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
 
 Flagger will detect this deployment change update the Istio `VirtualService` to send 10% of the traffic to the new version service `service/jx-go-demo-6` while 90% is sent to the previous version `service/jx-go-demo-6-primary`. We can see this Istio configuration with `kubectl -n jx-production get virtualservice/jx-go-demo-6 -o yaml` under the http route weight parameter.
+
+```bash
+kubectl --namespace jx-production \
+    describe virtualservice jx-go-demo-6
+```
 
 ```yaml
 ...
@@ -388,13 +403,13 @@ spec:
       weight: 10
 ```
 
-TODO: Make it work in some kind of a loop (e.g., 20 times) so that people see the change, instead of only having the text below.
-
 We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl -skL "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
 
 Describing the canary object will also give us information about the deployment progress.
 
 ```bash
+# NOTE: Open another terminal
+
 kubectl --namespace jx-production \
   describe canary jx-go-demo-6
 ```
@@ -434,7 +449,11 @@ Events:
 
 If the metrics fail we would see events similar to the following
 
-```
+```bash
+# NOTE: Close the new terminal
+
+# TODO: Make a new release to demonstrate what happens when canary fails
+
 kubectl -n jx-production \
   describe canary jx-go-demo-6
 
@@ -461,7 +480,7 @@ Events:
 Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. To access it we need to create a tunnel to the Grafana service running in the cluster as it is not publicly exposed.
 
 ```bash
-# TODO: Let's try to do this more elegantly. Shouldn't we use Ingress to access Gradana?
+# TODO: Let's try to do this more elegantly. Shouldn't we use Ingress to access Grafana?
 
 kubectl --namespace istio-system port-forward deploy flagger-grafana 3000
 ```

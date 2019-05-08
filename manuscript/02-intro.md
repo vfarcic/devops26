@@ -64,6 +64,8 @@ brew install jx
 
 If you are a **Linux** user, the instructions are as follows.
 
+W> Please visit the [releases](https://github.com/jenkins-x/jx/releases) page and replace `v1.3.634` in the command that follows with the latest version.
+
 ```bash
 mkdir -p ~/.jx/bin
 

@@ -16,15 +16,15 @@ git merge buildpack
 
 git push
 
-jx import --batch-mode
+jx import --pack go --batch-modes
 
 jx get activity -f go-demo-6 -w
 
 cd go-demo-6
 
-jx create devpod -b
+jx create devpod --batch-mode
 
-jx rsh -d
+jx rsh --devpod
 
 cd go-demo-6
 
@@ -46,7 +46,7 @@ kubectl create \
 
 helm init --service-account tiller
 
-skaffold run -p dev
+skaffold run --profile dev
 
 echo $SKAFFOLD_DEPLOY_NAMESPACE
 
@@ -85,9 +85,9 @@ cat watch.sh | sed -e \
 
 jx sync --daemon
 
-jx create devpod --sync -b
+jx create devpod --sync --batch-mode
 
-jx rsh -d
+jx rsh --devpod
 
 go mod init
 
