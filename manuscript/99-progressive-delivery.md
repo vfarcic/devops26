@@ -22,7 +22,7 @@
 
 # Progressive Delivery
 
-Progressive Delivery is the next step after Continuous Delivery, a term including deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. Progressive Delivery encompasses methodologies such as blue-green and canary deployments, where new versions are deployed to a subset of users and are evaluated in terms of correctness and performance before rolling them to the totality of the users and rolled back if not matching some key metrics.
+Progressive Delivery makes it easier to adopt Continuous Delivery, a term including deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. Progressive Delivery encompasses methodologies such as blue-green and canary deployments, where new versions are deployed to a subset of users and are evaluated in terms of correctness and performance before rolling them to the totality of the users and rolled back if not matching some key metrics.
 
 Blue-green consists of deploying a new version while keeping the old one running, and using load balancers or dns, send all users to one or another. Both old and new versions coexist until the new version is validated in production. If issues are found with the new deployment the load balancer or dns is pointed back to the old version.
 Canary deployments deliver a new version to a subset of users, which is randomly chosen or based on some demographics like location. If no issues are found in production for this subset of users the deployment of the new version is dialed up gradually until reaching all the users. In other case it is just a matter of sending the users in the new version back to the old version.
@@ -319,10 +319,7 @@ We are going to create a trivial change in the demo application, replacing `hell
 Now in another terminal let's tail Flagger logs so we can get insights in the deployment process.
 
 ```bash
-# What is this command?
-# kubectl -n istio-system -f deploy/flagger
-kubectl --namespace jx-production \
-  describe canary jx-go-demo-6
+kubectl -n istio-system logs -f deploy/flagger
 ```
 
 And once the new version is built we can promote to production the new version.
