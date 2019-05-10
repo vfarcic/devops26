@@ -254,13 +254,10 @@ cat charts/go-demo-6/values.yaml \
     sidecar.istio.io/inject: "false"@g' \
     | tee charts/go-demo-6/values.yaml
 
-# TODO vfarcic: 20 replicas?
-# TODO vfarcic: there is no replicaCount: 1 only replicaCount: 3
+# NOTE: Increasing the number of replicas to see how progressive delivery handles rolling updates
 cat charts/go-demo-6/values.yaml \
     | sed -e \
-    's@replicaCount: 1@replicaCount: 20@g' \
-    | sed -e \
-    's@replicaCount: 3@replicaCount: 20@g' \
+    's@replicaCount: .@replicaCount: 10@g' \
     | tee charts/go-demo-6/values.yaml
 
 git add .
@@ -296,10 +293,6 @@ jx get applications -e staging
 
 VERSION=[...]
 
-jx get applications -e production
-
-PROD_ADDR=[...]
-
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
@@ -321,7 +314,8 @@ We are going to create a trivial change in the demo application, replacing `hell
 Now in another terminal let's tail Flagger logs so we can get insights in the deployment process.
 
 ```bash
-kubectl -n istio-system logs -f deploy/flagger
+kubectl --namespace istio-system logs \
+    --selector app.kubernetes.io/name=flagger
 ```
 
 And once the new version is built we can promote to production the new version.
@@ -368,6 +362,8 @@ do
     curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
     sleep 0.5
 done
+
+# TODO: Carlos: Why does it show only the output from the new release? Shouldn't it have mixed outputs and progresivelly increase those from the new release and decrease those from the old? Am I doing something wrong?
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
