@@ -146,11 +146,7 @@ git merge -s ours master --no-edit
 git checkout master
 
 git merge buildpack
-```
 
-W> Please open Jenkinsfile in your favorite editor and replace all occurrences of `vfarcic` with your username.
-
-```bash
 git push
 ```
 
