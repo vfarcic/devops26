@@ -148,7 +148,7 @@ It will also configure an Istio ingress gateway to accept incoming external traf
 
 ## Flagger App Configuration
 
-Let's say we want to deploy our new version to 10% of the users, and increase it another 10% every minute until we reach 50% of the users, then deploy to all users. We will examine two key metrics, whether more than 1% of the requests fail (5xx errors) or the request time is over 500ms. If these metrics fail 5 times we want to rollback to the old version.
+Let's say we want to deploy our new version to 10% of the users, and increase it another 10% every 10 seconds until we reach 50% of the users, then deploy to all users. We will examine two key metrics, whether more than 1% of the requests fail (5xx errors) or the request time is over 500ms. If these metrics fail 5 times we want to rollback to the old version.
 
 This configuration can be done using Flagger's `Canary` objects, that we can add to our application helm chart under `charts/go-demo-6/templates/canary.yaml` 
 
@@ -195,7 +195,7 @@ spec:
 ' | tee charts/go-demo-6/templates/canary.yaml
 ```
 
-And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.ISTIO_IP.nip.io`.
+And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.$ISTIO_IP.nip.io`.
 
 ```bash
 # TODO: Carlos: If canary can be enabled on any environment, than we should probably have `canary.enable` and `canary.service.hosts` set in the values.yaml inside the env. repo. That would also remove the need for `{{- if eq .Release.Namespace "jx-production" }}` in `canary.yaml`.
@@ -254,6 +254,8 @@ cat charts/go-demo-6/values.yaml \
     sidecar.istio.io/inject: "false"@g' \
     | tee charts/go-demo-6/values.yaml
 
+# TODO vfarcic: 20 replicas?
+# TODO vfarcic: there is no replicaCount: 1 only replicaCount: 3
 cat charts/go-demo-6/values.yaml \
     | sed -e \
     's@replicaCount: 1@replicaCount: 20@g' \
@@ -363,8 +365,8 @@ jx promote go-demo-6 \
 
 for i in {1..1000}
 do
-    curl "$PROD_ADDR/demo/hello"
-    sleep 1
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    sleep 0.5
 done
 ```
 
