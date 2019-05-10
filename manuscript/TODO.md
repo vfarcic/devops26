@@ -12,9 +12,7 @@
 - [X] 10-versioning.md
 - [X] 11-serverless.md
 - [X] 12-prow.md
-- [ ] 13-pipeline-extension-model.md
-- [ ] Publish *The Evolution Of Jenkins Jobs And How We Got To The jenkins-x.yml Format* and/or *Getting Rid Of Repetition*
-- [ ] 99-gitops.md
+- [X] 13-pipeline-extension-model.md
 - [ ] 99-advanced-pipelines.md
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-progressive-delivery.md
@@ -51,6 +49,7 @@
 - [ ] 99-domains.md
 - [ ] 99-git-server.md
 - [ ] 99-alibaba.md
+- [ ] 99-gitops.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

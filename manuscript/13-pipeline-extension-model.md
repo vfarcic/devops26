@@ -4,7 +4,7 @@ W> The examples in this chapter work only with serverless Jenkins X.
 
 Jenkin X pipeline extension model is, in my opinion, one of the most exciting and innovative improvements we got with Jenkins X. It allows us to focus on what really matters in our projects and to ignore the steps that are common to others. Understanding the evolution of Jenkins pipelines is vital if we are to adopt the extension model. So, before we dive into extensions, we need to understand better how pipelines evolved over time.
 
-## The Evolution Of Jenkins Jobs And How We Got To The jenkins-x.yml Format
+## The Evolution Of Jenkins Jobs And How We Got To The YAML-Based jenkins-x.yml Format
 
 When Jenkins appeared, its pipelines were called FreeStyle jobs. There was no way to describe them in code, and they were not kept in version control. We were creating and maintaining those jobs through Jenkins UI by filling input fields, marking checkboxes, and selecting values from drop-down lists. The results were impossible-to-read XML files stored in the Jenkins home directory. Nevertheless, that approach was so great (compared to what existed at the time) that Jenkins become widely adopted overnight. But, that was many years ago and what was great over a decade ago is not necessarily as good today. As a matter of fact, FreeStyle jobs are the antithesis of the types of jobs we should be writing today. Tools that create code through drag-and-drop methods are extinct. Not having code in version control is a cardinal sin. Not being able to use our favorite IDE or code editor is unacceptable. Hence, the Jenkins community created Jenkins pipelines.
 
@@ -115,7 +115,11 @@ git merge -s ours master --no-edit
 git checkout master
 
 git merge versioning
+```
 
+W> Please open Jenkinsfile in your favorite editor and replace all occurrences of `vfarcic` with your username.
+
+```bash
 git push
 
 cd ..
