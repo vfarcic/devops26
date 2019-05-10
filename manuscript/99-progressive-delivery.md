@@ -365,8 +365,8 @@ jx promote go-demo-6 \
 
 for i in {1..1000}
 do
-    curl "$PROD_ADDR/demo/hello"
-    sleep 1
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    sleep 0.5
 done
 ```
 
