@@ -421,7 +421,7 @@ Events:
   Normal   Synced  2m    flagger  Advance jx-go-demo-6.jx-production canary weight 20
 ```
 
-Every minute 10% more traffic will be directed to our new version if the metrics are successful. Note that we need to generate some traffic otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
+Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
 
 ```bash
 # TODO: Create a new promotion to production and do NOT sent requests in a loop so that people see it fail this time.
