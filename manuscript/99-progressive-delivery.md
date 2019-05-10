@@ -357,6 +357,7 @@ jx promote go-demo-6 \
     --env production \
     --batch-mode
 
+# NOTE: leave this running while you continue reading
 for i in {1..1000}
 do
     curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
@@ -372,7 +373,7 @@ Flagger will detect this deployment change update the Istio `VirtualService` to 
 
 ```bash
 kubectl --namespace jx-production \
-    describe virtualservice jx-go-demo-6
+    get virtualservice/jx-go-demo-6 -o yaml
 ```
 
 ```yaml
@@ -382,7 +383,7 @@ spec:
   - jx-gateway.istio-system.svc.cluster.local
   - mesh
   hosts:
-  - go-demo-6.ISTIO_IP.nip.io
+  - go-demo-6.$ISTIO_IP.nip.io
   - jx-go-demo-6
   http:
   - route:
@@ -398,7 +399,7 @@ spec:
       weight: 10
 ```
 
-We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl -skL "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
+We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
 
 Describing the canary object will also give us information about the deployment progress.
 
