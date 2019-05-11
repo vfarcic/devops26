@@ -140,6 +140,7 @@ Let's continue with the other addons
 ```bash
 jx create addon prometheus
 
+# TODO we need flagger 0.13.2 with no-tiller https://github.com/jenkins-x/jenkins-x-versions/pull/259
 jx create addon flagger
 ```
 
@@ -364,7 +365,6 @@ do
     sleep 0.5
 done
 
-# TODO: Carlos: Why does it show only the output from the new release? Shouldn't it have mixed outputs and progresivelly increase those from the new release and decrease those from the old? Am I doing something wrong?
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
@@ -423,8 +423,19 @@ Events:
 
 Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
 
+Let's show what would happen if we promote to production the previous version with no traffic.
+
 ```bash
-# TODO: Create a new promotion to production and do NOT sent requests in a loop so that people see it fail this time.
+
+jx get applications -e production
+
+# use the previous version to the one deployed
+VERSION=[...]
+
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
 
 kubectl -n jx-production \
   describe canary jx-go-demo-6
@@ -478,7 +489,7 @@ Flagger includes a Grafana dashboard where we can visually see metrics in our ca
 ```bash
 # TODO: Let's try to do this more elegantly. Shouldn't we use Ingress to access Grafana?
 
-kubectl --namespace istio-system port-forward deploy flagger-grafana 3000
+kubectl --namespace istio-system port-forward deploy/flagger-grafana 3000
 ```
 
 Then we can access Grafana at [http://localhost:3000](http://localhost:3000) using `admin/admin` credentials.
