@@ -484,16 +484,31 @@ Events:
 
 ## Visualizing the Rollout
 
-Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. To access it we need to create a tunnel to the Grafana service running in the cluster as it is not publicly exposed.
+Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accesible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
+
+TODO: vfarcic is $PROD_IP the correct ip ? Do we want to delete the ingress later?
 
 ```bash
-# TODO: Let's try to do this more elegantly. Shouldn't we use Ingress to access Grafana?
-
-kubectl --namespace istio-system port-forward deploy/flagger-grafana 3000
+echo "apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: flagger-grafana
+  namespace: istio-system
+spec:
+  rules:
+  - host: flagger-grafana.jx.$PROD_IP.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: flagger-grafana
+          servicePort: 80
+" | kubectl create -f -
 ```
 
-Then we can access Grafana at [http://localhost:3000](http://localhost:3000) using `admin/admin` credentials.
-Going to the `canary-analysis` dashboard we should select
+Then we can access Grafana at `http://flagger-grafana.jx.$PROD_IP.nip.io/d/flagger-istio/istio-canary?refresh=5s&orgId=1&var-namespace=jx-production&var-primary=jx-go-demo-6-primary&var-canary=jx-go-demo-6` using `admin/admin` credentials.
+If not displayed directly, we should go to the `Istio Canary` dashboard and select
 
 * namespace: `jx-production`
 * primary: `jx-go-demo-6-primary`
