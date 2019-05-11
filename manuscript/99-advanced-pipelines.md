@@ -22,26 +22,62 @@
 
 # Advanced Serverless Jenkins X Pipelines
 
+## Creating A Kubernetes Cluster With Jenkins X
+
+TODO: Rewrite
+
+You can skip this section if you kept the cluster from the previous chapter and it contains serverless Jenkins X. Otherwise, we'll need to create a new Jenkins X cluster.
+
+I> All the commands from this chapter are available in the [13-pipeline-extension-model.sh](https://gist.github.com/60556b4844afb120581f7dfeb9280bda) Gist.
+
+For your convenience, the Gists that will create a new serverless Jenkins X cluster or install it inside an existing one are as follows.
+
+* Create new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+
+Now we can explore Jenkins X Pipeline Extension Model.
+
+## Something
+
 ```bash
-cd go-demo-6
+open "https://github.com/vfarcic/devops-toolkit"
 
-git pull
+# Fork it
 
-git checkout extension-model
+GH_USER=[...]
 
-git merge -s ours master --no-edit
+git clone \
+    https://github.com/$GH_USER/devops-toolkit.git
 
-git checkout master
+cd devops-toolkit
 
-git merge extension-model
+jx import --batch-mode
 
-git push
+jx get activities \
+    --filter devops-toolkit \
+    --watch
 
-cd ..
-```
+jx get build logs
 
-```bash
-cd go-demo-6
+jx create step \
+    --pipeline release \
+    --lifecycle prebuild \
+    --mode post \
+    --sh 'git submodule init'
+
+jx create step \
+    --pipeline release \
+    --lifecycle prebuild \
+    --mode post \
+    --sh "git submodule update"
+
+jx create step \
+    --pipeline release \
+    --lifecycle build \
+    --mode replace \
+    --sh 'ADDRESS=`jx get preview --current 2>&1` make functest'
 
 # TODO: Agent
 # TODO: ChatConfig
@@ -809,3 +845,29 @@ TODO: Replace a lifecycle
 TODO: https://jenkins-x.io/architecture/jenkins-x-pipelines/#default-environment-variables
 
 TODO: Create a pipeline from scratch
+
+## What Now?
+
+TODO: Rewrite
+
+Now you need to decide whether to continue using the cluster or to destroy it. If you choose to destroy it or to uninstall Jenkins X, you'll find the instructions at the bottom of the Gist you chose at the beginning of this chapter.
+
+If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
+
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
+
+```bash
+cd ..
+
+GH_USER=[...]
+
+hub delete -y \
+  $GH_USER/environment-tekton-staging
+
+hub delete -y \
+  $GH_USER/environment-tekton-production
+
+rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+
+rm -rf environment-tekton-staging
+```
