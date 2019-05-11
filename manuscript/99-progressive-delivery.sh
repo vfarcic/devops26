@@ -166,6 +166,27 @@ kubectl -n istio-system logs -f deploy/flagger
 watch curl -skL "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"
 
 
+# Grafana dashboard
+
+```bash
+echo "apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: flagger-grafana
+  namespace: istio-system
+spec:
+  rules:
+  - host: flagger-grafana.jx.$PROD_IP.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: flagger-grafana
+          servicePort: 80
+" | kubectl create -f -
+```
+
 
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging

@@ -140,6 +140,7 @@ Let's continue with the other addons
 ```bash
 jx create addon prometheus
 
+# TODO we need flagger 0.13.2 if using no-tiller https://github.com/jenkins-x/jenkins-x-versions/pull/259
 jx create addon flagger
 ```
 
@@ -357,13 +358,13 @@ jx promote go-demo-6 \
     --env production \
     --batch-mode
 
+# NOTE: leave this running while you continue reading
 for i in {1..1000}
 do
     curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
     sleep 0.5
 done
 
-# TODO: Carlos: Why does it show only the output from the new release? Shouldn't it have mixed outputs and progresivelly increase those from the new release and decrease those from the old? Am I doing something wrong?
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
@@ -372,7 +373,7 @@ Flagger will detect this deployment change update the Istio `VirtualService` to 
 
 ```bash
 kubectl --namespace jx-production \
-    describe virtualservice jx-go-demo-6
+    get virtualservice/jx-go-demo-6 -o yaml
 ```
 
 ```yaml
@@ -382,7 +383,7 @@ spec:
   - jx-gateway.istio-system.svc.cluster.local
   - mesh
   hosts:
-  - go-demo-6.ISTIO_IP.nip.io
+  - go-demo-6.$ISTIO_IP.nip.io
   - jx-go-demo-6
   http:
   - route:
@@ -398,7 +399,7 @@ spec:
       weight: 10
 ```
 
-We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl -skL "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
+We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
 
 Describing the canary object will also give us information about the deployment progress.
 
@@ -420,16 +421,32 @@ Events:
   Normal   Synced  2m    flagger  Advance jx-go-demo-6.jx-production canary weight 20
 ```
 
-Every minute 10% more traffic will be directed to our new version if the metrics are successful. Note that we need to generate some traffic otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
+Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
+
+
+## Automated Rollbacks
+
+Flagger will automatically rollback if any of the metrics we set fail the number of times set on the threshold configuration option, or if there are no metrics, as Flagger assumes something is very wrong with our application.
+
+Let's show what would happen if we promote to production the previous version with no traffic.
 
 ```bash
-# TODO: Create a new promotion to production and do NOT sent requests in a loop so that people see it fail this time.
+
+jx get applications -e production
+
+# use the previous version to the one deployed
+VERSION=[...]
+
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
+
+# After a few minutes
 
 kubectl -n jx-production \
   describe canary jx-go-demo-6
-```
 
-```
 Events:
   Type     Reason  Age                From     Message
   ----     ------  ----               ----     -------
@@ -442,46 +459,78 @@ Events:
   Warning  Synced  11m                flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
 ```
 
-If the metrics fail we would see events similar to the following
+Now let's try again and show what happens when the application returns http errors.
+
+NOTE: as the time of writing `jx get applications` will show versions that are out of sync from the ones actually deployed after a promoton failure. You can see the versions actually deployed with `kubectl -n jx-production get deploy -o wide`. For that same reason you can't try to immediately promote again a version that was rolled back by Flagger, as that version is already the one in the GitOps environment repo and will not trigger any deployment because there are no changes to the git files.
+
 
 ```bash
 # NOTE: Close the new terminal
 
-# TODO: Make a new release to demonstrate what happens when canary fails
+# use a different version than the one in the previous failed deployment
+VERSION=[...]
+
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
+
+# Lets generate some http 500 errors (10% of the requests)
+
+# NOTE: leave this running while you continue reading
+for i in {1..1000}
+do
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/random-error"
+done
 
 kubectl -n jx-production \
   describe canary jx-go-demo-6
 
-Status:
-  Canary Revision:  16695041
-  Failed Checks:    10
-  State:            failed
 Events:
-  Type     Reason  Age   From     Message
-  ----     ------  ----  ----     -------
-  Normal   Synced  3m    flagger  Starting canary deployment for jx-go-demo-6.jx-production
-  Normal   Synced  3m    flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Normal   Synced  3m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 69.17% < 99%
-  Normal   Synced  2m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 61.39% < 99%
-  Normal   Synced  2m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 55.06% < 99%
-  Normal   Synced  2m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 47.00% < 99%
-  Normal   Synced  2m    flagger  (combined from similar events): Halt jx-go-demo-6.jx-production advancement success rate 38.08% < 99%
-  Warning  Synced  1m    flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 10
-  Warning  Synced  1m    flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
+  Type     Reason  Age    From     Message
+  ----     ------  ----   ----     -------
+  Normal   Synced  5m47s  flagger  New revision detected! Scaling up jx-go-demo-6.jx-production
+  Normal   Synced  5m17s  flagger  Advance jx-go-demo-6.jx-production canary weight 10
+  Normal   Synced  5m17s  flagger  Starting canary analysis for jx-go-demo-6.jx-production
+  Normal   Synced  4m47s  flagger  Advance jx-go-demo-6.jx-production canary weight 20
+  Normal   Synced  4m17s  flagger  Advance jx-go-demo-6.jx-production canary weight 30
+  Normal   Synced  3m47s  flagger  Advance jx-go-demo-6.jx-production canary weight 40
+  Warning  Synced  3m17s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 90.09% < 99%
+  Warning  Synced  2m47s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 88.57% < 99%
+  Warning  Synced  2m17s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 91.49% < 99%
+  Warning  Synced  107s   flagger  Halt jx-go-demo-6.jx-production advancement success rate 96.00% < 99%
+  Warning  Synced  77s    flagger  Halt jx-go-demo-6.jx-production advancement success rate 87.72% < 99%
+  Warning  Synced  47s    flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
+  Warning  Synced  47s    flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 5
 ```
 
 ## Visualizing the Rollout
 
-Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. To access it we need to create a tunnel to the Grafana service running in the cluster as it is not publicly exposed.
+Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accesible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
+
+TODO: vfarcic is $PROD_IP the correct ip ? Do we want to delete the ingress later?
 
 ```bash
-# TODO: Let's try to do this more elegantly. Shouldn't we use Ingress to access Grafana?
-
-kubectl --namespace istio-system port-forward deploy flagger-grafana 3000
+echo "apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: flagger-grafana
+  namespace: istio-system
+spec:
+  rules:
+  - host: flagger-grafana.jx.$PROD_IP.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: flagger-grafana
+          servicePort: 80
+" | kubectl create -f -
 ```
 
-Then we can access Grafana at [http://localhost:3000](http://localhost:3000) using `admin/admin` credentials.
-Going to the `canary-analysis` dashboard we should select
+Then we can access Grafana at `http://flagger-grafana.jx.$PROD_IP.nip.io/d/flagger-istio/istio-canary?refresh=5s&orgId=1&var-namespace=jx-production&var-primary=jx-go-demo-6-primary&var-canary=jx-go-demo-6` using `admin/admin` credentials.
+If not displayed directly, we should go to the `Istio Canary` dashboard and select
 
 * namespace: `jx-production`
 * primary: `jx-go-demo-6-primary`
