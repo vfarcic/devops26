@@ -140,7 +140,7 @@ Let's continue with the other addons
 ```bash
 jx create addon prometheus
 
-# TODO we need flagger 0.13.2 with no-tiller https://github.com/jenkins-x/jenkins-x-versions/pull/259
+# TODO we need flagger 0.13.2 if using no-tiller https://github.com/jenkins-x/jenkins-x-versions/pull/259
 jx create addon flagger
 ```
 
@@ -423,6 +423,11 @@ Events:
 
 Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
 
+
+## Automated Rollbacks
+
+Flagger will automatically rollback if any of the metrics we set fail the number of times set on the threshold configuration option, or if there are no metrics, as Flagger assumes something is very wrong with our application.
+
 Let's show what would happen if we promote to production the previous version with no traffic.
 
 ```bash
@@ -437,11 +442,11 @@ jx promote go-demo-6 \
     --env production \
     --batch-mode
 
+# After a few minutes
+
 kubectl -n jx-production \
   describe canary jx-go-demo-6
-```
 
-```
 Events:
   Type     Reason  Age                From     Message
   ----     ------  ----               ----     -------
@@ -454,32 +459,49 @@ Events:
   Warning  Synced  11m                flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
 ```
 
-If the metrics fail we would see events similar to the following
+Now let's try again and show what happens when the application returns http errors.
+
+NOTE: as the time of writing `jx get applications` will show versions that are out of sync from the ones actually deployed after a promoton failure. You can see the versions actually deployed with `kubectl -n jx-production get deploy -o wide`. For that same reason you can't try to immediately promote again a version that was rolled back by Flagger, as that version is already the one in the GitOps environment repo and will not trigger any deployment because there are no changes to the git files.
+
 
 ```bash
 # NOTE: Close the new terminal
 
-# TODO: Make a new release to demonstrate what happens when canary fails
+# use a different version than the one in the previous failed deployment
+VERSION=[...]
+
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
+
+# Lets generate some http 500 errors (10% of the requests)
+
+# NOTE: leave this running while you continue reading
+for i in {1..1000}
+do
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/random-error"
+done
 
 kubectl -n jx-production \
   describe canary jx-go-demo-6
 
-Status:
-  Canary Revision:  16695041
-  Failed Checks:    10
-  State:            failed
 Events:
-  Type     Reason  Age   From     Message
-  ----     ------  ----  ----     -------
-  Normal   Synced  3m    flagger  Starting canary deployment for jx-go-demo-6.jx-production
-  Normal   Synced  3m    flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Normal   Synced  3m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 69.17% < 99%
-  Normal   Synced  2m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 61.39% < 99%
-  Normal   Synced  2m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 55.06% < 99%
-  Normal   Synced  2m    flagger  Halt jx-go-demo-6.jx-production advancement success rate 47.00% < 99%
-  Normal   Synced  2m    flagger  (combined from similar events): Halt jx-go-demo-6.jx-production advancement success rate 38.08% < 99%
-  Warning  Synced  1m    flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 10
-  Warning  Synced  1m    flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
+  Type     Reason  Age    From     Message
+  ----     ------  ----   ----     -------
+  Normal   Synced  5m47s  flagger  New revision detected! Scaling up jx-go-demo-6.jx-production
+  Normal   Synced  5m17s  flagger  Advance jx-go-demo-6.jx-production canary weight 10
+  Normal   Synced  5m17s  flagger  Starting canary analysis for jx-go-demo-6.jx-production
+  Normal   Synced  4m47s  flagger  Advance jx-go-demo-6.jx-production canary weight 20
+  Normal   Synced  4m17s  flagger  Advance jx-go-demo-6.jx-production canary weight 30
+  Normal   Synced  3m47s  flagger  Advance jx-go-demo-6.jx-production canary weight 40
+  Warning  Synced  3m17s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 90.09% < 99%
+  Warning  Synced  2m47s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 88.57% < 99%
+  Warning  Synced  2m17s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 91.49% < 99%
+  Warning  Synced  107s   flagger  Halt jx-go-demo-6.jx-production advancement success rate 96.00% < 99%
+  Warning  Synced  77s    flagger  Halt jx-go-demo-6.jx-production advancement success rate 87.72% < 99%
+  Warning  Synced  47s    flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
+  Warning  Synced  47s    flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 5
 ```
 
 ## Visualizing the Rollout
