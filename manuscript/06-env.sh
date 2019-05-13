@@ -37,7 +37,7 @@ cat Makefile
 
 echo 'test:
 	ADDRESS=`kubectl -n jx-staging \\
-	get ing go-demo-6 \\
+	get ingress go-demo-6 \\
 	-o jsonpath="{.spec.rules[0].host}"` \\
 	go test -v' \
     | tee -a Makefile

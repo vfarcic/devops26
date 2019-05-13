@@ -67,7 +67,7 @@ jx get applications -e production
 open "https://github.com/$GH_USER/jx-go/releases"
 
 ADDR=$(kubectl --namespace jx-staging \
-    get ing jx-go \
+    get ingress jx-go \
     -o jsonpath="{.spec.rules[0].host}")
 
 curl "http://$ADDR"

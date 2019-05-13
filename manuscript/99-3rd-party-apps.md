@@ -170,6 +170,10 @@ rm -f \
     watch.sh \
     charts/prometheus/templates/*.yaml
 
+# If serverless
+# TODO: Modify jenkins-x.yml
+
+# If static
 echo 'pipeline {
   agent {
     label "jenkins-go"
@@ -250,7 +254,7 @@ echo 'pipeline {
 
 git add .
 
-git commit -m "Added Prometheus dependency"
+git commit -m "Improved Jenkinsfile"
 
 git push
 
@@ -268,78 +272,19 @@ jx delete application \
     $GH_USER/prometheus \
     --batch-mode
 
-echo 'pipeline {
-  agent {
-    label "jenkins-go"
-  }
-  environment {
-    ORG = "vfarcic"
-    APP_NAME = "prometheus"
-    CHARTMUSEUM_CREDS = credentials("jenkins-x-chartmuseum")
-  }
-  stages {
-    stage("CI Build and push snapshot") {
-      when {
-        branch "PR-*"
-      }
-      environment {
-        PREVIEW_VERSION = "0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER"
-        PREVIEW_NAMESPACE = "$APP_NAME-$BRANCH_NAME".toLowerCase()
-        HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
-      }
-      steps {
-        container("go") {
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus") {
-            checkout scm
-            sh "make linux"
-            sh "export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml"
-            sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
-          }
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus/charts/preview") {
-            sh "make preview"
-            sh "jx preview --app $APP_NAME --dir ../.."
-          }
-        }
-      }
-    }
-    stage("Build Release") {
-      when {
-        branch "master"
-      }
-      steps {
-        container("go") {
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus") {
-            checkout scm
-            sh "git checkout master"
-            sh "git config --global credential.helper store"
-            sh "jx step git credentials"
-            sh "echo \$(jx-release-version) > VERSION"
-            sh "jx step tag --version \$(cat VERSION)"
-          }
-        }
-      }
-    }
-    stage("Promote to Environments") {
-      when {
-        branch "master"
-      }
-      steps {
-        container("go") {
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus/charts/prometheus") {
-            sh "jx step changelog --version v\$(cat ../../VERSION)"
-            sh "jx step helm release"
-            // sh "jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)" // TODO: Remove
-            sh "jx promote --env production -b --timeout 1h --version \$(cat ../../VERSION)"
-          }
-        }
-      }
-    }
-  }
-}' | tee Jenkinsfile
+kubectl \
+    --namespace $NAMESPACE-staging \
+    get pods
+
+kubectl \
+    --namespace $NAMESPACE-production \
+    get ingress
+
+# TODO: Add labels to auto-generate Ingress
 
 git add .
 
-git commit -m "Added Prometheus dependency"
+git commit -m "Added ingress"
 
 git push
 
@@ -347,139 +292,33 @@ jx get activities \
     --filter prometheus \
     --watch
 
-# Stop with *ctrl+c*
-
 kubectl \
-    --namespace $NAMESPACE-staging \
-    get pods
+    --namespace $NAMESPACE-production \
+    get ingress
+
+open "http://prometheus.$LB_IP.nip.io"
+
+LB_IP=$(kubectl \
+  --namespace kube-system \
+  get svc jxing-nginx-ingress-controller \
+  --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
+echo $LB_IP
+
+# TODO: Add fixed Ingress only to production
+
+echo "prom:
+  server:
+    ingress:
+      enabled: true
+      hosts:
+      - prometheus.$LB_IP.nip.io" \
+    | tee -a charts/prometheus/values.yaml
 
 
+# TODO: PRs would be difficult because helm does not (yet) support nested dependencies
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-git checkout -b initial
-
-# TODO: Do we need Makefile for the releases?
-
-# If serverless
-TODO: Modify jenkins-x.yml
-
-# If serverless
-jx step syntax validate pipeline
-
-# If static
-echo 'pipeline {
-  agent {
-    label "jenkins-go"
-  }
-  environment {
-    ORG = "vfarcic"
-    APP_NAME = "prometheus"
-    CHARTMUSEUM_CREDS = credentials("jenkins-x-chartmuseum")
-  }
-  stages {
-    stage("CI Build and push snapshot") {
-      when {
-        branch "PR-*"
-      }
-      environment {
-        PREVIEW_VERSION = "0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER"
-        PREVIEW_NAMESPACE = "$APP_NAME-$BRANCH_NAME".toLowerCase()
-        HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
-      }
-      steps {
-        container("go") {
-          /*dir("/home/jenkins/go/src/github.com/vfarcic/prometheus") { // TODO: Remove the whole block
-            checkout scm
-            sh "make linux"
-            sh "export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml"
-            sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
-          }*/
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus/charts/preview") {
-            sh "make preview"
-            sh "jx preview --app $APP_NAME --dir ../.."
-          }
-        }
-      }
-    }
-    stage("Build Release") {
-      when {
-        branch "master"
-      }
-      steps {
-        container("go") {
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus") {
-            checkout scm
-            sh "git checkout master"
-            sh "git config --global credential.helper store"
-            sh "jx step git credentials"
-
-            // so we can retrieve the version in later steps
-            sh "echo \$(jx-release-version) > VERSION"
-            sh "jx step tag --version \$(cat VERSION)"
-            sh "make build"
-            sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml"
-            sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
-          }
-        }
-      }
-    }
-    stage("Promote to Environments") {
-      when {
-        branch "master"
-      }
-      steps {
-        container("go") {
-          dir("/home/jenkins/go/src/github.com/vfarcic/prometheus/charts/prometheus") {
-            sh "jx step changelog --version v\$(cat ../../VERSION)"
-
-            // release the helm chart
-            sh "jx step helm release"
-
-            // promote through all "Auto" promotion Environments
-            sh "jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)"
-          }
-        }
-      }
-    }
-  }
-}' | tee Jenkinsfile
-
-TODO: Change the release pipeline
-
-git add .
-
-git commit -m "Added Prometheus chart"
-
-git push --set-upstream origin initial
-
-jx create pullrequest \
-  --title "Initial" \
-  --body "What can I say?" \
-  --batch-mode
-
-jx get activities \
-    --filter prometheus \
-    --watch
-    
-# TODO: Validate PR
-
-# TODO: Validate merge to master
-
-# TODO: Do not promote to staging
+# TODO: Remove PR pipeline
 ```
 
 ## What Now?

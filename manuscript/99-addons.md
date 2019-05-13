@@ -132,7 +132,7 @@ jx create addon prometheus
 # TODO: Explore how to customize it.
 
 PROM_ADDR=$(kubectl -n jx \
-    get ing prometheus-server \
+    get ingress prometheus-server \
     -o jsonpath="{.spec.rules[0].host}")
 
 open "http://$PROM_ADDR"
@@ -142,7 +142,7 @@ open "http://$PROM_ADDR"
 # jx create addon grafana
 
 # GRAF_ADDR=$(kubectl -n jx \
-#     get ing     prometheus-server \
+#     get ingress     prometheus-server \
 #     -o jsonpath="{.spec.rules[0].host}")
 
 # open "http://$GRAF_ADDR"

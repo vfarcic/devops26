@@ -472,7 +472,7 @@ Finally, we did not yet confirm whether the new application is indeed deployed a
 
 ```bash
 ADDR=$(kubectl --namespace jx-staging \
-    get ing jx-go \
+    get ingress jx-go \
     -o jsonpath="{.spec.rules[0].host}")
 
 curl "http://$ADDR"

@@ -14,8 +14,8 @@
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
 - [ ] Switch to serverless Jenkins X in the cluster
-- [ ] 99-3rd-party-apps.md
 - [ ] 99-progressive-delivery.md
+- [ ] 99-3rd-party-apps.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph

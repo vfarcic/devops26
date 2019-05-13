@@ -289,7 +289,7 @@ W> Makefile insists on tabs, so the command that follows uses them instead of sp
 ```bash
 echo 'test:
 	ADDRESS=`kubectl -n jx-staging \\
-	get ing go-demo-6 \\
+	get ingress go-demo-6 \\
 	-o jsonpath="{.spec.rules[0].host}"` \\
 	go test -v
 ' | tee -a Makefile
@@ -367,7 +367,7 @@ At this point, you might wonder how to know which images are available. We'll go
 
 ```bash
 JENKINS_URL=$(kubectl -n jx \
-  get ing jenkins \
+  get ingress jenkins \
   -o jsonpath="{.spec.rules[0].host}")
 
 open "http://$JENKINS_URL/configure"

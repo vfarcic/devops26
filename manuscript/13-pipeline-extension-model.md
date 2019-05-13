@@ -359,14 +359,11 @@ The output is as follows.
 ```yaml
 buildPack: go
 pipelineConfig:
-  agent: {}
   pipelines:
     pullRequest:
       build:
         preSteps:
-        - agent: {}
-          command: make unittest
-          loop: {}
+        - command: make unittest
 ```
 
 We can see that the `buildPack: go` is still there so our pipeline will continue doing whatever is defined in that build pack. Below is the `pipelineConfig` section that, in this context, extends the one defined in build pack. The `agent` is empty (`{}`), so it will continue using the agent defined in the build pack.
@@ -475,15 +472,14 @@ The output is as follows.
 ```yaml
 buildPack: go
 pipelineConfig:
-  agent: {}
   pipelines:
     pullRequest:
       build:
         preSteps:
-        - sh: make unittest
+        - command: make unittest
       promote:
         steps:
-        - sh: ADDRESS=`jx get preview --current 2>&1` make functest
+        - command: ADDRESS=`jx get preview --current 2>&1` make functest
 ```
 
 As you can see, the new step follows the same pattern. It is defined inside the `pullRequest` pipeline as the `promote` lifecycle and inside the `steps` mode. You can easily conclude that `preSteps` are executed before those defined in the same lifecycle of the build pack, and `steps` are running after.
@@ -711,7 +707,6 @@ env:
 - name: DEPLOY_NAMESPACE
   value: cd-staging
 pipelineConfig:
-  agent: {}
   env:
   - name: DEPLOY_NAMESPACE
     value: cd-staging
@@ -719,7 +714,7 @@ pipelineConfig:
     release:
       postBuild:
         steps:
-        - sh: echo "Running integ tests!!!"
+        - command: echo "Running integ tests!!!"
 ```
 
 As you can see, the `pipelines` section was expanded to include our new step following the same pattern as the one we saw when we extended the *go-demo-6* pipeline.
