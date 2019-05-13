@@ -364,7 +364,9 @@ pipelineConfig:
     pullRequest:
       build:
         preSteps:
-        - sh: make unittest
+        - agent: {}
+          command: make unittest
+          loop: {}
 ```
 
 We can see that the `buildPack: go` is still there so our pipeline will continue doing whatever is defined in that build pack. Below is the `pipelineConfig` section that, in this context, extends the one defined in build pack. The `agent` is empty (`{}`), so it will continue using the agent defined in the build pack.

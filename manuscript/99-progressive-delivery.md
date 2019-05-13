@@ -22,6 +22,8 @@
 
 # Progressive Delivery
 
+TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)
+
 Progressive Delivery makes it easier to adopt Continuous Delivery, a term including deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. Progressive Delivery encompasses methodologies such as blue-green and canary deployments, where new versions are deployed to a subset of users and are evaluated in terms of correctness and performance before rolling them to the totality of the users and rolled back if not matching some key metrics.
 
 Blue-green consists of deploying a new version while keeping the old one running, and using load balancers or dns, send all users to one or another. Both old and new versions coexist until the new version is validated in production. If issues are found with the new deployment the load balancer or dns is pointed back to the old version.

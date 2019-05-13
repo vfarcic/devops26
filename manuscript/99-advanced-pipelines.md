@@ -37,47 +37,121 @@ For your convenience, the Gists that will create a new serverless Jenkins X clus
 * Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
+I> The commands that follow will reset your *go-demo-6* `master` with the contents of the `extension-model` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+
+```bash
+cd go-demo-6
+
+git pull
+
+git checkout extension-model
+
+git merge -s ours master --no-edit
+
+git checkout master
+
+git merge extension-model
+
+git push
+
+cd ..
+```
+
 Now we can explore Jenkins X Pipeline Extension Model.
 
 ## Something
 
 ```bash
-open "https://github.com/vfarcic/devops-toolkit"
+cd go-demo-6
 
-# Fork it
+# If not already imported
+jx import --pack go --batch-mode
 
-GH_USER=[...]
+git checkout -b multi-arch
+```
 
-git clone \
-    https://github.com/$GH_USER/devops-toolkit.git
+```yaml
+buildPack: go
+pipelineConfig:
+  agent: {}
+  pipelines:
+    pullRequest:
+      env:
+      - name: NAMESPACE
+        value: cd-$REPO_OWNER-go-demo-6-$BRANCH_NAME
+      build:
+        preSteps:
+        - sh: make unittest
+      promote:
+        steps:
+        - sh: env
+        - sh: kubectl -n $NAMESPACE rollout status deployment preview-preview
+        - sh: ADDRESS=`jx get preview --current 2>&1` make functest
+```
 
-cd devops-toolkit
+```bash
+jx step syntax validate pipeline
 
-jx import --batch-mode
+git add .
 
-jx get activities \
-    --filter devops-toolkit \
-    --watch
+git commit -m "Multi-architecture"
 
-jx get build logs
+git push \
+    --set-upstream origin multi-arch
 
-jx create step \
-    --pipeline release \
-    --lifecycle prebuild \
-    --mode post \
-    --sh 'git submodule init'
+jx create pullrequest \
+  --title "multi-arch" \
+  --body "What I can say?" \
+  --batch-mode
 
-jx create step \
-    --pipeline release \
-    --lifecycle prebuild \
-    --mode post \
-    --sh "git submodule update"
+BRANCH=[...] # e.g., PR-72
 
-jx create step \
-    --pipeline release \
-    --lifecycle build \
-    --mode replace \
-    --sh 'ADDRESS=`jx get preview --current 2>&1` make functest'
+jx get build logs \
+    --filter go-demo-6 \
+    --branch $BRANCH
+```
+
+```yaml
+buildPack: go
+pipelineConfig:
+  agent: {}
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - sh: make unittest
+        - loop:
+            variable: ARCH
+            values:
+            - arch-1
+            - arch-2
+            - arch-3
+            steps:
+            - command: echo
+              args:
+              - this
+              - is
+              - a
+              - loop
+              - with
+              - ${ARCH}
+      promote:
+        steps:
+        - sh: ADDRESS=`jx get preview --current 2>&1` make functest
+```
+
+```bash
+jx step syntax validate pipeline
+
+git add .
+
+git commit -m "Multi-architecture"
+
+git push
+
+jx get build logs \
+    --filter go-demo-6 \
+    --branch $BRANCH
 
 # TODO: Agent
 # TODO: ChatConfig
@@ -845,6 +919,8 @@ TODO: Replace a lifecycle
 TODO: https://jenkins-x.io/architecture/jenkins-x-pipelines/#default-environment-variables
 
 TODO: Create a pipeline from scratch
+
+TODO: https://github.com/jenkins-x/jx/pull/3934
 
 ## What Now?
 
