@@ -22,9 +22,33 @@
 
 # Progressive Delivery
 
-TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)
+The necesity to test new releases before deploying them to production is as old as our industry. Over time, we developed elaborate processes aimed at ensuring that our software is ready for production. We test it locally and deploy it to a testing environment and test some more. When we're comfortable with the quality we'd deploy it to the integration or pre-production environment for the final round of validations. You probably see the pattern. The closer we get to releasing something to production, the more our environments would be similar to production. That was a lenghty process that would last for months, sometimes even years.
+
+Why did we move our releases through different environments (e.g., servers or clusters)? The answer lies in the difficulties in mataining production-like environments. It took a lot of effort to manage environments and the more they looked like production, the more work they required. Later on we adopted configuration management tools like CFEngine, Chef, Pupper, Ansible, and quite a few others. They simplified management of our environments, but we kept the practice of moving our software from one to another as if it is abandoned child moving from one foster family to another. The main reason why configuration management tools did not solve much lies in missunderstood root-cause of the problem. What made management of environments difficult is not that we had many of them, nor that production-like clusters are complicated. Rather, the issue was in mutability. No matter how much effort we put in maintaining the state of our clusters, differences would pile up over time and we could not say that one environment is truly the same as the other. Without that guarantee, we could not claim that what was tested in one environment would work in another. The risk of experiencing failure after deploying to production was still too high.
+
+Over time, we adopted immutability. We learned that things shouldn't be modified at runtime, but rather created anew whenever we need to update something. We started creating VM images that contained new releases and applying rolling updates that would gradially replace the old. But that was slow. It takes time to create a new VM image, and it takes time to instantiate them. There were many other problems with them, but this is neither time nor place to explore them both. Still, immutability applied to the VM level brought quite a few improvements. Our environments became stable and it was easy to have as many production-like environments as we need.
+
+Then came containers that took immutability to the next level. They allowed us the ability to say that something running in my laptop is the same as something running in a test environment that happens to behave in the same way as in production. Simply put, creating a container based on an image produces the same result no matter where it runs. to be honest, that's not 100% true, but when compared to what we had in the past, containers bring us as close to repetability as we can get today.
+
+So, if containers provide a reasonable guarantee that a release will behave the same no matter the environment it runs in, we can safely say that if it works in staging, it should work in production. That is especially true if both environments are in the same cluster. In such a case, hardware, networking, storage, and other infrastructure components are the same and the only difference is the Namespace something runs in. That should provide a reasonable guarantee that a release tested in staging should work correctly when promoted to production. Don't you agree?
+
+Actually, even if environments are just different Namespaces in the same cluster and our releases are immutable container images, there is still a reasonable chance that we will detect issues only after we promote releases to production. No matter how well our performance tests are, production load cannot be reliably replicated. No matter how good we became writing functional tests, real users are unpredictable and that cannot be reflected in test automation. I can go on and on about the differences between production and non-production environments, but it all boils down to one having real users, and the other running simulations of what we think "real" people would do.
+
+Considering that production with real users and non-production with I-hope-this-is-what-real-people-do type of simulations are not the same, we can only conclude that the only final and definitive confirmation that a release is successful can come from observing how well received it is by "real" users while running in production. That leads us to the fact that we need to monitor our production systems and observe user behaviors, error rates, response times, and a lot of other metrics. Based on that data we can conclude whether a new release is turly successful or not. We keep it if it is. If it isn't, we might need to roll back or, even better, roll forward with improvements and bug fixes. That's where progressive delivery kicks in.
+
+## Progressive Delivery Explained
+
+TODO: Continue text
+
+TODO: Is it progressive delivery or progressive deployment, or both?
+
+TODO: What is progressive delivery? The text below does not really explain the general idea without going into specific of a flavor (e.g. canary)?
+
+TODO: There is no explaination why *Progressive Delivery makes it easier to adopt Continuous Delivery*, only a statement that need to be taken at face-value.
 
 Progressive Delivery makes it easier to adopt Continuous Delivery, a term including deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. Progressive Delivery encompasses methodologies such as blue-green and canary deployments, where new versions are deployed to a subset of users and are evaluated in terms of correctness and performance before rolling them to the totality of the users and rolled back if not matching some key metrics.
+
+TODO: List some of the common progressive delivery types (e.g., rolling updates, blue-green, canary, etc.), and provide a short explanation of each.
 
 Blue-green consists of deploying a new version while keeping the old one running, and using load balancers or dns, send all users to one or another. Both old and new versions coexist until the new version is validated in production. If issues are found with the new deployment the load balancer or dns is pointed back to the old version.
 Canary deployments deliver a new version to a subset of users, which is randomly chosen or based on some demographics like location. If no issues are found in production for this subset of users the deployment of the new version is dialed up gradually until reaching all the users. In other case it is just a matter of sending the users in the new version back to the old version.
@@ -116,6 +140,8 @@ Please wait until the activity of the application shows that all the steps were 
 Now we can promote our last release to production.
 
 ## Requirement Installation
+
+TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)ss
 
 We can easily install Istio, Prometheus and Flagger with `jx`
 
