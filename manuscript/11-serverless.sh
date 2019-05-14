@@ -6,8 +6,8 @@
 
 # External IP
 LB_IP=$(kubectl -n kube-system \
-  get svc jxing-nginx-ingress-controller \
-  -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+  get service jxing-nginx-ingress-controller \
+  --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
 # The domain through which 
 # we can access the applications

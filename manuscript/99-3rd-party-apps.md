@@ -300,7 +300,7 @@ open "http://prometheus.$LB_IP.nip.io"
 
 LB_IP=$(kubectl \
   --namespace kube-system \
-  get svc jxing-nginx-ingress-controller \
+  get service jxing-nginx-ingress-controller \
   --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
 echo $LB_IP

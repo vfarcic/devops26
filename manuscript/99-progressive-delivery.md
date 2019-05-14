@@ -38,7 +38,7 @@ Considering that production with real users and non-production with I-hope-this-
 
 ## Progressive Delivery Explained
 
-TODO: Continue text
+TODO: Continue with text
 
 TODO: Is it progressive delivery or progressive deployment, or both?
 
@@ -158,7 +158,7 @@ Note the ip from the output of `jx create addon istio` or find it with this comm
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
     get service istio-ingressgateway \
-    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
 echo $ISTIO_IP
 ```
@@ -168,7 +168,6 @@ Let's continue with the other addons
 ```bash
 jx create addon prometheus
 
-# TODO we need flagger 0.13.2 if using no-tiller https://github.com/jenkins-x/jenkins-x-versions/pull/259
 jx create addon flagger
 ```
 

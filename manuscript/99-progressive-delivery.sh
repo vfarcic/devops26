@@ -123,7 +123,7 @@ spec:
 
 git add charts/go-demo-6/templates/canary.yaml
 
-ISTIO_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+ISTIO_IP=$(kubectl -n istio-system get service istio-ingressgateway --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
 sed "s/go-demo-6.istio.example.com/go-demo-6.${ISTIO_IP}.nip.io/" charts/go-demo-6/values.yaml > charts/go-demo-6/values.yaml.bak
 mv charts/go-demo-6/values.yaml.bak charts/go-demo-6/values.yaml
