@@ -24,17 +24,20 @@ docker-registry:
 # If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
 # Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
-jx create cluster gke \
+jx create terraform \
+    --cloud-provider gke \
     --cluster-name jx-rocks \
-    --project-id $PROJECT \
-    --region us-east1 \
-    --machine-type n1-standard-2 \
-    --min-num-nodes 1 \
-    --max-num-nodes 2 \
+    --gke-project-id $PROJECT \
+    --gke-zone us-east1-b \
+    --gke-machine-type n1-standard-2 \
+    --gke-min-num-nodes 3 \
+    --gke-max-num-nodes 6 \
     --default-admin-password=admin \
-    --default-environment-prefix jx-rocks \
+    --default-environment-prefix tekton \
     --git-provider-kind github \
-    --gitops \
+    --namespace cd \
+    --prow \
+    --tekton \
     --batch-mode
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.

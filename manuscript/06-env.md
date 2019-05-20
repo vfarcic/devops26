@@ -288,7 +288,8 @@ W> Makefile insists on tabs, so the command that follows uses them instead of sp
 
 ```bash
 echo 'test:
-	ADDRESS=`kubectl -n jx-staging \\
+	ADDRESS=`kubectl \
+	--namespace jx-staging \\
 	get ingress go-demo-6 \\
 	-o jsonpath="{.spec.rules[0].host}"` \\
 	go test -v
@@ -468,7 +469,7 @@ If you retrieved the activities or you output the logs of the build, you should 
 I already mentioned that Helm (just as Kubernetes) is idempotent. Since we did not deploy a new release of any of the applications in the staging environment, all the Pods should be intact. After all, the only new thing is the addition of the step that runs the tests. We can confirm that by listing all the Pods in the `jx-staging` Namespace.
 
 ```bash
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 ```
 
 If you observe the age of the Pods, you'll notice that they are all older than the execution of the build, meaning that none of them changed as the result of the last execution of the staging pipeline. That's the expected result of idempotency.

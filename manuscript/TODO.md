@@ -13,9 +13,12 @@
 - [X] 11-serverless.md
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
-- [ ] 99-progressive-delivery.md
-- [ ] Switch to serverless Jenkins X in the cluster
+- [ ] 99-gitops.md
 - [ ] 99-3rd-party-apps.md
+- [ ] 99-advanced-pipelines.md
+- [ ] 99-progressive-delivery.md
+- [ ] 99-pipeline-from-scratch.md
+- [ ] Switch to serverless Jenkins X in the cluster
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -46,8 +49,6 @@
 - [ ] 99-domains.md
 - [ ] 99-git-server.md
 - [ ] 99-alibaba.md
-- [ ] 99-gitops.md
-- [ ] 99-advanced-pipelines.md
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-knative.md
 - [ ] 99-integration-with-uptimerobot.md

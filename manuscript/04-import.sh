@@ -25,7 +25,7 @@ rm -rf charts
 
 git push
 
-jx repo -b
+jx repo --batch-mode
 
 ls -1
 

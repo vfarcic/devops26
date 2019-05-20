@@ -366,7 +366,7 @@ vfarcic/go-demo-6/master #1        5m57s    5m47s Succeeded Version: 0.0.124
 Let's take a look at the Pods that were created for us.
 
 ```bash
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 ```
 
 The output is as follows.
@@ -382,7 +382,7 @@ jx-staging-go-demo-6-db-secondary-0 1/1   Running 0        2m
 The database Pods seem to be running correctly, so the new pack was indeed applied. However, the application Pod is restarting. From the past experience, you probably already know what the issue is. If you forgot, please execute the command that follows.
 
 ```bash
-kubectl -n jx-staging \
+kubectl --namespace jx-staging \
     describe pod \
     -l app=jx-staging-go-demo-6
 ```
@@ -442,7 +442,7 @@ All that's left is to check whether the application is now running correctly.
 Make sure to replace `[...]` with the address from the `Promoted` step before executing the commands that follow.
 
 ```bash
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 
 STAGING_ADDR=[...]
 

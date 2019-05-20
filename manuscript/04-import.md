@@ -73,7 +73,7 @@ git push
 Now you should have the intended code in the master branch of the repository you forked. Feel free to take a look at what we have by opening the repository in a browser. Fortunately, there is a `jx` command that does just that.
 
 ```
-jx repo -b
+jx repo --batch-mode
 ```
 
 ![Figure 4-1: Application repository with only the code](images/ch04/github-go-demo-6.png)

@@ -2,7 +2,7 @@
 
 - [ ] Code
 - [ ] Write
-- [ ] Code review static GKE
+- [X] Code review static GKE
 - [ ] Code review serverless GKE
 - [ ] Code review static EKS
 - [ ] Code review serverless EKS
@@ -21,6 +21,8 @@
 - [ ] Publish on LeanPub.com
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
+
+## Creating A Kubernetes Cluster With Jenkins X
 
 TODO: Viktor: This text is from some other change. Rewrite it.
 
@@ -50,7 +52,9 @@ ENVIRONMENT=tekton
 # If static
 ENVIRONMENT=jx-rocks
 
-rm -rf environment-$ENVIRONMENT-staging
+rm -rf environment-$ENVIRONMENT-*
+
+# Ignore the `no matches found` error
 
 GH_USER=[...]
 
@@ -93,10 +97,14 @@ git clone \
 
 cd environment-$ENVIRONMENT-production
 
+helm inspect chart stable/postgresql
+
 echo "- name: postgresql
   version: 4.0.2
   repository: https://kubernetes-charts.storage.googleapis.com" \
     | tee -a env/requirements.yaml
+
+helm inspect values stable/postgresql
 
 echo "postgresql:
   replication:
@@ -119,6 +127,10 @@ kubectl \
     --namespace $NAMESPACE-production \
     get pods
 
+# TODO: There is no promotion mechanism.
+# TODO: Comment on the option of running only in production.
+# TODO: Does not work well with app-specific testss
+
 cd ..
 
 jx create quickstart \
@@ -138,10 +150,13 @@ kubectl \
 
 cd prometheus
 
+helm inspect chart stable/prometheus
+
+helm inspect values stable/prometheus
+
 echo "dependencies:
 - name: prometheus
-  alias: prom
-  version: 8.11.0
+  version: 8.11.2
   repository: https://kubernetes-charts.storage.googleapis.com" \
     | tee charts/prometheus/requirements.yaml
 
@@ -170,7 +185,14 @@ rm -f \
     watch.sh \
     charts/prometheus/templates/*.yaml
 
+rm -rf charts/preview
+
+# TODO: PRs would be difficult because helm does not (yet) support nested dependencies
+
 # If serverless
+# TODO: https://github.com/jenkins-x/jx/issues/3961
+# TODO: Remove the whole `pullRequest` pipeline
+# TODO: Remove the whole `build` lifecycle from the `release` pipeline
 # TODO: Modify jenkins-x.yml
 
 # If static
@@ -184,6 +206,7 @@ echo 'pipeline {
     CHARTMUSEUM_CREDS = credentials("jenkins-x-chartmuseum")
   }
   stages {
+    /* TODO: Removed
     stage("CI Build and push snapshot") {
       when {
         branch "PR-*"
@@ -208,6 +231,7 @@ echo 'pipeline {
         }
       }
     }
+    */
     stage("Build Release") {
       when {
         branch "master"
@@ -227,7 +251,7 @@ echo 'pipeline {
             // sh "make build" // TODO: Remove
             // sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml" // TODO: Remove
             // sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)" // TODO: Remove
-          }
+          } 
         }
       }
     }
@@ -268,19 +292,17 @@ kubectl \
     --namespace $NAMESPACE-staging \
     get pods
 
-jx delete application \
-    $GH_USER/prometheus \
-    --batch-mode
-
 kubectl \
     --namespace $NAMESPACE-staging \
-    get pods
-
-kubectl \
-    --namespace $NAMESPACE-production \
     get ingress
 
-# TODO: Add labels to auto-generate Ingress
+echo 'prom:
+  server:
+    service:
+      annotations:
+        fabric8.io/expose: "true"
+        fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"' \
+    | tee -a charts/prometheus/values.yaml
 
 git add .
 
@@ -293,10 +315,34 @@ jx get activities \
     --watch
 
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get ingress
 
-open "http://prometheus.$LB_IP.nip.io"
+PROM_STAGING_ADDR=$(kubectl \
+    --namespace $NAMESPACE-staging \
+    get ingress prom-server \
+    --output jsonpath="{.spec.rules[0].host}")
+
+echo $PROM_STAGING_ADDR
+
+open "http://$PROM_STAGING_ADDR"
+
+jx get applications
+
+# NOTE: Incorrrect. Check the version from GitHub
+
+VERSION=[...]
+
+jx promote prometheus \
+    --version $VERSION \
+    --env production \
+    --batch-mode
+
+kubectl \
+    --namespace jx-production \
+    get ingress
+
+cd ../environment-$ENVIRONMENT-production
 
 LB_IP=$(kubectl \
   --namespace kube-system \
@@ -305,20 +351,33 @@ LB_IP=$(kubectl \
 
 echo $LB_IP
 
-# TODO: Add fixed Ingress only to production
+PROM_ADDR=prometheus.$LB_IP.nip.io
 
-echo "prom:
+echo "prometheus:
   server:
+    service:
+      annotations: {}
     ingress:
       enabled: true
       hosts:
-      - prometheus.$LB_IP.nip.io" \
-    | tee -a charts/prometheus/values.yaml
+      - $PROM_ADDR" \
+    | tee -a env/values.yaml
 
+git add .
 
-# TODO: PRs would be difficult because helm does not (yet) support nested dependencies
+git commit -m "Added prod domain"
 
-# TODO: Remove PR pipeline
+git push
+
+jx get activities \
+    --filter environment-$ENVIRONMENT-production \
+    --watch
+
+kubectl \
+    --namespace jx-production \
+    get ingress
+
+open "http://$PROM_ADDR"
 ```
 
 ## What Now?
@@ -345,6 +404,8 @@ hub delete -y \
 hub delete -y $GH_USER/prometheus
 
 rm -rf ~/.jx/environments/$GH_USER/environment-$ENVIRONMENT-*
+
+rm -rf environment-$ENVIRONMENT-*
 
 rm -rf prometheus
 ```

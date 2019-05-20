@@ -100,9 +100,9 @@ ls -1 ~/.jx/draft/packs/github.com/$GH_USER/jenkins-x-kubernetes/packs
 
 jx get activity -f go-demo-6 -w
 
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 
-kubectl -n jx-staging \
+kubectl --namespace jx-staging \
     describe pod \
     -l app=jx-staging-go-demo-6
 
@@ -126,7 +126,7 @@ git push
 
 jx get activity -f go-demo-6 -w
 
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 
 STAGING_ADDR=[...]
 

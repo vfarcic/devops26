@@ -36,7 +36,8 @@ ls -1
 cat Makefile
 
 echo 'test:
-	ADDRESS=`kubectl -n jx-staging \\
+	ADDRESS=`kubectl \
+	--namespace jx-staging \\
 	get ingress go-demo-6 \\
 	-o jsonpath="{.spec.rules[0].host}"` \\
 	go test -v' \
@@ -71,7 +72,7 @@ jx get build logs \
 
 jx console
 
-kubectl -n jx-staging get pods
+kubectl --namespace jx-staging get pods
 
 cat env/requirements.yaml
 

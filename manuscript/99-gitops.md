@@ -28,6 +28,8 @@ TODO
 
 ### New GKE
 
+TODO: Make GKE cluster zonal instead of regional
+
 * Create new static **GKE** cluster: [gke-jx-gitops.sh](TODO:)
 * Create new serverless **GKE** cluster: [gke-jx-serverless-gitops.sh](TODO:)
 * Create new static **EKS** cluster: [eks-jx-gitops.sh](TODO:)
