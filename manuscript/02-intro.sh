@@ -50,8 +50,8 @@ export AWS_DEFAULT_REGION=us-west-2
 
 # If EKS
 jx create cluster eks \
-    -n jx-rocks \
-    -r $AWS_DEFAULT_REGION \
+    --cluster-name jx-rocks \
+    --region $AWS_DEFAULT_REGION \
     --node-type t2.medium \
     --nodes 3 \
     --nodes-min 3 \

@@ -183,23 +183,21 @@ apiVersion: skaffold/v1beta2
 kind: Config
 build:
   artifacts:
-  - image: changeme
+  - image: vfarcic/go-demo-6
     context: .
     docker: {}
   tagPolicy:
     envTemplate:
-      template: '{{.DOCKER_REGISTRY}}/vfarcic/go-demo-6:{{.VERSION}}'
+      template: '{{.DOCKER_REGISTRY}}/{{.IMAGE_NAME}}:{{.VERSION}}'
   local: {}
 deploy:
   kubectl: {}
 profiles:
 - name: dev
   build:
-    artifacts:
-    - docker: {}
     tagPolicy:
       envTemplate:
-        template: '{{.DOCKER_REGISTRY}}/vfarcic/go-demo-6:{{.DIGEST_HEX}}'
+        template: '{{.DOCKER_REGISTRY}}/{{.IMAGE_NAME}}:{{.DIGEST_HEX}}'
     local: {}
   deploy:
     helm:
@@ -207,7 +205,7 @@ profiles:
       - name: go-demo-6
         chartPath: charts/go-demo-6
         setValueTemplates:
-          image.repository: '{{.DOCKER_REGISTRY}}/vfarcic/go-demo-6'
+          image.repository: '{{.DOCKER_REGISTRY}}/{{.IMAGE_NAME}}'
           image.tag: '{{.DIGEST_HEX}}'
 ```
 

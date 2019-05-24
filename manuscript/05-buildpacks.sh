@@ -28,13 +28,13 @@ cat packs/go-mongo/charts/templates/deployment.yaml \
 
 echo "dependencies:
 - name: mongodb
-  alias: REPLACE_ME_APP_NAME-db
+  alias: code-db
   version: 5.3.0
   repository:  https://kubernetes-charts.storage.googleapis.com
   condition: db.enabled
 " | tee packs/go-mongo/charts/requirements.yaml
 
-echo "REPLACE_ME_APP_NAME-db:
+echo "code-db:
   replicaSet:
     enabled: true
 " | tee -a packs/go-mongo/charts/values.yaml

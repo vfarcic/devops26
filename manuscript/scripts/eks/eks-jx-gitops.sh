@@ -26,8 +26,9 @@ echo "nexus:
 # If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
 # Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
-jx create cluster eks -n jx-rocks \
-    -r $AWS_DEFAULT_REGION \
+jx create cluster eks \
+    --cluster-name jx-rocks \
+    --region $AWS_DEFAULT_REGION \
     --node-type t2.medium \
     --nodes 3 \
     --nodes-min 3 \

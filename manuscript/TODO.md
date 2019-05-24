@@ -13,12 +13,11 @@
 - [X] 11-serverless.md
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
+- [ ] 14-upgrade.md
+- [ ] 99-advanced-pipelines.md
 - [ ] 99-gitops.md
 - [ ] 99-3rd-party-apps.md
-- [ ] 99-advanced-pipelines.md
 - [ ] 99-progressive-delivery.md
-- [ ] 99-pipeline-from-scratch.md
-- [ ] Switch to serverless Jenkins X in the cluster
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -27,6 +26,7 @@
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
+- [ ] 99-pipeline-from-scratch.md
 - [ ] 99-teams-and-multi-cluster.md
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
@@ -46,7 +46,6 @@
 - [ ] 99-custom-builders-and-pod-templates.md
 - [ ] 99-logging.md
 - [ ] 99-cloudbees.md
-- [ ] 99-domains.md
 - [ ] 99-git-server.md
 - [ ] 99-alibaba.md
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
@@ -82,7 +81,7 @@
 - [ ] Add to slides
 - [ ] Publish on TechnologyConversations.com
 - [ ] Add to Book.txt
-- [ ] Publish on LeanPub.com
+- [ ] Publish on LeanPub.com 
 
 ## The DevOps 2.X Toolkit
 

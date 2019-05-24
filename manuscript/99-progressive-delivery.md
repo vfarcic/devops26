@@ -166,7 +166,14 @@ echo $ISTIO_IP
 Let's continue with the other addons
 
 ```bash
-jx create addon prometheus
+# Only if serverless
+NAMESPACE=cd
+
+# Only if static
+NAMESPACE=jx
+
+jx create addon prometheus \
+    --namespace $NAMESPACE
 
 jx create addon flagger
 ```
@@ -368,13 +375,14 @@ jx get activities \
     --filter go-demo-6 \
     --watch
 
-# Only if not reusing the cluster from the previous chapter
 # Press *ctrl+c* when the activity is finished
 
 # Only if serverless and the application was not already promoted to production
 jx get activities \
     --filter environment-tekton-staging \
     --watch
+
+# Press *ctrl+c* when the activity is finisheds
 
 jx get applications -e staging
 
@@ -388,10 +396,9 @@ jx promote go-demo-6 \
 # NOTE: leave this running while you continue reading
 for i in {1..1000}
 do
-    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    curl "go-demo-6.cd-production.$ISTIO_IP.nip.io/demo/hello"
     sleep 0.5
 done
-
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
@@ -400,7 +407,8 @@ Flagger will detect this deployment change update the Istio `VirtualService` to 
 
 ```bash
 kubectl --namespace jx-production \
-    get virtualservice/jx-go-demo-6 -o yaml
+    get virtualservice/jx-go-demo-6 \
+    --output yaml
 ```
 
 ```yaml

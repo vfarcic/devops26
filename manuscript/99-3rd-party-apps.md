@@ -4,7 +4,7 @@
 - [ ] Write
 - [X] Code review static GKE
 - [ ] Code review serverless GKE
-- [ ] Code review static EKS
+- [X] Code review static EKS
 - [ ] Code review serverless EKS
 - [ ] Code review static AKS
 - [ ] Code review serverless AKS
@@ -20,15 +20,15 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
+# Managing Third-Party Applications
 
 ## Creating A Kubernetes Cluster With Jenkins X
 
-TODO: Viktor: This text is from some other change. Rewrite it.
+TODO: Rewrite
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [TODO: Viktor](TODO: Viktor) Gist.
+I> All the commands from this chapter are available in the [TODO:](TODO:) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -46,6 +46,8 @@ TODO: Intro to the next section
 ## Something
 
 ```bash
+# NOTE: Output are from serverless Jenkins X
+
 # If serverless
 ENVIRONMENT=tekton
 
@@ -63,8 +65,54 @@ git clone \
 
 cd environment-$ENVIRONMENT-staging
 
+cat env/requirements.yaml
+```
+
+```yaml
+dependencies:
+- name: exposecontroller
+  version: 2.3.89
+  repository: http://chartmuseum.jenkins-x.io
+  alias: expose
+- name: exposecontroller
+  version: 2.3.89
+  repository: http://chartmuseum.jenkins-x.io
+  alias: cleanup
+```
+
+```bash
+helm inspect chart stable/postgresql
+```
+
+```yaml
+apiVersion: v1
+appVersion: 11.3.0
+description: Chart for PostgreSQL, an object-relational database management system
+  (ORDBMS) with an emphasis on extensibility and on standards-compliance.
+engine: gotpl
+home: https://www.postgresql.org/
+icon: https://bitnami.com/assets/stacks/postgresql/img/postgresql-stack-110x117.png
+keywords:
+- postgresql
+- postgres
+- database
+- sql
+- replication
+- cluster
+maintainers:
+- email: containers@bitnami.com
+  name: Bitnami
+- email: cedric@desaintmartin.fr
+  name: desaintmartin
+name: postgresql
+sources:
+- https://github.com/bitnami/bitnami-docker-postgresql
+version: 5.0.0
+```
+
+```bash
 echo "- name: postgresql
-  version: 4.0.2
+  version: 5.0.0
   repository: https://kubernetes-charts.storage.googleapis.com" \
     | tee -a env/requirements.yaml
 
@@ -77,7 +125,20 @@ git push
 jx get activities \
     --filter environment-$ENVIRONMENT-staging \
     --watch
+```
 
+```
+STEP                                                 STARTED AGO DURATION STATUS
+vfarcic/environment-tekton-staging/master #1                 55s      31s Succeeded
+  from build pack                                            55s      31s Succeeded
+    Build Helm Apply                                         55s      31s Succeeded
+    Git Merge                                                55s       0s Succeeded
+    Git Source Vfarcic Environment Tekton Stag D2t2r        2m6s       1s Succeeded https://github.com/vfarcic/environment-tekton-staging
+    Setup Jx Git Credentials                                 55s       1s Succeeded
+    Nop                                                      54s      30s Succeeded
+```
+
+```bash
 # Stop with *ctrl+c*
 
 # If serverless
@@ -89,7 +150,14 @@ NAMESPACE=jx
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
 
+```
+NAME              READY   STATUS    RESTARTS   AGE
+jx-postgresql-0   1/1     Running   0          2m11s
+```
+
+```bash
 cd ..
 
 git clone \
@@ -97,15 +165,22 @@ git clone \
 
 cd environment-$ENVIRONMENT-production
 
-helm inspect chart stable/postgresql
-
 echo "- name: postgresql
-  version: 4.0.2
+  version: 5.0.0
   repository: https://kubernetes-charts.storage.googleapis.com" \
     | tee -a env/requirements.yaml
 
 helm inspect values stable/postgresql
+```
 
+```yaml
+...
+replication:
+  enabled: false
+  ...
+```
+
+```bash
 echo "postgresql:
   replication:
     enabled: true" \
@@ -120,16 +195,37 @@ git push
 jx get activities \
     --filter environment-$ENVIRONMENT-production \
     --watch
+```
 
+```
+STEP                                                 STARTED AGO DURATION STATUS
+vfarcic/environment-tekton-production/master #1              46s      25s Succeeded
+  from build pack                                            46s      25s Succeeded
+    Build Helm Apply                                         46s      25s Succeeded
+    Git Merge                                                46s       1s Succeeded
+    Git Source Vfarcic Environment Tekton Prod Hkfbh         46s       1s Succeeded https://github.com/vfarcic/environment-tekton-production
+    Setup Jx Git Credentials                                 46s       1s Succeeded
+    Nop                                                      46s      25s Succeeded
+```
+
+```bash
 # Stop with *ctrl+c*
 
 kubectl \
     --namespace $NAMESPACE-production \
     get pods
+```
 
-# TODO: There is no promotion mechanism.
-# TODO: Comment on the option of running only in production.
-# TODO: Does not work well with app-specific testss
+```
+NAME                     READY   STATUS    RESTARTS   AGE
+jx-postgresql-master-0   1/1     Running   0          46s
+jx-postgresql-slave-0    1/1     Running   0          46s
+```
+
+```bash
+# NOTE: There is no promotion mechanism.
+# NOTE: Comment on the option of running only in production.
+# NOTE: Does not work well with app-specific tests
 
 cd ..
 
@@ -141,22 +237,85 @@ jx create quickstart \
 jx get activities \
     --filter prometheus \
     --watch
+```
 
+```
+STEP                                           STARTED AGO DURATION STATUS
+vfarcic/prometheus/master #1                         2m23s    2m12s Succeeded Version: 0.0.1
+  from build pack                                    2m23s    2m12s Succeeded
+    Build Container Build                            2m23s      34s Succeeded
+    Build Make Build                                 2m25s      33s Succeeded
+    Build Post Build                                 2m23s      35s Succeeded
+    Git Merge                                        2m25s       1s Succeeded
+    Git Source Vfarcic Prometheus Master 72pr6       2m26s       1s Succeeded https://github.com/vfarcic/prometheus
+    Promote Changelog                                2m22s      38s Succeeded
+    Promote Helm Release                             2m22s      41s Succeeded
+    Promote Jx Promote                               2m22s    2m11s Succeeded
+    Setup Jx Git Credentials                         2m25s       2s Succeeded
+    Nop                                              2m22s    2m11s Succeeded
+  Promote: staging                                   1m37s    1m26s Succeeded
+    PullRequest                                      1m37s    1m26s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/1 Merge SHA: 4876a5ee18f59e881590fd3073ea9c6a64db99ad
+    Update                                             11s       0s Succeeded
+```
+
+```bash
 # Stop with *ctrl+c*
+
+# NOTE: Pushing image to EKS/ECR might fail the first time. If that happens, please go to ECR and manually create the repository *[USER]/prometheus*. 
 
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
 
+```
+NAME                             READY   STATUS    RESTARTS   AGE
+jx-postgresql-0                  1/1     Running   0          11m
+jx-prometheus-54fb5668b8-79x8g   1/1     Running   0          18s
+```
+
+```bash
 cd prometheus
 
 helm inspect chart stable/prometheus
+```
 
-helm inspect values stable/prometheus
+```yaml
+apiVersion: v1
+appVersion: 2.9.2
+description: Prometheus is a monitoring system and time series database.
+engine: gotpl
+home: https://prometheus.io/
+icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
+maintainers:
+- email: mgoodness@gmail.com
+  name: mgoodness
+- email: gianrubio@gmail.com
+  name: gianrubio
+name: prometheus
+sources:
+- https://github.com/prometheus/alertmanager
+- https://github.com/prometheus/prometheus
+- https://github.com/prometheus/pushgateway
+- https://github.com/prometheus/node_exporter
+- https://github.com/kubernetes/kube-state-metrics
+tillerVersion: '>=2.8.0'
+version: 8.11.3
+```
 
+```bash
+cat charts/prometheus/requirements.yaml
+```
+
+```
+cat: charts/prometheus/requirements.yaml: No such file or directory
+```
+
+```bash
 echo "dependencies:
 - name: prometheus
-  version: 8.11.2
+  alias: prometheus
+  version: 8.11.3
   repository: https://kubernetes-charts.storage.googleapis.com" \
     | tee charts/prometheus/requirements.yaml
 
@@ -169,12 +328,54 @@ git push
 jx get activities \
     --filter prometheus \
     --watch
+```
 
+```
+STEP                                           STARTED AGO DURATION STATUS
+...
+vfarcic/prometheus/master #2                               1m46s    1m36s Succeeded Version: 0.0.2
+  from build pack                                          1m46s    1m36s Succeeded
+    Build Container Build                                  1m46s      12s Succeeded
+    Build Make Build                                       1m47s       9s Succeeded
+    Build Post Build                                       1m46s      12s Succeeded
+    Git Merge                                              1m47s       2s Succeeded
+    Git Source Vfarcic Prometheus Master Relea 58879       1m47s       1s Succeeded https://github.com/vfarcic/prometheus
+    Promote Changelog                                      1m46s      16s Succeeded
+    Promote Helm Release                                   1m46s      25s Succeeded
+    Promote Jx Promote                                     1m46s    1m35s Succeeded
+    Setup Jx Git Credentials                               1m47s       2s Succeeded
+    Nop                                                    1m45s    1m35s Succeeded
+  Promote: staging                                         1m17s     1m6s Succeeded
+    PullRequest                                            1m17s     1m6s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/2 Merge SHA: 10c42ecfb2b833fb9f74a3b2a6e0dd1dc4122891
+    Update                                                   11s       0s Succeeded
+    Promoted                                                 11s       0s Succeeded  Application is at: http://prometheus.cd-staging.34.73.104.192.nip.io
+```
+
+```bash
 # Stop with *ctrl+c*
 
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
+
+```
+NAME                                                READY   STATUS    RESTARTS   AGE
+jx-postgresql-0                                     1/1     Running   0          20m
+jx-prometheus-58688db9b9-grv5f                      1/1     Running   0          41s
+jx-prometheus-alertmanager-67976b65dd-rxl7m         1/2     Running   0          40s
+jx-prometheus-kube-state-metrics-68fb7ddcbf-j98c9   1/1     Running   0          40s
+jx-prometheus-node-exporter-hh49d                   1/1     Running   0          40s
+jx-prometheus-node-exporter-jwm26                   1/1     Running   0          40s
+jx-prometheus-node-exporter-s7lvh                   1/1     Running   0          40s
+jx-prometheus-pushgateway-dc6cb8787-db876           1/1     Running   0          40s
+jx-prometheus-server-7797d7b59d-9frb5               1/2     Running   0          40s
+```
+
+```bash
+# NOTE: PRs would be difficult because helm does not (yet) support nested dependencies
+
+git checkout -b remove-pr
 
 rm -f \
     Dockerfile \
@@ -186,16 +387,125 @@ rm -f \
     charts/prometheus/templates/*.yaml
 
 rm -rf charts/preview
+```
+### Serverless
 
-# TODO: PRs would be difficult because helm does not (yet) support nested dependencies
+```bash
+curl https://raw.githubusercontent.com/jenkins-x-buildpacks/jenkins-x-kubernetes/master/packs/go/pipeline.yaml
+```
 
-# If serverless
-# TODO: https://github.com/jenkins-x/jx/issues/3961
-# TODO: Remove the whole `pullRequest` pipeline
-# TODO: Remove the whole `build` lifecycle from the `release` pipeline
-# TODO: Modify jenkins-x.yml
+```yaml
+extends:
+  import: classic
+  file: go/pipeline.yaml
+pipelines:
+  pullRequest:
+    build:
+      steps:
+      - sh: export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml
+        name: container-build
+    postBuild:
+      steps:
+      - sh: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION
+        name: post-build
+    promote:
+      steps:
+      - dir: /home/jenkins/go/src/github.com/vfarcic/code/charts/preview
+        steps:
+        - sh: make preview
+          name: make-preview
+        - sh: jx preview --app $APP_NAME --dir ../..
+          name: jx-preview
 
-# If static
+  release:
+    build:
+      steps:
+      - sh: export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml
+        name: container-build
+      - sh: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)
+        name: post-build
+    promote:
+      steps:
+      - dir: /home/jenkins/go/src/github.com/vfarcic/code/charts/code
+        steps:
+        - sh: jx step changelog --version v\$(cat ../../VERSION)
+          name: changelog
+        - comment: release the helm chart
+          name: helm-release
+          sh: jx step helm release
+        - comment: promote through all 'Auto' promotion Environments
+          sh: jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)
+          name: jx-promote
+```
+
+```bash
+curl https://raw.githubusercontent.com/jenkins-x-buildpacks/jenkins-x-classic/master/packs/go/pipeline.yaml
+```
+
+```yaml
+agent:
+  label: jenkins-go
+  container: go
+  dir: /home/jenkins/go/src/github.com/vfarcic/code
+pipelines:
+  pullRequest:
+    setup:
+      steps:
+      - groovy: checkout scm
+    build:
+      steps:
+      - sh: make linux
+        name: make-linux
+  release:
+    setup:
+      steps:
+      - groovy: git 'https://github.com/vfarcic/code.git'
+        when: "prow"
+      - groovy: checkout scm
+        when: "!prow"
+      - sh: git checkout master
+        name: git-checkout-master
+        comment: ensure we're not on a detached head
+        when: "!prow"
+      - sh: git config --global credential.helper store
+        when: "!prow"
+        name: git-config
+      - sh: jx step git credentials
+        when: "!prow"
+        name: git-credentials
+    setVersion:
+      steps:
+      - sh: echo \$(jx-release-version) > VERSION
+        name: next-version
+        comment: so we can retrieve the version in later steps
+      - sh: jx step tag --version \$(cat VERSION)
+        name: tag-version
+    build:
+      steps:
+      - sh: make build
+        name: make-build
+```
+
+```bash
+# TODO: https://github.com/jenkins-x/jx/pull/3934
+
+echo "buildPack: go
+pipelineConfig:
+  pipelines:
+    overrides:
+      - pipeline: pullRequest
+        type: replace
+      - pipeline: release
+        stage: build
+        type: replace
+" | tee jenkins-x.yml
+
+jx step syntax validate pipeline
+```
+
+### Static
+
+```bash
 echo 'pipeline {
   agent {
     label "jenkins-go"
@@ -275,12 +585,21 @@ echo 'pipeline {
     }
   }
 }' | tee Jenkinsfile
+```
 
+### All
+
+```bash
 git add .
 
 git commit -m "Improved Jenkinsfile"
 
-git push
+git push --set-upstream origin remove-pr
+
+jx create pullrequest \
+  --title "Remove PR" \
+  --body "What I can say?" \
+  --batch-mode
 
 jx get activities \
     --filter prometheus \
@@ -296,7 +615,23 @@ kubectl \
     --namespace $NAMESPACE-staging \
     get ingress
 
-echo 'prom:
+# TODO: Merge the PR
+# TODO: Switch to the master branch
+
+helm inspect values stable/prometheus
+```
+
+```yaml
+...
+server:
+  ...
+  service:
+    annotations: {}
+    ...
+```
+
+```bash
+echo 'prometheus:
   server:
     service:
       annotations:
@@ -320,7 +655,7 @@ kubectl \
 
 PROM_STAGING_ADDR=$(kubectl \
     --namespace $NAMESPACE-staging \
-    get ingress prom-server \
+    get ingress prometheus-server \
     --output jsonpath="{.spec.rules[0].host}")
 
 echo $PROM_STAGING_ADDR
@@ -331,12 +666,16 @@ jx get applications
 
 # NOTE: Incorrrect. Check the version from GitHub
 
-VERSION=[...]
+open "https://github.com/$GH_USER/prometheus/releases"
+
+VERSION=[...] # Without `v`
 
 jx promote prometheus \
     --version $VERSION \
     --env production \
     --batch-mode
+
+# TODO: Resolve the conflict manually if `Rebasing PullRequest due to conflict`
 
 kubectl \
     --namespace jx-production \
@@ -344,14 +683,30 @@ kubectl \
 
 cd ../environment-$ENVIRONMENT-production
 
+# If NOT EKS
 LB_IP=$(kubectl \
   --namespace kube-system \
   get service jxing-nginx-ingress-controller \
   --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
+# If EKS
+LB_HOST=$(kubectl \
+  --namespace kube-system \
+  get service jxing-nginx-ingress-controller \
+  --output jsonpath="{.status.loadBalancer.ingress[0].hostname}")
+
+# If EKS
+echo $LB_HOST
+
+# If EKS
+export LB_IP="$(dig +short $LB_HOST \
+    | tail -n 1)"
+
 echo $LB_IP
 
 PROM_ADDR=prometheus.$LB_IP.nip.io
+
+git pull
 
 echo "prometheus:
   server:
