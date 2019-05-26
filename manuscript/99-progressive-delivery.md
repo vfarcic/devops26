@@ -144,8 +144,6 @@ Now we can promote our last release to production.
 
 ## Requirement Installation
 
-TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)ss
-
 We can easily install Istio, Prometheus and Flagger with `jx`
 
 ```bash
@@ -183,6 +181,47 @@ jx create addon flagger
 
 The Flagger addon will enable Istio for all pods in the `jx-production` namespace so they send traffic metrics to Prometheus.
 It will also configure an Istio ingress gateway to accept incoming external traffic through the ingress gateway service, but for it to reach the final service we must create Istio `VirtualServices`, the rules that manage the Istio routing. Flagger will do that for us.
+
+### Manual Requirement Installation
+
+TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)ss
+TODO: vfarcic is this what you mean?
+
+Istio, Prometheus and Flagger can also be installed manually using Helm.
+
+```bash
+helm repo add gcsweb.istio.io https://gcsweb.istio.io/gcs/istio-release/releases/1.1.5/charts/
+helm install --name istio-init istio-init
+helm install --name istio istio
+helm install --name prometheus stable/prometheus
+helm repo add flagger https://flagger.app
+helm install --name flagger flagger/flagger
+helm install --name flagger-grafana flagger/grafana
+```
+
+After installation, we need to enable Istio in our production namespace, typically `jx-production` and create the Istio gateway that will connect the Istio ingress to the virtual service created by Flagger on deployment.
+
+```bash
+kubectl label namespace jx-production istio-injection=enabled
+
+cat < EOF | kubectl create -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: jx-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+EOF
+```
 
 ## Flagger App Configuration
 
