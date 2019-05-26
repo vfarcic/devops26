@@ -42,18 +42,21 @@ TODO: Continue with text
 
 TODO: Is it progressive delivery or progressive deployment, or both?
 
-TODO: What is progressive delivery? The text below does not really explain the general idea without going into specific of a flavor (e.g. canary)?
+Progressive Delivery is a term that includes deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. New versions being deployed do not replace existing versions but run in parallel for an amount of time receiving live production traffic, and are evaluated in terms of correctness and performance before the rollout is considered successful.
 
-TODO: There is no explaination why *Progressive Delivery makes it easier to adopt Continuous Delivery*, only a statement that need to be taken at face-value.
+Progressive Delivery encompasses methodologies such as rolling updates, blue-green or canary deployments. What is common to all of them is that monitoring and metrics are used to evaluate whether the new version is "safe" or needs to be rolled back.
 
-Progressive Delivery makes it easier to adopt Continuous Delivery, a term including deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. Progressive Delivery encompasses methodologies such as blue-green and canary deployments, where new versions are deployed to a subset of users and are evaluated in terms of correctness and performance before rolling them to the totality of the users and rolled back if not matching some key metrics.
+Using rolling updates not all the instances of our application are updated at the same time, but they are incrementally. If you have several instances (containers, virtual machines,...) of your application you would update one at a time and check the metrics of that one before updating the next and so on. In case of issues you would remove them from the pool and increase the number of instances runnintg the previous version.
 
-TODO: List some of the common progressive delivery types (e.g., rolling updates, blue-green, canary, etc.), and provide a short explanation of each.
+Blue-green deployments temporarily create a parallel duplicate set of your application with both the old and new version running at the same time, and using a load balancer or DNS all traffic is sent to the new application. Both versions coexist until the new version is validated in production. If there are problems with the new version, the load balancer or DNS is just pointed back to the previous version.
 
-Blue-green consists of deploying a new version while keeping the old one running, and using load balancers or dns, send all users to one or another. Both old and new versions coexist until the new version is validated in production. If issues are found with the new deployment the load balancer or dns is pointed back to the old version.
-Canary deployments deliver a new version to a subset of users, which is randomly chosen or based on some demographics like location. If no issues are found in production for this subset of users the deployment of the new version is dialed up gradually until reaching all the users. In other case it is just a matter of sending the users in the new version back to the old version.
+With Canary deployments new versions are deployed and a subset of users are directed to it using traffic rules in a load balancer or more advanced solutions like service mesh. Users of the new version can be chosen randomly as a percentage of the total users or using other criteria such as geographic location, headers, employees vs general users, etc. The new version is evaluated in terms of correctness and performance and, if successful, more users are gradually directed to the new version. If there are issues with the new version or if it doesn't match the expected metrics the traffic rules are updated to send all traffic back to the previous version.
 
-Testing the 100% of an application is impossible, so we can use techniques like Canary or Blue-Green, covered under Progressive Delivery, to provide a safety net in our deployments.
+
+
+**Progressive Delivery makes it easier to adopt Continuous Delivery**, reducing the risk of new deployments limiting the blast radius of any possible issues, known or unknown, and providing automated ways to rollback to an existing working version.
+Testing the 100% of an application is impossible, so we can use these techniques to provide a safety net for our deployments.
+
 
 We saw how easy it is with Jenkins X to promote applications from development to staging to production, using the concept of environments. But it is an all-or-nothing deployment process with manual intervention if a rollback is needed.
 
