@@ -202,7 +202,7 @@ helm install --name flagger-grafana flagger/grafana
 After installation, we need to enable Istio in our production namespace, typically `jx-production` and create the Istio gateway that will connect the Istio ingress to the virtual service created by Flagger on deployment.
 
 ```bash
-kubectl label namespace jx-production istio-injection=enabled
+kubectl label namespace $NAMESPACE-production istio-injection=enabled
 
 cat < EOF | kubectl create -f -
 apiVersion: networking.istio.io/v1alpha3
@@ -236,17 +236,17 @@ git checkout master
 
 # TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
 
-echo '{{- if eq .Release.Namespace "jx-production" }}
+echo "{{- if eq .Release.Namespace \"$NAMESPACE-production\" }}
 {{- if .Values.canary.enable }}
 apiVersion: flagger.app/v1alpha2
 kind: Canary
 metadata:
-  name: {{ template "fullname" . }}
+  name: {{ template \"fullname\" . }}
 spec:
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ template "fullname" . }}
+    name: {{ template \"fullname\" . }}
   progressDeadlineSeconds: 60
   service:
     port: {{.Values.service.internalPort}}
@@ -269,7 +269,7 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-' | tee charts/go-demo-6/templates/canary.yaml
+" | tee charts/go-demo-6/templates/canary.yaml
 ```
 
 And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.$ISTIO_IP.nip.io`.
@@ -288,8 +288,8 @@ canary:
   canaryAnalysis:
     interval: 10s
     threshold: 5
-    maxWeight: 50
-    stepWeight: 10
+    maxWeight: 70
+    stepWeight: 20
     metrics:
     - name: istio_requests_total
       threshold: 99
@@ -306,7 +306,7 @@ Explanation of the values in the configuration:
 * `canary.service.gateways` list of Istio gateways that will send traffic to our application. `jx-gateway.istio-system.svc.cluster.local` is the gateway created by the Flagger addon on installation.
 * `canary.canaryAnalysis.threshold` number of times a metric must fail before aborting the rollout.
 * `canary.canaryAnalysis.maxWeight` max percentage sent to the canary deployment, when reached all traffic is sent to the new new version.
-* `canary.canaryAnalysis.stepWeight` increase the percentage this much in each interval (10%, 20%, 30%, 40%).
+* `canary.canaryAnalysis.stepWeight` increase the percentage this much in each interval (20%, 40%, 60%, etc).
 * `canary.canaryAnalysis.metrics` metrics from Prometheus, some are automatically populated by Istio and you can add your own from your application.
   * `istio_requests_total` minimum request success rate (non 5xx responses) percentage (0-100).
   * `istio_request_duration_seconds_bucket` maximum request duration in milliseconds, in the 99th percentile.
@@ -332,10 +332,11 @@ cat charts/go-demo-6/values.yaml \
     | tee charts/go-demo-6/values.yaml
 
 # NOTE: Increasing the number of replicas to see how progressive delivery handles rolling updates
-cat charts/go-demo-6/values.yaml \
-    | sed -e \
-    's@replicaCount: .@replicaCount: 10@g' \
-    | tee charts/go-demo-6/values.yaml
+# TODO: Do we need to increase the number of replicas?
+# cat charts/go-demo-6/values.yaml \
+#     | sed -e \
+#     's@replicaCount: .@replicaCount: 5@g' \
+#     | tee charts/go-demo-6/values.yaml
 
 git add .
 
@@ -430,17 +431,33 @@ jx get applications -e staging
 
 VERSION=[...]
 
+# Open a second terminal
+
+# In a second terminal
+ISTIO_IP=$(kubectl \
+    --namespace istio-system \
+    get service istio-ingressgateway \
+    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+# In the second terminal
+echo $ISTIO_IP
+
+# In the second terminal
+for i in {1..1000}
+do
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    sleep 0.5
+done
+
+# Go back to the first terminal
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
     --batch-mode
 
-# NOTE: leave this running while you continue reading
-for i in {1..1000}
-do
-    curl "go-demo-6.cd-production.$ISTIO_IP.nip.io/demo/hello"
-    sleep 0.5
-done
+kubectl \
+    --namespace $NAMESPACE-production \
+    get pods
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
@@ -448,8 +465,9 @@ Now Jenkins X will update the GitOps production environment repository to the ne
 Flagger will detect this deployment change update the Istio `VirtualService` to send 10% of the traffic to the new version service `service/jx-go-demo-6` while 90% is sent to the previous version `service/jx-go-demo-6-primary`. We can see this Istio configuration with `kubectl -n jx-production get virtualservice/jx-go-demo-6 -o yaml` under the http route weight parameter.
 
 ```bash
-kubectl --namespace jx-production \
-    get virtualservice/jx-go-demo-6 \
+kubectl \
+    --namespace $NAMESPACE-production \
+    get virtualservice jx-go-demo-6 \
     --output yaml
 ```
 
@@ -481,10 +499,15 @@ We can test this by accessing our application using the dns we previously create
 Describing the canary object will also give us information about the deployment progress.
 
 ```bash
-# NOTE: Open another terminal
+kubectl \
+    --namespace $NAMESPACE-production \
+    get ing
 
-kubectl --namespace jx-production \
-  describe canary jx-go-demo-6
+# TODO: We should probably remove the Ingress. Is there a reason for its existence?
+
+kubectl \
+    --namespace $NAMESPACE-production \
+    describe canary jx-go-demo-6
 ```
 
 ```
@@ -508,6 +531,14 @@ Flagger will automatically rollback if any of the metrics we set fail the number
 Let's show what would happen if we promote to production the previous version with no traffic.
 
 ```bash
+# In the second terminal
+for i in {1..1000}
+do
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    sleep 0.5
+done
+
+# Go back to the first terminal
 
 jx get applications -e production
 
@@ -521,7 +552,7 @@ jx promote go-demo-6 \
 
 # After a few minutes
 
-kubectl -n jx-production \
+kubectl -n $NAMESPACE-production \
   describe canary jx-go-demo-6
 
 Events:

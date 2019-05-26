@@ -41,7 +41,7 @@ jx create cluster eks \
     --namespace cd \
     --prow \
     --tekton \
-    -b
+    --batch-mode
 
 # When in doubt, use the default answers, except in the case listed below
 # Answer with `n` to `Would you like to register a wildcard DNS ALIAS to point at this ELB address?`

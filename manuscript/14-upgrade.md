@@ -3,13 +3,13 @@
 - [X] Code
 - [ ] Write
 - [X] Code review static GKE
-- [ ] Code review serverless GKE
-- [ ] Code review static EKS
-- [ ] Code review serverless EKS
-- [ ] Code review static AKS
-- [ ] Code review serverless AKS
-- [ ] Code review existing static cluster
-- [ ] Code review existing serverless cluster
+- [X] Code review serverless GKE
+- [-] Code review static EKS
+- [-] Code review serverless EKS
+- [-] Code review static AKS
+- [-] Code review serverless AKS
+- [-] Code review existing static cluster
+- [-] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles
@@ -21,6 +21,8 @@
 - [ ] Publish on LeanPub.com
 
 # Upgrading
+
+Jenkins X is evolving rapidly. We can see that by checking the releases. There's hardly a day without at least one Jenkins X release. There are days with more then ten releases. That's fast, and for very good reasons. The community behind the project is growing rapidly and that means that the rate oof pull requests is increasing as well.
 
 ## Versions
 
@@ -105,7 +107,9 @@ Now we can promote our last release to production.
 
 ## Valero
 
-TODO: https://github.com/heptio/velero
+```bash
+# open "https://velero.io/"
+```
 
 ## Upgrading The Cluster
 
@@ -136,7 +140,35 @@ jx upgrade binaries
 # TODO: It does not upgrade anything
 
 jx upgrade platform --help
+```
 
+```
+Upgrades the Jenkins X platform if there is a newer release
+
+Aliases:
+platform, install
+Examples:
+  # Upgrades the Jenkins X platform
+  jx upgrade platform
+Options:
+      --always-upgrade=false: If set to true, jx will upgrade platform Helm chart even if requested version is already installed.
+  -c, --chart='jenkins-x/jenkins-x-platform': The Chart to upgrade.
+      --cleanup-temp-files=true: Cleans up any temporary values.yaml used by helm install [default true].
+      --cloud-environment-repo='https://github.com/jenkins-x/cloud-environments': Cloud Environments Git repo
+      --local-cloud-environment=false: Ignores default cloud-environment-repo and uses current directory 
+  -n, --name='jenkins-x': The release name.
+      --namespace='': The Namespace to promote to.
+  -s, --set='': The helm parameters to pass in while upgrading, separated by comma, e.g. key1=val1,key2=val2.
+      --update-secrets=false: Regenerate adminSecrets.yaml on upgrade
+  -v, --version='': The specific platform version to upgrade to.
+      --versions-ref='': Jenkins X versions Git repository reference (tag, branch, sha etc)
+      --versions-repo='https://github.com/jenkins-x/jenkins-x-versions.git': Jenkins X versions Git repo
+Usage:
+  jx upgrade platform [flags] [options]
+Use "jx options" for a list of global command-line options (applies to all commands).
+```
+
+```bash
 # It should be `jx upgrade platform --version ...`, just as version should be specified in `jx create cluster` or `jx install`.
 
 jx upgrade platform --batch-mode
@@ -469,13 +501,13 @@ Upgrading to Extension Repository version 0.0.30
 
 ## Adding TLS Certificates
 
-```bash
+```bash 
 jx get applications
 ```
 
 ```
 APPLICATION  STAGING PODS URL
-jx-go-demo-6 1.0.110 3/3  http://go-demo-6.cd-staging.35.227.58.161.nip.io
+jx-go-demo-6 1.0.110 3/3  http://go-demo-6.cd-staging.35.243.230.195.nip.io
 ```
 
 ```bash
@@ -489,6 +521,29 @@ hello, PR!
 ```
 
 ```bash
+STAGING_ADDR=[...] # Change to https
+
+curl "$STAGING_ADDR/demo/hello"
+```
+
+```
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl performs SSL certificate verification by default, using a "bundle"
+ of Certificate Authority (CA) public keys (CA certs). If the default
+ bundle file isn't adequate, you can specify an alternate file
+ using the --cacert option.
+If this HTTPS server uses a certificate signed by a CA represented in
+ the bundle, the certificate verification probably failed due to a
+ problem with the certificate (it might be expired, or the name might
+ not match the domain name in the URL).
+If you'd like to turn off curl's verification of the certificate, use
+ the -k (or --insecure) option.
+HTTPS-proxy has similar options --proxy-cacert and --proxy-insecure.
+```
+
+```bash
 LB_IP=$(kubectl \
     --namespace kube-system \
     get svc jxing-nginx-ingress-controller \
@@ -498,25 +553,31 @@ echo $LB_IP
 ```
 
 ```
-35.227.58.161
+35.243.230.195
 ```
 
 ```bash
-# Change your DNS A records in your domain registrar
+# If do not have a domain
+DOMAIN=$LB_IP.nip.io
 
+# If do have a domain
 DOMAIN=[...]
+
+# NOTE: Change your DNS A records in your domain registrar. Wait for at least one hour until DNS records are propagated.
 
 ping $DOMAIN
 ```
 
 ```
-PING play-with-jx.com (35.227.58.161): 56 data bytes
-64 bytes from 35.227.58.161: icmp_seq=0 ttl=39 time=392.406 ms
-64 bytes from 35.227.58.161: icmp_seq=1 ttl=39 time=405.278 ms
+PING 35.243.230.195.nip.io (35.243.230.195): 56 data bytes
+64 bytes from 35.243.230.195: icmp_seq=0 ttl=39 time=392.406 ms
+64 bytes from 35.243.230.195: icmp_seq=1 ttl=39 time=405.278 ms
 ```
 
 ```bash
 # Cancel with *ctrl+c*
+
+# Repeat it the domain is not pingable or the IP is not the correct one
 
 jx upgrade ingress --help
 ```
@@ -556,14 +617,14 @@ jx upgrade ingress \
 ```
 ? Existing ingress rules found in the cluster.  Confirm to delete all and recreate them Yes
 ? Expose type Ingress
-? Domain: play-with-jx.com
+? Domain: 35.243.230.195.nip.io
 ? If your network is publicly available would you like to enable cluster wide TLS? Yes
 
 If testing LetsEncrypt you should use staging as you may be rate limited using production.
 ? Use LetsEncrypt staging or production? production
-? Email address to register with LetsEncrypt: vfarcic@farcic.com
+? Email address to register with LetsEncrypt: viktor@farcic.com
 ? UrlTemplate (press <Enter> to keep the current value):
-? Using config values {vfarcic@farcic.com play-with-jx.com letsencrypt-prod false Ingress  true}, ok? Yes
+? Using config values {viktor@farcic.com 35.243.230.195.nip.io letsencrypt-prod false Ingress  true}, ok? Yes
 
 Looking for "cert-manager" deployment in namespace "cert-manager"...
 ? CertManager deployment not found, shall we install it now? Yes
@@ -767,11 +828,11 @@ Ingress rules recreated
 
 Waiting for TLS certificates to be issued...
 WARNING: Timeout reached while waiting for TLS certificates to be ready
-Previous webhook endpoint http://hook.cd.35.227.58.161.nip.io/hook
-Updated webhook endpoint https://hook.cd.play-with-jx.com/hook
+Previous webhook endpoint http://hook.cd.35.243.230.195.nip.io/hook
+Updated webhook endpoint https://hook.cd.35.243.230.195.nip.io/hook
 ? Do you want to update all existing webhooks? Yes
 
-Updating all webHooks from http://hook.cd.35.227.58.161.nip.io/hook to https://hook.cd.play-with-jx.com/hook
+Updating all webHooks from http://hook.cd.35.243.230.195.nip.io/hook to https://hook.cd.35.243.230.195.nip.io/hook
 ? Which organisation do you want to use? vfarcic
 Owner of repo is same as username, using GitHub API for Users
 Found 222 repos
@@ -822,11 +883,11 @@ Checking hooks for repository dockerbythecaptains with user vfarcic
 Checking hooks for repository eksctl with user vfarcic
 Checking hooks for repository elasticsearch-shield with user vfarcic
 Checking hooks for repository environment-tekton-production with user vfarcic
-Found matching hook for url http://hook.cd.35.227.58.161.nip.io/hook
-Updating GitHub webhook for vfarcic/environment-tekton-production for url https://hook.cd.play-with-jx.com/hook
+Found matching hook for url http://hook.cd.35.243.230.195.nip.io/hook
+Updating GitHub webhook for vfarcic/environment-tekton-production for url https://hook.cd.35.243.230.195.nip.io/hook
 Checking hooks for repository environment-tekton-staging with user vfarcic
-Found matching hook for url http://hook.cd.35.227.58.161.nip.io/hook
-Updating GitHub webhook for vfarcic/environment-tekton-staging for url https://hook.cd.play-with-jx.com/hook
+Found matching hook for url http://hook.cd.35.243.230.195.nip.io/hook
+Updating GitHub webhook for vfarcic/environment-tekton-staging for url https://hook.cd.35.243.230.195.nip.io/hook
 Checking hooks for repository environment-viktor-production with user vfarcic
 Checking hooks for repository environment-viktor-staging with user vfarcic
 Checking hooks for repository fake-repo with user vfarcic
@@ -839,8 +900,8 @@ Checking hooks for repository go-demo-3 with user vfarcic
 Checking hooks for repository go-demo-4 with user vfarcic
 Checking hooks for repository go-demo-5 with user vfarcic
 Checking hooks for repository go-demo-6 with user vfarcic
-Found matching hook for url http://hook.cd.35.227.58.161.nip.io/hook
-Updating GitHub webhook for vfarcic/go-demo-6 for url https://hook.cd.play-with-jx.com/hook
+Found matching hook for url http://hook.cd.35.243.230.195.nip.io/hook
+Updating GitHub webhook for vfarcic/go-demo-6 for url https://hook.cd.35.243.230.195.nip.io/hook
 Checking hooks for repository go-demo-7 with user vfarcic
 Checking hooks for repository go-demo-cje with user vfarcic
 Checking hooks for repository go-practice with user vfarcic
@@ -1029,7 +1090,7 @@ jx get applications
 
 ```
 APPLICATION  STAGING PODS URL
-jx-go-demo-6 1.0.110 3/3  https://go-demo-6.cd-staging.play-with-jx.com
+jx-go-demo-6 1.0.110 3/3  https://go-demo-6.cd-staging.35.243.230.195.nip.io
 ```
 
 ```bash
@@ -1043,14 +1104,46 @@ hello, PR!
 ```
 
 ```bash
-cd go-demo-6
-
 jx repo --batch-mode
 
 # Settings > Webhooks
 ```
 
 ![Figure 14-TODO: TODO](images/ch14/upgraded-webhook.png)
+
+```bash
+# NOTE: Wait for 2 hours to be safe.
+
+echo "I am too lazy to write a README" \
+    | tee README.md
+
+git add .
+
+git commit -m "Checking webhooks"
+
+git push
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# NOTE: If the new activity is not running, GitHub probably cannot reach the cluster through the new domain. The DNS is probably not yet propagated. Wait for a while (e.g., 1 hour), open the repo webhooks screen, enter the webhook, select the most recent (failed) delivery, and click the *Redeliver* button.
+```
+
+```
+STEP                        STARTED AGO DURATION STATUS
+vfarcic/go-demo-6/master #1                      Running Version: 1.0.119
+  Release                        1h5m2s     1m0s Succeeded
+  Promote: staging               1h4m2s     1m6s Succeeded
+    PullRequest                  1h4m2s     1m6s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/1 Merge SHA: bb845816a414ba1fd42798e4ee59f5ed79a413e8
+    Update                      1h2m56s       0s Succeeded
+vfarcic/go-demo-6/master #2                      Running Version: 1.0.121
+  Release                         2m11s     1m0s Succeeded
+  Promote: staging                1m11s     1m5s Succeeded
+    PullRequest                   1m11s     1m5s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/3 Merge SHA: 3066b13d2f12dbf5339b7323acaaad1fa81acb3f
+    Update                           6s       0s Succeeded
+    Promoted                         6s       0s Succeeded  Application is at: https://go-demo-6.cd-staging.35.243.230.195.nip.io
+```
 
 ## Changing Domain Patterns
 
@@ -1060,7 +1153,7 @@ jx get applications
 
 ```
 APPLICATION  STAGING PODS URL
-jx-go-demo-6 1.0.110 3/3  https://go-demo-6.cd-staging.play-with-jx.com
+jx-go-demo-6 1.0.110 3/3  https://go-demo-6.cd-staging.35.243.230.195.nip.io
 ```
 
 ```bash
@@ -1070,57 +1163,63 @@ NAMESPACE=jx
 # If serverless
 NAMESPACE=cd
 
-# TODO: Try without `--batch-mode`
 jx upgrade ingress \
     --namespaces $NAMESPACE-staging \
-    --urltemplate "{{.Service}}.staging.{{.Domain}}" \
-    --batch-mode
+    --urltemplate "{{.Service}}.staging.{{.Domain}}"
 ```
 
 ```
+? Existing ingress rules found in namespaces [cd-staging] namespace.  Confirm to delete and recreate them Yes
+? Expose type Ingress
+? Domain: 35.243.230.195.nip.io
+? UrlTemplate (press <Enter> to keep the current value): "{{.Service}}.staging.{{.Domain}}"
+? Using config values {viktor@farcic.com 35.243.230.195.nip.io letsencrypt-prod false Ingress "{{.Service}}.staging.{{.Domain}}" true}, ok? Yes
+
 Looking for "cert-manager" deployment in namespace "cert-manager"...
 Deleting ingress cd-staging/go-demo-6
 Expecting certificates: [cd-staging/tls-go-demo-6]
-Ready Cert: cd/tls-tide
-Ready Cert: cd/tls-chartmuseum
 Ready Cert: cd/tls-deck
-Ready Cert: cd/tls-docker-registry
 Ready Cert: cd/tls-hook
+Ready Cert: cd/tls-tide
 Ready Cert: cd/tls-monocular
+Ready Cert: cd/tls-chartmuseum
 Certificate issuer letsencrypt-prod already configured.
 Deleting and cloning the Jenkins X versions repo
 Cloning the Jenkins X versions repo https://github.com/jenkins-x/jenkins-x-versions.git with ref refs/heads/master to /Users/vfarcic/.jx/jenkins-x-versions
-Enumerating objects: 1, done.
-Counting objects: 100% (1/1), done.
-Total 1465 (delta 0), reused 1 (delta 0), pack-reused 1464
+Enumerating objects: 12, done.
+Counting objects: 100% (12/12), done.
+Compressing objects: 100% (5/5), done.
+Total 1476 (delta 7), reused 10 (delta 7), pack-reused 1464
 using stable version 2.3.111 from charts of jenkins-x/exposecontroller from /Users/vfarcic/.jx/jenkins-x-versions
 Updating Helm repository...
 Helm repository update done.
-Fetched chart jenkins-x/exposecontroller to dir /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-795890463/expose-bellychocolate/chartFiles/exposecontroller
-Applying generated chart jenkins-x/exposecontroller YAML via kubectl in dir: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-795890463/expose-bellychocolate/output
+Fetched chart jenkins-x/exposecontroller to dir /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-035079751/expose-cougarstar/chartFiles/exposecontroller
+Applying generated chart jenkins-x/exposecontroller YAML via kubectl in dir: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-035079751/expose-cougarstar/output
 configmap/exposecontroller created
 job.batch/exposecontroller created
 role.rbac.authorization.k8s.io/exposecontroller created
 rolebinding.rbac.authorization.k8s.io/exposecontroller created
 serviceaccount/exposecontroller created
 
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=expose-bellychocolate,jenkins.io/version!=2.3.111 from all pvc configmap release sa role rolebinding secret
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=expose-bellychocolate,jenkins.io/version!=2.3.111,jenkins.io/namespace=cd-staging from clusterrole clusterrolebinding
-Removing Kubernetes resources from release expose-bellychocolate using selector: jenkins.io/chart-release=expose-bellychocolate from all pvc configmap release sa role rolebinding secret
-Ready Cert: cd-staging/tls-go-demo-6
+Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=expose-cougarstar,jenkins.io/version!=2.3.111 from all pvc configmap release sa role rolebinding secret
+Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=expose-cougarstar,jenkins.io/version!=2.3.111,jenkins.io/namespace=cd-staging from clusterrole clusterrolebinding
+Removing Kubernetes resources from release expose-cougarstar using selector: jenkins.io/chart-release=expose-cougarstar from all pvc configmap release sa role rolebinding secret
 job.batch "exposecontroller" deleted
 configmap "exposecontroller" deleted
 serviceaccount "exposecontroller" deleted
 role.rbac.authorization.k8s.io "exposecontroller" deleted
 rolebinding.rbac.authorization.k8s.io "exposecontroller" deleted
-Removing Kubernetes resources from release expose-bellychocolate using selector: jenkins.io/chart-release=expose-bellychocolate,jenkins.io/namespace=cd-staging from clusterrole clusterrolebinding
+Removing Kubernetes resources from release expose-cougarstar using selector: jenkins.io/chart-release=expose-cougarstar,jenkins.io/namespace=cd-staging from clusterrole clusterrolebinding
 Ingress rules recreated
 
 Waiting for TLS certificates to be issued...
+Ready Cert: cd-staging/tls-go-demo-6
 All TLS certificates are ready
 
-Previous webhook endpoint https://hook.cd.play-with-jx.com/hook
-Updated webhook endpoint https://hook.cd.play-with-jx.com/hook
+Previous webhook endpoint https://hook.cd.35.243.230.195.nip.io/hook
+Updated webhook endpoint https://hook.cd.35.243.230.195.nip.io/hook
+? Do you want to update all existing webhooks? Yes
+
 Webhook URL unchanged. Use --force to force updating
 ```
 
@@ -1130,7 +1229,7 @@ jx get applications
 
 ```
 APPLICATION  STAGING PODS URL
-jx-go-demo-6 1.0.110 3/3  https://go-demo-6.staging.play-with-jx.com
+jx-go-demo-6 1.0.110 3/3  https://go-demo-6.staging.35.243.230.195.nip.io
 ```
 
 ```bash
@@ -1150,27 +1249,119 @@ jx promote go-demo-6 \
     --version $VERSION \
     --env production \
     --batch-mode
+```
 
-jx get applications
-
-PROD_ADDR=[...]
-
-curl "$PROD_ADDR/demo/hello"
-
-jx upgrade ingress \
-    --namespaces jx-production \
-    --urltemplate "{{.Service}}.{{.Domain}}" \
-    --batch-mode
+```
+WARNING: prow based install so skip waiting for the merge of Pull Requests to go green as currently there is an issue with gettingstatuses from the PR, see https://github.com/jenkins-x/jx/issues/2410
+Promoting app go-demo-6 version 1.0.121 to namespace cd-production
+pipeline vfarcic/go-demo-6/master
+WARNING: No $BUILD_NUMBER environment variable found so cannot record promotion activities into the PipelineActivity resources in kubernetes
+Created Pull Request: https://github.com/vfarcic/environment-tekton-production/pull/1
+pipeline vfarcic/go-demo-6/master
+WARNING: No $BUILD_NUMBER environment variable found so cannot record promotion activities into the PipelineActivity resources in kubernetes
+Pull Request https://github.com/vfarcic/environment-tekton-production/pull/1 is merged at sha 27162d8ee2cf8922020192c200f21a1312f98112
+Pull Request merged but we are not waiting for the update pipeline to complete!
+WARNING: Could not find the service URL in namespace cd-production for names go-demo-6, cd-production-go-demo-6, cd-production-go-demo-6
 ```
 
 ```bash
-# NOTE: Could have used `--skip-certmanager true`
+jx get applications --env production
+```
 
-jx get applications
+```
+APPLICATION PRODUCTION PODS URL
+go-demo-6   1.0.121    3/3  http://go-demo-6.cd-production.35.243.230.195.nip.io
+```
 
+```bash
 PROD_ADDR=[...]
 
 curl "$PROD_ADDR/demo/hello"
+```
+
+```
+hello, PR!
+```
+
+```bash
+jx upgrade ingress \
+    --namespaces $NAMESPACE-production \
+    --urltemplate "{{.Service}}.{{.Domain}}"
+```
+
+```
+? Existing ingress rules found in namespaces [cd-production] namespace.  Confirm to delete and recreate them Yes
+? Expose type Ingress
+? Domain: 35.243.230.195.nip.io
+? UrlTemplate (press <Enter> to keep the current value): "{{.Service}}.{{.Domain}}"
+? Using config values {viktor@farcic.com 35.243.230.195.nip.io letsencrypt-prod false Ingress "{{.Service}}.{{.Domain}}" true}, ok? Yes
+
+Looking for "cert-manager" deployment in namespace "cert-manager"...
+Deleting ingress cd-production/go-demo-6
+Expecting certificates: [cd-production/tls-go-demo-6]
+Ready Cert: cd/tls-hook
+Ready Cert: cd/tls-tide
+Ready Cert: cd/tls-monocular
+Ready Cert: cd/tls-chartmuseum
+Ready Cert: cd/tls-deck
+Ready Cert: cd-staging/tls-go-demo-6
+Certificate issuer letsencrypt-prod already configured.
+Deleting and cloning the Jenkins X versions repo
+Cloning the Jenkins X versions repo https://github.com/jenkins-x/jenkins-x-versions.git with ref refs/heads/master to /Users/vfarcic/.jx/jenkins-x-versions
+Enumerating objects: 12, done.
+Counting objects: 100% (12/12), done.
+Compressing objects: 100% (5/5), done.
+Total 1476 (delta 7), reused 10 (delta 7), pack-reused 1464
+using stable version 2.3.111 from charts of jenkins-x/exposecontroller from /Users/vfarcic/.jx/jenkins-x-versions
+Updating Helm repository...
+Helm repository update done.
+Fetched chart jenkins-x/exposecontroller to dir /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-868797782/expose-flasherfir/chartFiles/exposecontroller
+Applying generated chart jenkins-x/exposecontroller YAML via kubectl in dir: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-868797782/expose-flasherfir/output
+configmap/exposecontroller created
+job.batch/exposecontroller created
+role.rbac.authorization.k8s.io/exposecontroller created
+rolebinding.rbac.authorization.k8s.io/exposecontroller created
+serviceaccount/exposecontroller created
+
+Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=expose-flasherfir,jenkins.io/version!=2.3.111 from all pvc configmap release sa role rolebinding secret
+Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=expose-flasherfir,jenkins.io/version!=2.3.111,jenkins.io/namespace=cd-production from clusterrole clusterrolebinding
+Removing Kubernetes resources from release expose-flasherfir using selector: jenkins.io/chart-release=expose-flasherfir from all pvc configmap release sa role rolebinding secret
+job.batch "exposecontroller" deleted
+configmap "exposecontroller" deleted
+serviceaccount "exposecontroller" deleted
+role.rbac.authorization.k8s.io "exposecontroller" deleted
+rolebinding.rbac.authorization.k8s.io "exposecontroller" deleted
+Removing Kubernetes resources from release expose-flasherfir using selector: jenkins.io/chart-release=expose-flasherfir,jenkins.io/namespace=cd-production from clusterrole clusterrolebinding
+Ingress rules recreated
+
+Waiting for TLS certificates to be issued...
+Ready Cert: cd-production/tls-go-demo-6
+All TLS certificates are ready
+
+Previous webhook endpoint https://hook.cd.35.243.230.195.nip.io/hook
+Updated webhook endpoint https://hook.cd.35.243.230.195.nip.io/hook
+? Do you want to update all existing webhooks? Yes
+
+Webhook URL unchanged. Use --force to force updating
+```
+
+```bash
+jx get applications --env production
+```
+
+```
+APPLICATION PRODUCTION PODS URL
+go-demo-6   1.0.121    3/3  https://go-demo-6.35.243.230.195.nip.io
+```
+
+```bash
+PROD_ADDR=[...]
+
+curl "$PROD_ADDR/demo/hello"
+```
+
+```
+hello, PR!
 ```
 
 ```bash
@@ -1180,7 +1371,7 @@ curl "$PROD_ADDR/demo/hello"
 ```
 
 ```yaml
-{{- if eq .Release.Namespace "jx-production" }}
+{{- if eq .Release.Namespace "cd-production" }} # or `jx-production`
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -1199,6 +1390,8 @@ spec:
 ```
 
 ## What Now?
+
+TODO: Create a branch with both jenkins-x.yml and Jenkinsfiles
 
 TODO: Rewrite
 
