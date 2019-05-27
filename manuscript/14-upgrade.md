@@ -131,13 +131,15 @@ jx import --pack go --batch-mode
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
 
-## Backing Up The Cluster
+## Validating Upgrades And Backing Up The Cluster
 
 Before we jump into different upgrade options, I must make an important statement. Do not trust blindly anyone or anything. We (the community behind Jenkins X) are doing oour best to make it stable and backwards compatible. Upgrading **should work**. But that does not mean that it will **always work**. No matter how much attention we put into making the project stable, there is almost an infite number of combinations and you should make an extra effort too test upgrades before applying them to production, just as you're hopefully validating your applications.
 
 I> Do NOT trust anyone or anything. Validate upgrades of all applications, no matter whether you wrote them or they come from third-parties.
 
-But, testing your applications and validating system-level third-applications is not equally easy.
+But, testing your applications and validating system-level third-applications is not equally easy. You are not in full control of third-party applications, especially when they are not fully open sourced.
+
+Excluding the option of upgrading Jenkins X blindly, two most commonly used strategies is to run a test instance in parallel with production (e.g., in separate Namespaces) or to have a test cluster where TODO: Continue text
 
 ```bash
 # open "https://velero.io/"
@@ -1420,6 +1422,10 @@ spec:
           servicePort: 80
 {{- end }}
 ```
+
+## Pull Requests And DevPods
+
+TODO: Code
 
 ## What Now?
 
