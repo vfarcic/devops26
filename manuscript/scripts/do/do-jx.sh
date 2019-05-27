@@ -21,10 +21,10 @@ kubectl config use do-nyc1-jx-rocks
 ####################################
 
 kubectl apply \
-    -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
+    -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/1cd17cd12c98563407ad03812aebac46ca4442f2/deploy/mandatory.yaml
 
 kubectl apply \
-    -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/cloud-generic.yaml
+    -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/1cd17cd12c98563407ad03812aebac46ca4442f2/deploy/provider/cloud-generic.yaml
 
 export LB_IP=$(kubectl -n ingress-nginx \
     get svc -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")

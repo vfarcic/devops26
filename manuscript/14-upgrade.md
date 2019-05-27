@@ -22,29 +22,59 @@
 
 # Upgrading
 
-Jenkins X is evolving rapidly. We can see that by checking the releases. There's hardly a day without at least one Jenkins X release. There are days with more then ten releases. That's fast, and for very good reasons. The community behind the project is growing rapidly and that means that the rate oof pull requests is increasing as well.
+Jenkins X is evolving rapidly. We can see that by checking the releases. There's hardly a day without at least one Jenkins X release. There are days with more then ten releases. That's fast, and for very good reasons.
 
-## Versions
+The community behind the project is growing rapidly and that means that the rate of pull requests is increasing as well. It's a simple calculation. More pull requests people make, more releases we get.
 
-TODO: Outputs and screenshots
+There is another important reason for such high release frequency. Among other things, Jenkins X promotes continuous delivery and it would be silly if it does not adhere to the same principles itself. So, instead of making a new release every quarter or some other period, Jenkins X creates a release from every approved pull request.
+
+All that does not mean that you should follow the same frequency. I do not believe that you should upgrade your cluster with every new release since that would mean that you would spend much of your time performing upgrades. Still, I do want you to upgrade often. Once a month might be a good frequency. Once a quarter would be acceptable. Less frequently than that would be a very bad idea.
+
+You might be thinking that performing upgrades every month is insane. "It's too risky. It takes too much time." I beg to differ. Anyone working in oour industry for more than ten years experienced what happens when we wait for a long time. It's so hard and painful to upgrade after years of "status quo" that many give up and just keep what they have until it looses support, and then they complain even more. The more we wait, the bigger the chance that something terribly wrong will happen. That's one of the reasons why we release our software much more frequently, and we should apply the same logic to third party applications as well. Applying smaller changes more frequently gives us more control, allows us to find issues faster, and makes it easier to fix them.
+
+But, my goal in this chapter is not to convince you that you should be upgrading your third-party software frequently. Rather, I must point out that we haven't upgraded our Jenkins X cluster at all. Or, to be more precise, if you reused the same cluster throughout all the chapters you are running an old version of Jenkins X. Even if you did destroy the cluster at the end of each chapter and created a new one for the next, you will start using Jenkins X outside our exercises and that means that you will have to upgrade it sooner or later. So, the time has come to learn how to do just that.
+
+At this moment you might be thinking that upgrading Jenkins X platform is a single command and that it is silly to dedicate a whole chapter to it. If that's what's going on in your head, you are right. But, upgrading the platform inside the cluster is only part of the story. Jenkins X platform is only one of the pieces of the puzzle. The cluster might also contain addons, apps, and extensions. Then there are CLIs and binaries on our laptop that might need upgrading as well. Finally, we might need to upgrade our Ingress rules as well. If for no other reason, we do need to add TLS certificates. Noone should expose their applications over plan HTTP.
+
+As yuo can see, there's much more to upgrading that what might seem on the first look. But, before we dive into it, it might be beneficial to understand Jenkins X version stream.
+
+## Understanding Jenkins X Version Stream
+
+By now you should know that Jenkins X packages a lot of useful applications, tools, and wrappers. It has command line packages installed on your laptop. Quite a few applications we installed in your cluster. Even though we do no recommend using tiller (Helm server) inside a cluster, many third-party Helm charts were used during the installation. The `jx` CLI converted them into "pure" Kubernetes YAML files before sending them to Kube API.
+
+Given that new Jenkins X releases are made all the time, things would get messy very quickly if we would be using "latest" releases of all those charts and packages. It should come as no surprise that Jenkins X needs a place to store the information about stable versions of all packages and charts. That place is the [jenkins-x/jenkins-x-versions](https://github.com/jenkins-x/jenkins-x-versions) repository.
+
+I will not waste space by explaining how *jenkins-x-versions* work. If you're curious, please visit [Version Stream](https://jenkins-x.io/architecture/version-stream/) page.
+
+Let's take a quick look at the [jenkins-x/jenkins-x-versions](https://github.com/jenkins-x/jenkins-x-versions) repository.
 
 ```bash
 open "https://github.com/jenkins-x/jenkins-x-versions"
-
-open "https://github.com/jenkins-x/jenkins-x-versions/blob/master/charts/jenkins-x/jenkins-x-platform.yml"
-
-# History
-
-# Select one of the older commits
-
-# Scroll to the *jenkins-x-platform.yml* file
-
-# If not reusing the cluster from the previous chapter
-PLATFORM_VERSION=[...]
-
-# If not reusing the cluster from the previous chapter
-# NOTE: Add `--version $PLATFORM_VERSION` to the arguments when creating the cluster or installing Jenkins X
 ```
+
+For now, we are only interested in the current version of the Jenkins X platform. Since it is installed through yet another Helm chart (without tiller), you can probably guess where we could find the version of the latest release.
+
+Please open the *charts/jenkins-x* directory and open the *jenkins-x-platform.yml* file.
+
+![Figure 14-TODO: TODO](images/ch14/jenkins-x-platform.png)
+
+The value of the `version` field is very important. It defines a combination of quite a few applications running inside the cluster (e.g., ChartMuseum, Docker Registry, garbage collectors, etc). So far, you installed only latest Jenkins X. That's not a good idea with any application, so it shouldn't be a good idea with Jenkins X either. The only reason why we always used latest so far is to simplify exercises and to avoid making a new release of this book every day. But, when you do start using Jenkins X in production you should always be specific. Even if you do choose to run the latest version, specify it explicitly through the `--version` argument available both in `jx create cluster` and `jx install` commands. That way you will be in full control over which platform you're running. Now that you know where to find the information, there is no excuse for being vague.
+
+Today we'll do something different. Since we want to practice all sorts of upgrades, we are going to break our habit of creating a new cluster based on the latest release and intentionally install an older one. That will allow us to experience the upgrade, instead of trying to imagine how it would look like. That, ofcourse, does not apply to you if you're reusing the same cluster throughout all the chapters since that means that you are certainly running an old version of Jenkins X platform. If that's the case, feel free to jump straight into [TODO:](TODO:).
+
+Assuming that you still have the *jenkins-x-platform.yml* file open in your browser, please click the *History* button and select one of the older commits. Just make sure that commit is not marked as failed (icon with a red X). Next, scroll to the *jenkins-x-platform.yml* file (unless its the only one in that commit) and copy the `version` value.
+
+We'll store the version of the older version in an variable so that we can reference it easier later on.
+
+W> Please replace `[...]` with the version you copied before executing the commands that follow.
+
+```bash
+PLATFORM_VERSION=[...]
+```
+
+Next comes the familiar part where we create a new cluster (unless you are reusing the one from the previous chapter). But, as already mentioned, this time we will not use the latest platform. We'll add `--version` argument.
+
+W> Make sure that you add `--version $PLATFORM_VERSION` to the arguments when creating the cluster or installing Jenkins X. The gists specified in the next section are the same as before and you will need to add the `--version` argument to `jx create cluster` or `jx install` commands. Otherwise, you will no be able to see the outcome of upgrading the cluster.
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
@@ -52,7 +82,7 @@ TODO: Rewrite
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [09-promote.sh](https://gist.github.com/345da6a87564078b84d30eccfd3037c9) Gist.
+I> All the commands from this chapter are available in the [TODO:](https://gist.github.com/345da6a87564078b84d30eccfd3037c9) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -65,9 +95,7 @@ For your convenience, the Gists from the previous chapter are available below as
 * Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
-TODO: Check whether `versioning` and `extension-model` should be restored
-
-I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `versioning` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `versioning` or `extension-model` branch that contain all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
 # Only if serverless
@@ -103,9 +131,13 @@ jx import --pack go --batch-mode
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
 
-Now we can promote our last release to production.
+## Backing Up The Cluster
 
-## Valero
+Before we jump into different upgrade options, I must make an important statement. Do not trust blindly anyone or anything. We (the community behind Jenkins X) are doing oour best to make it stable and backwards compatible. Upgrading **should work**. But that does not mean that it will **always work**. No matter how much attention we put into making the project stable, there is almost an infite number of combinations and you should make an extra effort too test upgrades before applying them to production, just as you're hopefully validating your applications.
+
+I> Do NOT trust anyone or anything. Validate upgrades of all applications, no matter whether you wrote them or they come from third-parties.
+
+But, testing your applications and validating system-level third-applications is not equally easy.
 
 ```bash
 # open "https://velero.io/"
