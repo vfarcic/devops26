@@ -64,7 +64,7 @@ jx install \
     --namespace cd \
     --prow \
     --tekton \
-    -b
+    --batch-mode
 
 #######################
 # Destroy the cluster #

@@ -51,6 +51,7 @@
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-knative.md
 - [ ] 99-integration-with-uptimerobot.md
+- [ ] 99-nexus-integration.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

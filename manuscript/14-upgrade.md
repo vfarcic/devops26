@@ -4,12 +4,12 @@
 - [ ] Write
 - [X] Code review static GKE
 - [X] Code review serverless GKE
-- [-] Code review static EKS
-- [-] Code review serverless EKS
-- [-] Code review static AKS
-- [-] Code review serverless AKS
-- [-] Code review existing static cluster
-- [-] Code review existing serverless cluster
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles
@@ -82,7 +82,7 @@ TODO: Rewrite
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [TODO:](https://gist.github.com/345da6a87564078b84d30eccfd3037c9) Gist.
+I> All the commands from this chapter are available in the [TODO:](TODO:) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -139,19 +139,25 @@ I> Do NOT trust anyone or anything. Validate upgrades of all applications, no ma
 
 But, testing your applications and validating system-level third-applications is not equally easy. You are not in full control of third-party applications, especially when they are not fully open sourced.
 
-Excluding the option of upgrading Jenkins X blindly, two most commonly used strategies is to run a test instance in parallel with production (e.g., in separate Namespaces) or to have a test cluster where TODO: Continue text
+Excluding the option of upgrading Jenkins X blindly, two most commonly used strategies is to run a test instance in parallel with production (e.g., in separate Namespaces) or to have a test cluster where. I prefer the latter option, when we do have the ability to create and destroy the cluster on demand. In such a case, we can create a new cluster, install the same Jenkins X version we're running in production, upgrade it, test it, and, if everything works as expected, upgrade production as well. If we do not have a test cluster, our best bet is to install Jenkins X in different namespaces and follow the same validation process we'd follow if it would be running in the separate cluster. The major problem with using different namespaces is in the probability of a mistake that'll affect production. It should work well if we're carefuly and experienced with Kubernetes.
 
-```bash
-# open "https://velero.io/"
-```
+No matter whether you test upgrades and, if you do, how well you do it, one thing is certain. You should have a backup of your cluster. If you do, you should be able to manage the worst case scenario. You will be able to restore the state of your cluster to the last known working state.
 
-## Upgrading The Cluster
+Given that Kuberentes backups are not directly related to Jenkins X and that there are myriad of options at our disposal, I will not go into depth of evaluating backup solutions nor will I provide detailed instructions. The only thing I will state is that my favorite tool is [Velero](https://velero.io/). If you do not have periodic and on-demand backups in place, feel free to check it out and decide whether it is an option that fits your use-case.
 
-NOTE: Outputs are from the serverless Jenkins X
+All in all, I will assume that you are testing upgrades before you apply them to production, that you are backing up your cluster, and that you can restore the last known good version if everything else fails. We are about to upgrade our Jenkins X cluster and you've been warned that the commands that follow do not excuse you from testing and backing up.
+
+Off we go...
+
+## Upgrading The Cluster And Local Binaries
+
+Before we upgrade our cluster, we'll have a quick look at the current version.
 
 ```bash
 jx version
 ```
+
+In my case, the output is as follows.
 
 ```
 NAME               VERSION
@@ -164,376 +170,105 @@ git                git version 2.20.1 (Apple Git-117)
 Operating System   Mac OS X 10.14.4 build 18E226
 ```
 
+You will likely be asked whether you want to upgrade `jx` to the new release. That is a safe operation since it will upgrade only `jx` CLI and leave the apps running in the cluster intact. If you were creating the cluster using the provided Gists, you already upgraded the CLI quite a few times, so that should not be anything new.
+
+It might be worth mentioning that `jx` CLI can also be upgraded through the `jx upgrade cli` command. The end result is the same, except that `jx upgrade cli` does not output all the versions, but directly updates only the CLI.
+
+What matters, for now, is the `jenkins x platform` version from the output. In my case, it is `2.0.108`. If we take a look at the [jenkins-x-platform.yml](https://github.com/jenkins-x/jenkins-x-versions/blob/master/charts/jenkins-x/jenkins-x-platform.yml) file, we can see that quite a few versions of the platform were created in the mean time. At the time of this writing (May 2019), the current version is `2.0.330`. I am 22 versions behind. While that mind sound like a lot, it really isn't since Jenkins X has a very high frequency of releases, with most of the days releasing more than one.
+
+So, what is the Jenkins X Platform? It is a bundle of quite a few applications already running in our cluster. If you are running static Jenkins X, Jenkins is one of the components of the platform. ChartMuseum is there, just as Nexus, Monocular, Docker Registry, and quite a few others. At this point you might think that Jenkins X platform is everything related to Jenkins X, but that would not be true. There are quite a few other apps installed as addons, extensions, apps, CRDs, and so on. We'll go through the process of upgrading them all, but, for now, we'll limit ourselves to the platform.
+
+Let's take a quick look at the help of the `jx upgrade platform` command.
+
 ```bash
-# NOTE: Upgrade if a new version is available
-
-# NOTE: The same as `jx upgrade cli`
-
-jx upgrade binaries
-
-# TODO: It does not upgrade anything
-
 jx upgrade platform --help
 ```
 
-```
-Upgrades the Jenkins X platform if there is a newer release
+The output shows us all the arguments we can set. That one that you should always be using is `-v` or `--version`. Even though most of the time you'll want to upgrade to the latest release, you should still specify the version. That way you can be sure that you'll upgrade production to the same version you'll test before that. Otherwise, Jenkins X community might make a new release of the platform after you created the test environment, and before you start the process of upgrading the production.
 
-Aliases:
-platform, install
-Examples:
-  # Upgrades the Jenkins X platform
-  jx upgrade platform
-Options:
-      --always-upgrade=false: If set to true, jx will upgrade platform Helm chart even if requested version is already installed.
-  -c, --chart='jenkins-x/jenkins-x-platform': The Chart to upgrade.
-      --cleanup-temp-files=true: Cleans up any temporary values.yaml used by helm install [default true].
-      --cloud-environment-repo='https://github.com/jenkins-x/cloud-environments': Cloud Environments Git repo
-      --local-cloud-environment=false: Ignores default cloud-environment-repo and uses current directory 
-  -n, --name='jenkins-x': The release name.
-      --namespace='': The Namespace to promote to.
-  -s, --set='': The helm parameters to pass in while upgrading, separated by comma, e.g. key1=val1,key2=val2.
-      --update-secrets=false: Regenerate adminSecrets.yaml on upgrade
-  -v, --version='': The specific platform version to upgrade to.
-      --versions-ref='': Jenkins X versions Git repository reference (tag, branch, sha etc)
-      --versions-repo='https://github.com/jenkins-x/jenkins-x-versions.git': Jenkins X versions Git repo
-Usage:
-  jx upgrade platform [flags] [options]
-Use "jx options" for a list of global command-line options (applies to all commands).
-```
+Nevertheless, we will not use the `--version` argument in the exercise that follows, simply because there are likely many new versions since the time of this writing. So, even though we'll skip `--version`, I expect you to use it when applying the exercises from this chapter in the "real" cluster. The same is true for all other `jx upgrade` commands we'll run later. The same holds true for `jx install` and `jx create cluster` commands. Using a specific version gives you control and better understanding of the problems when things go wrong.
+
+I> Always use `--version` to install or upgrade Jenkins X components, even if the examples in this book at ignoring it.
+
+let's see what we'll get when we upgrade the platform.
 
 ```bash
-# It should be `jx upgrade platform --version ...`, just as version should be specified in `jx create cluster` or `jx install`.
-
 jx upgrade platform --batch-mode
 ```
 
-```
-Using provider 'gke' from team settings
-Deleting and cloning the Jenkins X versions repo
-Cloning the Jenkins X versions repo https://github.com/jenkins-x/jenkins-x-versions.git with ref refs/heads/master to /Users/vfarcic/.jx/jenkins-x-versions
-Enumerating objects: 1, done.
-Counting objects: 100% (1/1), done.
-Total 1465 (delta 0), reused 1 (delta 0), pack-reused 1464
-using stable version 2.0.330 from charts of jenkins-x/jenkins-x-platform from /Users/vfarcic/.jx/jenkins-x-versions
-Upgrading platform from version 2.0.108 to version 2.0.330
-Cloning the Jenkins X cloud environments repo to /Users/vfarcic/.jx/cloud-environments
-? A local Jenkins X cloud environments repository already exists, recreate with latest? Yes
-Cloning the Jenkins X cloud environments repo to /Users/vfarcic/.jx/cloud-environments
-Enumerating objects: 49, done.
-Counting objects: 100% (49/49), done.
-Compressing objects: 100% (36/36), done.
-Total 1431 (delta 17), reused 33 (delta 13), pack-reused 1382
-Creating /Users/vfarcic/.jx/adminSecrets.yaml from jx-install-config
-Creating /Users/vfarcic/.jx/extraValues.yaml from jx-install-config
-Using local value overrides file /Users/vfarcic/code/myvalues.yaml
-Deleting and cloning the Jenkins X versions repo
-Cloning the Jenkins X versions repo https://github.com/jenkins-x/jenkins-x-versions.git with ref refs/heads/master to /Users/vfarcic/.jx/jenkins-x-versions
-Enumerating objects: 1, done.
-Counting objects: 100% (1/1), done.
-Total 1465 (delta 0), reused 1 (delta 0), pack-reused 1464
-Fetched chart jenkins-x/jenkins-x-platform to dir /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-426064317/jenkins-x/chartFiles/jenkins-x-platform
-Applying generated chart jenkins-x/jenkins-x-platform YAML via kubectl in dir: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-426064317/jenkins-x/output
-deployment.extensions/jenkins-x-chartmuseum configured
-persistentvolumeclaim/jenkins-x-chartmuseum configured
-secret/jenkins-x-chartmuseum configured
-service/jenkins-x-chartmuseum configured
-role.rbac.authorization.k8s.io/cleanup configured
-rolebinding.rbac.authorization.k8s.io/cleanup configured
-serviceaccount/cleanup configured
-clusterrole.rbac.authorization.k8s.io/controllerbuild-cd configured
-clusterrolebinding.rbac.authorization.k8s.io/controllerbuild-cd configured
-deployment.apps/jenkins-x-controllerbuild configured
-role.rbac.authorization.k8s.io/controllerbuild configured
-rolebinding.rbac.authorization.k8s.io/controllerbuild configured
-serviceaccount/jenkins-x-controllerbuild configured
-clusterrole.rbac.authorization.k8s.io/controllerrole-cd configured
-clusterrolebinding.rbac.authorization.k8s.io/controllerrole-cd configured
-deployment.apps/jenkins-x-controllerrole configured
-role.rbac.authorization.k8s.io/controllerrole configured
-rolebinding.rbac.authorization.k8s.io/controllerrole configured
-serviceaccount/jenkins-x-controllerrole configured
-clusterrole.rbac.authorization.k8s.io/controllerteam-cd configured
-clusterrolebinding.rbac.authorization.k8s.io/controllerteam-cd configured
-deployment.apps/jenkins-x-controllerteam configured
-role.rbac.authorization.k8s.io/controllerteam configured
-rolebinding.rbac.authorization.k8s.io/controllerteam configured
-serviceaccount/jenkins-x-controllerteam configured
-configmap/jenkins-x-docker-registry-config created
-deployment.extensions/jenkins-x-docker-registry created
-persistentvolumeclaim/jenkins-x-docker-registry created
-secret/jenkins-x-docker-registry-secret created
-service/jenkins-x-docker-registry created
-configmap/exposecontroller configured
-role.rbac.authorization.k8s.io/expose configured
-rolebinding.rbac.authorization.k8s.io/expose configured
-serviceaccount/expose configured
-clusterrole.rbac.authorization.k8s.io/gcactivities-cd configured
-clusterrolebinding.rbac.authorization.k8s.io/gcactivities-cd configured
-cronjob.batch/jenkins-x-gcactivities configured
-role.rbac.authorization.k8s.io/gcactivities configured
-rolebinding.rbac.authorization.k8s.io/gcactivities configured
-serviceaccount/jenkins-x-gcactivities configured
-cronjob.batch/jenkins-x-gcpods configured
-role.rbac.authorization.k8s.io/gcpods configured
-rolebinding.rbac.authorization.k8s.io/gcpods configured
-serviceaccount/jenkins-x-gcpods configured
-clusterrole.rbac.authorization.k8s.io/gcpreviews-cd configured
-clusterrolebinding.rbac.authorization.k8s.io/gcpreviews-cd configured
-cronjob.batch/jenkins-x-gcpreviews configured
-role.rbac.authorization.k8s.io/gcpreviews configured
-rolebinding.rbac.authorization.k8s.io/gcpreviews configured
-serviceaccount/jenkins-x-gcpreviews configured
-deployment.extensions/jenkins-x-heapster configured
-clusterrolebinding.rbac.authorization.k8s.io/jenkins-x-heapster configured
-role.rbac.authorization.k8s.io/jenkins-x-heapster-pod-nanny configured
-rolebinding.rbac.authorization.k8s.io/jenkins-x-heapster-pod-nanny configured
-service/heapster configured
-serviceaccount/jenkins-x-heapster configured
-deployment.extensions/jenkins-x-mongodb configured
-persistentvolumeclaim/jenkins-x-mongodb configured
-secret/jenkins-x-mongodb configured
-service/jenkins-x-mongodb configured
-configmap/jenkins-x-monocular-api-config configured
-deployment.extensions/jenkins-x-monocular-api configured
-service/jenkins-x-monocular-api configured
-deployment.extensions/jenkins-x-monocular-prerender configured
-service/jenkins-x-monocular-prerender configured
-configmap/jenkins-x-monocular-ui-config configured
-deployment.extensions/jenkins-x-monocular-ui configured
-service/jenkins-x-monocular-ui configured
-configmap/jenkins-x-monocular-ui-vhost configured
-role.rbac.authorization.k8s.io/committer configured
-clusterrolebinding.rbac.authorization.k8s.io/jenkins-x-team-controller configured
-configmap/jenkins-x-team-controller configured
-secret/jenkins-docker-cfg configured
-configmap/jenkins-x-devpod-config configured
-configmap/jenkins-x-docker-registry configured
-configmap/jenkins-x-extensions configured
-secret/jx-basic-auth configured
-role.rbac.authorization.k8s.io/jx-view configured
-secret/kaniko-secret configured
-secret/jenkins-maven-settings configured
-secret/jenkins-npm-token configured
-role.rbac.authorization.k8s.io/owner configured
-configmap/jenkins-x-pod-template-dlang configured
-configmap/jenkins-x-pod-template-go configured
-configmap/jenkins-x-pod-template-nodejs10x created
-configmap/jenkins-x-pod-template-terraform configured
-configmap/jenkins-x-pod-template-maven-nodejs configured
-configmap/jenkins-x-pod-template-rust configured
-configmap/jenkins-x-pod-template-machine-learning created
-configmap/jenkins-x-pod-template-python2 configured
-configmap/jenkins-x-pod-template-nodejs8x created
-configmap/jenkins-x-pod-template-aws-cdk configured
-configmap/jenkins-x-pod-template-newman configured
-configmap/jenkins-x-pod-template-scala configured
-configmap/jenkins-x-pod-template-gradle configured
-configmap/jenkins-x-pod-template-maven configured
-configmap/jenkins-x-pod-template-python37 configured
-configmap/jenkins-x-pod-template-promote configured
-configmap/jenkins-x-pod-template-nodejs configured
-configmap/jenkins-x-pod-template-swift configured
-configmap/jenkins-x-pod-template-maven-java11 configured
-configmap/jenkins-x-pod-template-ruby configured
-configmap/jenkins-x-pod-template-jx-base configured
-configmap/jenkins-x-pod-template-python configured
-secret/jenkins-release-gpg configured
-secret/jenkins-ssh-config configured
-role.rbac.authorization.k8s.io/viewer configured
+TODO: Check `kubectl describe secret oauth-token` and confirm that it is not 0 bytes.
 
-Applying Helm hook post-upgrade YAML via kubectl in file: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-426064317/jenkins-x/helmHooks/jenkins-x-platform/charts/expose/templates/job.yaml
-job.batch/expose created
+TODO: Confirm that `tide` is running
 
-Waiting for helm post-upgrade hook Job expose to complete before removing it
-Deleting helm hook sources from file: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-426064317/jenkins-x/helmHooks/jenkins-x-platform/charts/expose/templates/job.yaml
-job.batch "expose" deleted
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=jenkins-x,jenkins.io/version!=2.0.330 from all pvc configmap release sa role rolebinding secret
-deployment.apps "jenkins-x-controllercommitstatus" deleted
-serviceaccount "jenkins-x-controllercommitstatus" deleted
-role.rbac.authorization.k8s.io "controllercommitstatus" deleted
-rolebinding.rbac.authorization.k8s.io "controllercommitstatus" deleted
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=jenkins-x,jenkins.io/version!=2.0.330,jenkins.io/namespace=cd from clusterrole clusterrolebinding
-clusterrole.rbac.authorization.k8s.io "controllercommitstatus-cd" deleted
-clusterrolebinding.rbac.authorization.k8s.io "controllercommitstatus-cd" deleted
-```
+If you are already running the latest platform, you'll see a message stating notifying yuo that the command will skip the upgrade process. Otherwise, you'll see a detailed log with a long list of resources that were updated. It was an uneventful experience, so we can move on and check the versions one more time.
 
 ```bash
 jx version
 ```
 
+This time, my `jenkins x platform` version is `2.0.330` (yours will be different) thus confirming that the upgrade process was successfull.
+
+```bash
+# TODO: It does not upgrade anything. It's not really important and there's probably no need going through code to figure out whether there is a bug. Remove or add a text above.
+jx upgrade binaries
 ```
-NAME               VERSION
-jx                 2.0.151
-jenkins x platform 2.0.330
-Kubernetes cluster v1.12.7-gke.10
-kubectl            v1.14.2
-helm client        Client: v2.14.0+g05811b8
-git                git version 2.20.1 (Apple Git-117)
-Operating System   Mac OS X 10.14.4 build 18E226
-```
+
+There's much more to upgrades than keeping the platform up-to-date. We can, for example, upgrade addons. But, before we do that, let's take a look at which addons we are currently running in the cluster.
+
+I> We did not yet explore addons. We'll do that in one of the next chapters. For now, please note that they provide, as their name suggest, additional functionalities.
 
 ```bash
 jx get addons
 ```
 
+The output will greatly depend on whether you are running static on serverless Jenkins X and whether you installed addons outside those coming through the "standard" installation. I can only assume that you did not install addons on your own given that we did not cover them just yet. If that's the case, you are likely going to see an empty list if you're using static Jenkins X, and a few instances of `jx-prow` and `tekton` if you prefer the serverless flavor.
+
+In case of serverless Jenkins X, the output, without the repeated addons, is as follows.
+
 ```
 NAME    CHART            ENABLED STATUS   VERSION
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+...
 tekton  jenkins-x/tekton         DEPLOYED 0.0.38
-tekton  jenkins-x/tekton         DEPLOYED 0.0.38
-jx-prow jenkins-x/prow           DEPLOYED 0.0.647
+...
 ```
+
+We can see that I'm running `jx-prow` version `0.0.647` and `tekton` version `0.0.38`. Which versions would we get if we upgrade those addons? We check it out easily by visiting the [jenkins-x/jenkins-x-versions](https://github.com/jenkins-x/jenkins-x-versions). If you do, open the *charts/jenkins-x* directory and select the file that represents one of the addons you're interested in. For example, opening [prow.yml](https://github.com/jenkins-x/jenkins-x-versions/blob/master/charts/jenkins-x/prow.yml) shows that, at the time of this writing, the current version is `0.0.647`.
+
+Let's upgrade the addons.
+
+I> You might not have any addons installed or those that you do have might be already at the latest version. If that's the case, feel free to skip the command that follows.
+
+TODO: Wait until https://github.com/jenkins-x/jx/issues/3392 is resolved
 
 ```bash
-jx upgrade addon
+# Change to upgrade each addon separately and check whether that destroys the `oauth-token` secret
+jx upgrade addons
 ```
 
-```
-Upgrading jx-prow chart jenkins-x/prow...
-Using local value overrides file /Users/vfarcic/code/myvalues.yaml
-Deleting and cloning the Jenkins X versions repo
-Cloning the Jenkins X versions repo https://github.com/jenkins-x/jenkins-x-versions.git with ref refs/heads/master to /Users/vfarcic/.jx/jenkins-x-versions
-Enumerating objects: 1, done.
-Counting objects: 100% (1/1), done.
-Total 1465 (delta 0), reused 1 (delta 0), pack-reused 1464
-using stable version 0.0.647 from charts of jenkins-x/prow from /Users/vfarcic/.jx/jenkins-x-versions
-Fetched chart jenkins-x/prow to dir /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-210639022/jx-prow/chartFiles/prow
-Applying generated chart jenkins-x/prow YAML via kubectl in dir: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-210639022/jx-prow/output
-clusterrole.rbac.authorization.k8s.io/prow-build unchanged
-clusterrolebinding.rbac.authorization.k8s.io/prow-build-cd unchanged
-deployment.extensions/prow-build configured
-serviceaccount/prow-build unchanged
-deployment.extensions/buildnum configured
-rolebinding.rbac.authorization.k8s.io/buildnum unchanged
-role.rbac.authorization.k8s.io/buildnum unchanged
-serviceaccount/buildnum unchanged
-service/buildnum unchanged
-clusterrolebinding.rbac.authorization.k8s.io/cluster-admin-binding-cd unchanged
-clusterrole.rbac.authorization.k8s.io/crier unchanged
-clusterrolebinding.rbac.authorization.k8s.io/crier-cd unchanged
-deployment.extensions/crier unchanged
-rolebinding.rbac.authorization.k8s.io/crier unchanged
-role.rbac.authorization.k8s.io/crier unchanged
-serviceaccount/crier unchanged
-deployment.extensions/deck unchanged
-rolebinding.rbac.authorization.k8s.io/deck unchanged
-role.rbac.authorization.k8s.io/deck unchanged
-serviceaccount/deck unchanged
-service/deck unchanged
-secret/hmac-token configured
-deployment.extensions/hook unchanged
-rolebinding.rbac.authorization.k8s.io/hook unchanged
-role.rbac.authorization.k8s.io/hook unchanged
-serviceaccount/hook unchanged
-service/hook unchanged
-deployment.extensions/horologium unchanged
-rolebinding.rbac.authorization.k8s.io/horologium unchanged
-role.rbac.authorization.k8s.io/horologium unchanged
-serviceaccount/horologium unchanged
-secret/oauth-token configured
-clusterrole.rbac.authorization.k8s.io/pipeline unchanged
-clusterrolebinding.rbac.authorization.k8s.io/pipeline-cd unchanged
-deployment.extensions/pipeline configured
-serviceaccount/pipeline unchanged
-deployment.extensions/plank unchanged
-rolebinding.rbac.authorization.k8s.io/plank unchanged
-role.rbac.authorization.k8s.io/plank unchanged
-serviceaccount/plank unchanged
-customresourcedefinition.apiextensions.k8s.io/prowjobs.prow.k8s.io unchanged
-deployment.extensions/sinker unchanged
-rolebinding.rbac.authorization.k8s.io/sinker unchanged
-role.rbac.authorization.k8s.io/sinker unchanged
-serviceaccount/sinker unchanged
-deployment.extensions/tide unchanged
-rolebinding.rbac.authorization.k8s.io/tide unchanged
-role.rbac.authorization.k8s.io/tide unchanged
-serviceaccount/tide unchanged
-service/tide unchanged
+You'll see a long log output with the list of things that changed and those that stay the same.
 
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=jx-prow,jenkins.io/version!=0.0.647 from all pvc configmap release sa role rolebinding secret
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=jx-prow,jenkins.io/version!=0.0.647,jenkins.io/namespace=cd from clusterrole clusterrolebinding
-Upgraded jx-prow chart jenkins-x/prow
-Upgrading tekton chart jenkins-x/tekton...
-Using local value overrides file /Users/vfarcic/code/myvalues.yaml
-Deleting and cloning the Jenkins X versions repo
-Cloning the Jenkins X versions repo https://github.com/jenkins-x/jenkins-x-versions.git with ref refs/heads/master to /Users/vfarcic/.jx/jenkins-x-versions
-Enumerating objects: 1, done.
-Counting objects: 100% (1/1), done.
-Total 1465 (delta 0), reused 1 (delta 0), pack-reused 1464
-using stable version 0.0.38 from charts of jenkins-x/tekton from /Users/vfarcic/.jx/jenkins-x-versions
-Fetched chart jenkins-x/tekton to dir /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-210639022/tekton/chartFiles/tekton
-Applying generated chart jenkins-x/tekton YAML via kubectl in dir: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/helm-template-workdir-210639022/tekton/output
-podsecuritypolicy.policy/tekton-pipelines configured
-clusterrole.rbac.authorization.k8s.io/tekton-pipelines unchanged
-clusterrolebinding.rbac.authorization.k8s.io/tekton-pipelines-cd unchanged
-serviceaccount/tekton-pipelines unchanged
-serviceaccount/tekton-bot configured
-customresourcedefinition.apiextensions.k8s.io/clustertasks.tekton.dev unchanged
-customresourcedefinition.apiextensions.k8s.io/pipelines.tekton.dev unchanged
-customresourcedefinition.apiextensions.k8s.io/pipelineruns.tekton.dev unchanged
-customresourcedefinition.apiextensions.k8s.io/pipelineresources.tekton.dev unchanged
-customresourcedefinition.apiextensions.k8s.io/tasks.tekton.dev unchanged
-customresourcedefinition.apiextensions.k8s.io/taskruns.tekton.dev unchanged
-service/tekton-pipelines-controller unchanged
-service/tekton-pipelines-webhook unchanged
-clusterrole.rbac.authorization.k8s.io/tekton-bot unchanged
-clusterrolebinding.rbac.authorization.k8s.io/tekton-bot-cd unchanged
-role.rbac.authorization.k8s.io/tekton-bot unchanged
-rolebinding.rbac.authorization.k8s.io/tekton-bot unchanged
-configmap/config-artifact-bucket configured
-configmap/config-entrypoint unchanged
-configmap/config-logging unchanged
-deployment.apps/tekton-pipelines-controller unchanged
-deployment.apps/tekton-pipelines-webhook unchanged
-
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=tekton,jenkins.io/version!=0.0.38 from all pvc configmap release sa role rolebinding secret
-Removing Kubernetes resources from older releases using selector: jenkins.io/chart-release=tekton,jenkins.io/version!=0.0.38,jenkins.io/namespace=cd from clusterrole clusterrolebinding
-Upgraded tekton chart jenkins-x/tekton
-```
+Let's see what we've got.
 
 ```bash
-# If could be `jx upgrade addon jx-prow`
-
-jx get apps
+jx get addons
 ```
 
-```
-No Apps found
-```
+You might see some addons in the pending state. If they stay like that for a while longer, you might want to check whether all the Pods are running. If one or more are crashing, you something went wrong. If this would be a test cluster or a test instance of Jenkins X, you should abandon the idea to upgrade addons (or any other Jenkins X component type) and investigate what's wrong. Otherwise, that would be the time to restore a backup.
 
-```bash
-# NOTE: It could be `jx upgrade app [...]`
+We could have upgraded single addon by adding the name to the command. For example, `jx upgrade addon tekton` would upgrade only that addon.
 
-jx upgrade crd
-```
+TODO: Check `kubectl describe secret oauth-token` and confirm that it is not 0 bytes.
 
-```
-Jenkins X CRDs upgraded with success
-```
+TODO: Confirm that `tide` is running
 
-```bash
-jx upgrade extensions
-```
+The same pattern can be followed with `app`, `crd`, and `extensions` upgrades. We haven't explored them just yet. When we do, you'll already know that they can be upgraded as well. Nevertheless, there should be no need to go through those as well since all you have to do is execute `jx upgrade`.
 
-```
-WARNING: No extensions are configured for the team
-Updating extensions from https://raw.githubusercontent.com/jenkins-x/jenkins-x-extensions/v0.0.30/jenkins-x-extensions-repository.lock.yaml
-Upgrading to Extension Repository version 0.0.30
-```
+The last upgradable type of compoenents is `ingress`. But, unlike other `upgrade` types we explored, that one does much more than what you might have guessed.
 
-```bash
-# `jx upgrade ingress`?
-```
+## Upgraing Ingress Rules And Adding TLS Certificates
 
-## Adding TLS Certificates
+TODO: Continue text
 
 ```bash 
 jx get applications
