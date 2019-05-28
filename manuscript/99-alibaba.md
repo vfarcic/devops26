@@ -19,8 +19,6 @@ DOMAIN=jenkinx.$LB_IP.nip.io
 
 echo "nexus:
   enabled: false
-docker-registry:
-  enabled: true
 " | tee myvalues.yaml
 
 jx install \

@@ -60,7 +60,7 @@ Please open the *charts/jenkins-x* directory and open the *jenkins-x-platform.ym
 
 The value of the `version` field is very important. It defines a combination of quite a few applications running inside the cluster (e.g., ChartMuseum, Docker Registry, garbage collectors, etc). So far, you installed only latest Jenkins X. That's not a good idea with any application, so it shouldn't be a good idea with Jenkins X either. The only reason why we always used latest so far is to simplify exercises and to avoid making a new release of this book every day. But, when you do start using Jenkins X in production you should always be specific. Even if you do choose to run the latest version, specify it explicitly through the `--version` argument available both in `jx create cluster` and `jx install` commands. That way you will be in full control over which platform you're running. Now that you know where to find the information, there is no excuse for being vague.
 
-Today we'll do something different. Since we want to practice all sorts of upgrades, we are going to break our habit of creating a new cluster based on the latest release and intentionally install an older one. That will allow us to experience the upgrade, instead of trying to imagine how it would look like. That, ofcourse, does not apply to you if you're reusing the same cluster throughout all the chapters since that means that you are certainly running an old version of Jenkins X platform. If that's the case, feel free to jump straight into [TODO:](TODO:).
+Today we'll do something different. Since we want to practice all sorts of upgrades, we are going to break our habit of creating a new cluster based on the latest release and intentionally install an older one. That will allow us to experience the upgrade, instead of trying to imagine how it would look like. That, ofcourse, does not apply to you if you're reusing the same cluster throughout all the chapters since that means that you are certainly running an old version of Jenkins X platform. If that's the case, feel free to jump straight into the [Validating Upgrades And Backing Up The Cluster](#upgrade-backup) section.
 
 Assuming that you still have the *jenkins-x-platform.yml* file open in your browser, please click the *History* button and select one of the older commits. Just make sure that commit is not marked as failed (icon with a red X). Next, scroll to the *jenkins-x-platform.yml* file (unless its the only one in that commit) and copy the `version` value.
 
@@ -82,7 +82,7 @@ TODO: Rewrite
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [TODO:](TODO:) Gist.
+I> All the commands from this chapter are available in the [14-upgrade.sh](TODO:) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -131,7 +131,7 @@ jx import --pack go --batch-mode
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
 
-## Validating Upgrades And Backing Up The Cluster
+## Validating Upgrades And Backing Up The Cluster {#upgrade-backup}
 
 Before we jump into different upgrade options, I must make an important statement. Do not trust blindly anyone or anything. We (the community behind Jenkins X) are doing oour best to make it stable and backwards compatible. Upgrading **should work**. But that does not mean that it will **always work**. No matter how much attention we put into making the project stable, there is almost an infite number of combinations and you should make an extra effort too test upgrades before applying them to production, just as you're hopefully validating your applications.
 
@@ -242,7 +242,7 @@ I> You might not have any addons installed or those that you do have might be al
 TODO: Wait until https://github.com/jenkins-x/jx/issues/3392 is resolved
 
 ```bash
-# Change to upgrade each addon separately and check whether that destroys the `oauth-token` secret
+# TODO: Add `--namespace` and check whether that solves the issue. If it does, add the argument to all the `upgrade` commands.
 jx upgrade addons
 ```
 
@@ -258,26 +258,32 @@ You might see some addons in the pending state. If they stay like that for a whi
 
 We could have upgraded single addon by adding the name to the command. For example, `jx upgrade addon tekton` would upgrade only that addon.
 
-TODO: Check `kubectl describe secret oauth-token` and confirm that it is not 0 bytes.
-
-TODO: Confirm that `tide` is running
-
 The same pattern can be followed with `app`, `crd`, and `extensions` upgrades. We haven't explored them just yet. When we do, you'll already know that they can be upgraded as well. Nevertheless, there should be no need to go through those as well since all you have to do is execute `jx upgrade`.
 
 The last upgradable type of compoenents is `ingress`. But, unlike other `upgrade` types we explored, that one does much more than what you might have guessed.
 
-## Upgraing Ingress Rules And Adding TLS Certificates
+## Upgrading Ingress Rules And Adding TLS Certificates
 
-TODO: Continue text
+So far, all the applications we installed so far are accessible through a plain HTTP protocol. As I'm sure you're aware, that is not acceptable. All publicly accessible applications should be accessible through HTTPS only and that means that we need TLS certificates. We could generate them ourselves for each of the applications but that would be too much work. Instead, we'll try to figure out how to create and manage the certificates automatically. Fortunatelly, Jenkins X already solved that and quite a few other Ingress-related challenges. We just need to learn how to tell Jenkins X what exactly we need.
+
+All the `jx upgrade` commands we explored so far followed the same pattern. They upgrade components to a specific or the latest release. Ingress is the exception. We can use can use`jx upgrade ingress` to change a variate of things. We can change the domain of the cluster or a namespace. We can add TLS certificates to all Ingress endpoints. We can also change the template Jenkins X is using to auto-generate addresses of applications.
+
+Let's start by checking the applications we currently have in our cluster.
 
 ```bash 
 jx get applications
 ```
 
+The output is as follows.
+
 ```
 APPLICATION  STAGING PODS URL
 jx-go-demo-6 1.0.110 3/3  http://go-demo-6.cd-staging.35.243.230.195.nip.io
 ```
+
+You already saw that output quite a few times before. There's notthing special about it, except that *go-demo-6* is accessible through auto-generated HTTP address. We must change that to HTTPS since no serious applications should be accessible without TLS. But, before we do that, let's confirm that our application can indeed be reached.
+
+W> Make sure to replace `[...]` with the address from the staging `URL` column from the previous output before executing the commands that follow.
 
 ```bash
 STAGING_ADDR=[...]
@@ -285,32 +291,13 @@ STAGING_ADDR=[...]
 curl "$STAGING_ADDR/demo/hello"
 ```
 
-```
-hello, PR!
-```
+The output should show `hello, PR!` so we confirmed that the application is working and can be reached through insecure HTTP protocol. Feel free to send a request using `https` and you'll see that the output will state that there is `SSL certificate problem`.
 
-```bash
-STAGING_ADDR=[...] # Change to https
+So far, we used a `nip.io` domain for all our examples. That was useful for the exercises since it saved us from purchasing a "real" domain, from reconfiguring DNSes with our domain registrar, and from a long wait until changes are propagated. But, I'm sure that you alredy wondered how to make Jenkins x use a custom domain. When you start using it "for real", you will surely want Jenkins X and your applications to be accessible through your own domain, instead of `nip.io`. We'll try to remedy that as well.
 
-curl "$STAGING_ADDR/demo/hello"
-```
+So, we have three issues to solve. We should redirect all HTTP requests to HTTPS, we should make sure that SSL/TLS certificates are in place, and we should switch from `nip.io` to any domain we want to use. Further more, we should be able to make any of those changes on the level of the whole cluster, a Namespace, or an application. We'll start with cluster-wide changes.
 
-```
-curl: (60) SSL certificate problem: unable to get local issuer certificate
-More details here: https://curl.haxx.se/docs/sslcerts.html
-
-curl performs SSL certificate verification by default, using a "bundle"
- of Certificate Authority (CA) public keys (CA certs). If the default
- bundle file isn't adequate, you can specify an alternate file
- using the --cacert option.
-If this HTTPS server uses a certificate signed by a CA represented in
- the bundle, the certificate verification probably failed due to a
- problem with the certificate (it might be expired, or the name might
- not match the domain name in the URL).
-If you'd like to turn off curl's verification of the certificate, use
- the -k (or --insecure) option.
-HTTPS-proxy has similar options --proxy-cacert and --proxy-insecure.
-```
+Now you need to choose whether you'd like to use a "real" domain. If you do not have one available, or you do not want to mess with DNSes, you can continue using `nip.io` as a simulation of what would happen if we'd change a domain. In either case, first we need to find the IP of the cluster.
 
 ```bash
 LB_IP=$(kubectl \
@@ -321,67 +308,64 @@ LB_IP=$(kubectl \
 echo $LB_IP
 ```
 
-```
-35.243.230.195
-```
+The output of the latter command should be an IP.
+
+Now comes the part where you need to choose whether to continue using `nip.io` or you'd like to switch to a "real" domain.
+
+In case you do not have a fully qualified domain at hand, please execute the command that follows.
 
 ```bash
-# If do not have a domain
+# If you do NOT have a domain
 DOMAIN=$LB_IP.nip.io
+```
 
+If you do have a domain, please change your DNS records in your domain registrar to the IP of the cluster. It might take an hour or even two until DNS records are propagated so you'll need to wait for a while. This would be a good time to have a lunch, do some execise, or see a movie. But, before you go, please execute the command that follows.
+
+W> Make sure to replace `[...]` with the domain you own and with DNSes that point to the cluster (e.g., play-with-jx.com).
+
+```bash
 # If do have a domain
 DOMAIN=[...]
-
-# NOTE: Change your DNS A records in your domain registrar. Wait for at least one hour until DNS records are propagated.
-
-ping $DOMAIN
 ```
+
+Next, we'll confirm that the new domain is accessible, at least from your laptop.
+
+```bash
+ping -c 1 $DOMAIN
+```
+
+I choose to continue using `nip.io`, so my output is as follows.
 
 ```
 PING 35.243.230.195.nip.io (35.243.230.195): 56 data bytes
 64 bytes from 35.243.230.195: icmp_seq=0 ttl=39 time=392.406 ms
-64 bytes from 35.243.230.195: icmp_seq=1 ttl=39 time=405.278 ms
+
+--- 35.243.230.195.nip.io ping statistics ---
+1 packets transmitted, 1 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 392.406/392.406/392.406/0.000 ms
 ```
 
-```bash
-# Cancel with *ctrl+c*
+If in your case there is an error in the output, that probably means that DNS changes did not yet reach you. If, on the other hand, you are using a custom domain and you can ping tthe domain, that does not necessarily mean that the updated records are propagated everywhere. The safest bet is to wait for at least an hour since you changed DNS entries.
 
-# Repeat it the domain is not pingable or the IP is not the correct one
-
-jx upgrade ingress --help
-```
-
-```
-Upgrades the Jenkins X Ingress rules
-
-Aliases:
-ingress, ing
-Examples:
-  # Upgrades the Jenkins X Ingress rules
-  jx upgrade ingress
-Options:
-      --cluster=false: Enable cluster wide Ingress upgrade
-      --config-namespace='': Namespace where the ingress-config is stored (if empty, it will try to read it from Dev environment namespace)
-      --domain='': Domain to expose ingress endpoints (e.g., jenkinsx.io). Leave empty to preserve the current value.
-      --force=false: Forces upgrades of all webooks even if ingress URL has not changed
-      --namespaces=[]: Namespaces to upgrade
-      --services=[]: Services to upgrade
-      --skip-certmanager=false: Skips cert-manager installation
-      --skip-resources-update=false: Skips the update of jx related resources such as webhook or Jenkins URL
-      --urltemplate='': For ingress; exposers can set the urltemplate to expose. The default value is "{{.Service}}.{{.Namespace}}.{{.Domain}}". Leave empty to preserve the current value.
-      --wait-for-certs=true: Waits for TLS certs to be issued by cert-manager
-Usage:
-  jx upgrade ingress [flags] [options]
-Use "jx options" for a list of global command-line options (applies to all commands).
-```
+Now we're ready to upgrade Ingress. We'll change the domain (if you're using `nip.io` it'll stay the same) across the whole cluster.
 
 ```bash
 jx upgrade ingress \
     --cluster true \
     --domain $DOMAIN
-
-# NOTE: It takes a while...
 ```
+
+It'll take a while until the upgrade is finished, and we'll have to answer a few questions since, this time, we did not specify `--batch-mode`.
+
+First, we're asked to `confirm to delete all and recreate` Ingress rules. Please stick with the default value not only for this question, but for all others. This time, the default value is `Y`.
+
+Next, we are asked whether we want to expose `Ingress` or `Routes`. Unless you're using OpenShift, `Ingress` is the correct (and the default) answer.
+
+Next, we are asked to define the domain. Since we already specified it through the `--domain` argument, the default it is already predefined and we can simply press the enter key.
+
+Now comes the key question. `Would you like to enable cluster wide TLS?`. Again, the default answer is correct. Who wouldn't want TLS if it comes at no additional cost?
+
+TODO: Continue text
 
 ```
 ? Existing ingress rules found in the cluster.  Confirm to delete all and recreate them Yes

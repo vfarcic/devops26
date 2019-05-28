@@ -439,7 +439,7 @@ Press *ctrl+c* when the new build is finished.
 
 All that's left is to check whether the application is now running correctly.
 
-Make sure to replace `[...]` with the address from the `Promoted` step before executing the commands that follow.
+W> Make sure to replace `[...]` with the address from the `Promoted` step before executing the commands that follow.
 
 ```bash
 kubectl --namespace jx-staging get pods

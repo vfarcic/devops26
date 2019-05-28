@@ -110,16 +110,6 @@ W> Please replace `[...]` with the name of your Kubernetes provider (e.g., `gke`
 PROVIDER=[...]
 ```
 
-At the time of this writing (April 2019), serverless Jenkins X has problems with container registry services like ECR and Azure Container Registry. Since it works correctly with Docker Registry running inside a cluster, we'll force it by adding `docker-registry` entry in `myvalues.yaml`.
-
-```bash
-echo "nexus:
-  enabled: false
-docker-registry:
-  enabled: true
-" | tee myvalues.yaml
-```
-
 Now we can install the serverless flavor of Jenkins X.
 
 ```bash

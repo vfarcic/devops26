@@ -12,8 +12,6 @@ jx version
 
 echo "nexus:
   enabled: false
-docker-registry:
-  enabled: true
 " | tee myvalues.yaml
 
 jx create cluster aks \
