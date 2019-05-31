@@ -142,6 +142,7 @@ vfarcic/environment-tekton-staging/master #1                 55s      31s Succee
 # Stop with *ctrl+c*
 
 NAMESPACE=$(kubectl config view \
+    --minify \
     --output jsonpath="{..namespace}")
 
 kubectl \

@@ -12,7 +12,8 @@ open "https://github.com/jenkins-x/jenkins-x-versions"
 
 PLATFORM_VERSION=[...]
 
-BRANCH=$(kubectl config view \
+NAMESPACE=$(kubectl config view \
+    --minify \
     --output jsonpath="{..namespace}")
 
 cd go-demo-6
@@ -98,6 +99,7 @@ jx get activities \
 jx get applications --env staging
 
 NAMESPACE=$(kubectl config view \
+    --minify \
     --output jsonpath="{..namespace}")
 
 jx upgrade ingress \
@@ -141,4 +143,3 @@ hub delete -y \
 rm -rf environment-$ENVIRONMENT-production
 
 rm -rf ~/.jx/environments/$GH_USER/environment-$ENVIRONMENT-*
-```

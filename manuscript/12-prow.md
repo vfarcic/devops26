@@ -106,8 +106,6 @@ jx get activities \
 
 We created a Go-based project called `jx-prow`, entered into the local copy of the Git repository `jx` created for us, and started watching the activity. After a while, all the steps in the output will be in the `Succeeded` status, and we can stop the watcher by pressing *ctrl+c*.
 
-W> At the time of this writing (April 2019) there is a bug that causes the overall pipeline build to report as `Running` even though all the stages are `Succeeded`. The build changed the code in the staging environment which, in turn, initiated another build that deploys the application to staging. The issue is that one build does not correctly track the other. If that happens in your case, feel free to ignore it and consider the build finished when the last stage (`Update`) is `Succeeded`.
-
 When we created a new project, Git sent a webhook to Prow which, in turn, notified the system that it should run a pipeline build. Even though different processes are running builds in serverless Jenkins (e.g., Pipeline Operator and Tekton), they are functionally the same as they were before with the static flavor. We'll explore those processes later. We'll conclude that the build was successful and, as a result, we got the application deployed to the staging environment just as before when we used static Jenkins X. For now, we're mostly interested in ChatOps (or GitChat) features available through Prow.
 
 Since most of the ChatOps features apply to pull requests, we need to create one.

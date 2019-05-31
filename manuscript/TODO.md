@@ -13,10 +13,9 @@
 - [X] 11-serverless.md
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
-- [ ] 14-upgrade.md
-- [ ] Publish "Changing Domain Patterns"
+- [X] 14-upgrade.md
+- [ ] 99-progressive-delivery.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
-- [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
 - [ ] Rewrite the *Due to the current limitation...* warning
@@ -25,7 +24,6 @@
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
-- [ ] 99-progressive-delivery.md
 - [ ] 99-advanced-pipelines.md
 - [ ] 99-gitops.md
 - [ ] 99-3rd-party-apps.md

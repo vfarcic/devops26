@@ -109,38 +109,41 @@ For your convenience, the Gists from the previous chapter are available below as
 
 TODO: Viktor: Check whether `extension-model` or some other branch should be restored
 
-I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the `extension-model` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the branch that contain all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+
+W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. The commands that follow will restore `extension-model-jx` if you are using static Jenkins X, or `extension-model-cd` if you prefer the serverless flavor.
 
 ```bash
-# Only if serverless
-BRANCH=extension-model
-
-# Only if static
-BRANCH=versioning
+NAMESPACE=$(kubectl config view \
+    --minify \
+    --output jsonpath="{..namespace}")
 
 cd go-demo-6
 
 git pull
 
-git checkout $BRANCH
+git checkout extension-model-$NAMESPACE
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge $BRANCH
+git merge extension-model-$NAMESPACE
 
 git push
-
-# Only if not reusing the cluster from the previous chapter
-jx import --pack go --batch-mode
 
 cd ..
 ```
 
-Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
+I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
-Now we can promote our last release to production.
+```bash
+cd go-demo-6
+
+jx import --pack go --batch-mode
+
+cd ..
+```
 
 ## Requirement Installation
 
@@ -361,7 +364,7 @@ On the first build of our app, Jenkins X will build and deploy the application H
 ```bash
 # Only if serverless
 jx get activities \
-    --filter environment-tekton-staging \
+    --filter environment-tekton-staging/master \
     --watch
 
 # Only if serverless
@@ -419,13 +422,6 @@ jx get activities \
     --watch
 
 # Press *ctrl+c* when the activity is finished
-
-# Only if serverless and the application was not already promoted to production
-jx get activities \
-    --filter environment-tekton-staging \
-    --watch
-
-# Press *ctrl+c* when the activity is finisheds
 
 jx get applications -e staging
 
