@@ -73,11 +73,10 @@ For your convenience, the Gists from the previous chapter are available below as
 
 I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the branch that contain all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
-W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. The commands that follow will restore `extension-mode-jx` if you are using static Jenkins X, or `extension-mode-cd` if you prefer the serverless flavor.
+W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. The commands that follow will restore `extension-model-jx` if you are using static Jenkins X, or `extension-model-cd` if you prefer the serverless flavor. For that to work, you'll need to replace `[...]` with `cd` if you are running serverless Jenkins X, or with `jx` if you are using the static flavor.
 
 ```bash
-BRANCH=$(kubectl config view \
-    --output jsonpath="{..namespace}")
+NAMESPACE=[...]
 
 cd go-demo-6
 
