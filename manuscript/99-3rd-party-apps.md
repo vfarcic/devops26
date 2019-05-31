@@ -141,11 +141,8 @@ vfarcic/environment-tekton-staging/master #1                 55s      31s Succee
 ```bash
 # Stop with *ctrl+c*
 
-# If serverless
-NAMESPACE=cd
-
-# If static
-NAMESPACE=jx
+NAMESPACE=$(kubectl config view \
+    --output jsonpath="{..namespace}")
 
 kubectl \
     --namespace $NAMESPACE-staging \

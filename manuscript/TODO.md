@@ -14,18 +14,23 @@
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
 - [ ] 14-upgrade.md
-- [ ] 99-advanced-pipelines.md
-- [ ] 99-gitops.md
-- [ ] 99-3rd-party-apps.md
-- [ ] 99-progressive-delivery.md
+- [ ] Publish "Changing Domain Patterns"
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *At the time of this writing (April 2019)...* paragraph and the commands below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
+- [ ] Remove *Do not upgrade addons just yet! ...* warning
+- [ ] Remove *There is a bug (undocumented feature) in...* warning
+- [ ] Remove *If you do see the new domain...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
+- [ ] 99-progressive-delivery.md
+- [ ] 99-advanced-pipelines.md
+- [ ] 99-gitops.md
+- [ ] 99-3rd-party-apps.md
 - [ ] 99-pipeline-from-scratch.md
+- [ ] 99-ui.md
 - [ ] 99-teams-and-multi-cluster.md
 - [ ] 99-anchore.md
 - [ ] 99-add-app.md
@@ -51,6 +56,7 @@
 - [ ] 99-knative.md
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-nexus-integration.md
+- [ ] 99-share-jx-access.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com
