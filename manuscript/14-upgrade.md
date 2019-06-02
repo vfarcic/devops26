@@ -371,6 +371,8 @@ Please make sure that you are logged in and open *Settings* followed by *Webhook
 
 ![Figure 14-2: Updated webhook with the new domain and HTTP protocol](images/ch14/upgraded-webhook.png)
 
+I> If you're using static Jenkins, your webhook should look like this `https://jenkins.jx.play-with-jx.com/github-webhook/`
+
 The fact that webhooks were modified does not necessarily mean that they work. We can check that out by pushing a change. For brevity, we'll skip creating a pull request and simply make a change to the master branch.
 
 W> If you changed the domain DNS, make sure that considerable time passed so that the update was propagated across the Web. One hour should be enough. Otherwise, GitHub might not yet know that your DNS was updated.
