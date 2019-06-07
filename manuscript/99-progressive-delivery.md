@@ -150,8 +150,13 @@ cd ..
 We can easily install Istio, Prometheus and Flagger with `jx`
 
 ```bash
+ulimit -n 2048
 jx create addon istio
 ```
+
+NOTE: we need to temporarily increase the number of open files to install Istio.
+
+NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
 
 When installing Istio a new ingress gateway servie is created that can send all the incoming traffic to services based on Istio rules or `VirtualServices`. This achieves a similar functionality than that of the ingress controller, but using Istio configuration instead of ingresses, that allows us to create more advanced rules for incoming traffic.
 
