@@ -172,12 +172,6 @@ echo $ISTIO_IP
 Let's continue with the other addons
 
 ```bash
-# Only if serverless
-NAMESPACE=cd
-
-# Only if static
-NAMESPACE=jx
-
 jx create addon flagger
 ```
 
