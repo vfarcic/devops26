@@ -65,7 +65,7 @@ aws autoscaling \
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 echo $IAM_ROLE
@@ -112,7 +112,7 @@ aws elbv2 delete-load-balancer \
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleNam \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 echo $IAM_ROLE
