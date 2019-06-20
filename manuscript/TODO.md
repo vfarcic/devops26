@@ -14,7 +14,7 @@
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
 - [X] 14-upgrade.md
-- [ ] 99-advanced-pipelines.md
+- [ ] 15-advanced-pipelines.md
 - [ ] 99-env-in-separate-cluster.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -56,6 +56,8 @@
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-nexus-integration.md
 - [ ] 99-share-jx-access.md
+- [ ] 99-running-multiple-pipelines.md (https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646)
+- [ ] 99-advanced-pipelines-2.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

@@ -1,14 +1,14 @@
 ## TODO
 
-- [ ] Code
+- [X] Code
 - [ ] Write
-- [ ] Code review static GKE
-- [ ] Code review serverless GKE
-- [ ] Code review static EKS
+- [-] Code review static GKE
+- [X] Code review serverless GKE
+- [-] Code review static EKS
 - [ ] Code review serverless EKS
-- [ ] Code review static AKS
+- [-] Code review static AKS
 - [ ] Code review serverless AKS
-- [ ] Code review existing static cluster
+- [-] Code review existing static cluster
 - [ ] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
@@ -22,7 +22,7 @@
 
 # Extending Jenkins X Pipelines
 
-W> The examples in this chapter work only with serverless Jenkins X.
+W> The examples in this chapter work only with serverless Jenkins X. Nevertheless, pipelines defined in buildpacks use (almost) the same format as those used by serverless Jenkins X. When we create a new quickstart project or import an existing one into static Jenkins X, buildpack pipelines are converted into Jenkinsfile. Therefore, even if you are not using serveless Jenkins X, advanced knowledge of writing YAML-based pipelines will help you when you choose to modify buildpack pipelines.
 
 So far we relied mostly on pipelines created for us through build packs. No matter how much effort the community puts into creating build packs, it is almost certain that they will not fulfil all our needs. Every organization has something "special" and that inevitably leads to discrepancies between generic and tailor-made pipelines. So far, we did extend our pipelines but we did not yet explore the benefits additional instructions might provide. The time has come to extend them beyond out-of-the-box steps.
 
@@ -42,35 +42,25 @@ I> All the commands from this chapter are available in the [13-pipeline-extensio
 
 For your convenience, the Gists that will create a new serverless Jenkins X cluster or install it inside an existing one are as follows.
 
-* Create new static **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
 * Create new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create new static **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
 * Create new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create new static **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
 * Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
-TODO: Check whether the branch is correct
-
-W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. The commands that follow will restore `extension-model-jx` if you are using static Jenkins X, or `extension-model-cd` if you prefer the serverless flavor.
+I> The commands that follow will reset your *go-demo-6* `master` with the contents of the `extension-model-cd` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
 ```bash
-NAMESPACE=$(kubectl config view \
-    --minify \
-    --output jsonpath="{..namespace}")
-
 cd go-demo-6
 
 git pull
 
-git checkout extension-model-$NAMESPACE
+git checkout extension-model-cd
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-$NAMESPACE
+git merge extension-model-cd
 
 git push
 
@@ -93,13 +83,20 @@ It would be silly to explore in more depth Jenkins X pipeline syntax using rando
 
 What is our go-demo-6 pipeline missing? The answer can be a huge list that usually depends on your needs and processes. Nevertheless, they are a few important improvement we are likely going to agree on.
 
-We are not waiting until deployment of our releases rolls out. As a result, functional tests are likely going to fail or execute against the old release. We can avoid that easily by executing `kubectl rollout status` before running funcional and other types of tests that require a live application. That is definitely a better solution than executing `sleep` that is likely going to run longer than needed or be too short and end up with the same result as if we do not run it at all.
+We are not waiting until deployment of our releases rolls out. As a result, functional tests are likely going to fail or execute against the old release. We can avoid that easily by executing `kubectl rollout status` before running funcional and other types of tests that require a live application. That is definitely a better solution than executing (only) `sleep` that is likely going to run longer than needed or be too short and end up with the same result as if we do not run it at all.
 
 The steps we added so far (at least when using serverless Jenkins) were not named. As a result, it is sometimes hard to follow progress through `jx get activities` as well as to deduce which part of logs belongs too which step.
 
 All in all, the improvements we'll try to add to our pipelines are as follows.
 
-* TODO: Improvements
+* We'll add names to pipeline steps
+* We'll learn how to define multi-line commands
+* We'll start using additional environment variables
+* We'll define custom agents
+* We'll learn how to override pipelines, stages, and steps defined in build packs
+* We'll learn how to implement loops
+
+Do not think that those things are all you can do with serverless Jenkins X pipelines. That's only a fraction of what we can do. But, we need to start somewhere, and I have a set of improvements to our application that we'll be able to implement using the beforementined concepts. It's up to you to expand your knowledge of pipeline constructs by exploring the other definitions you can use.
 
 You might find those improvements useful as they are, or you might think of them as things you do not need. Both options are OK since the goal is not to show you how to add specific steps like code coverage, but rather to showcase some of the pipeline constructs that you might use in the context of your projets. All in all, focus on value brought by additional pipeline instruction, and not on examples I'll use to demonstrate how those constructs work.
 
@@ -142,23 +139,31 @@ Before we move on an implement what we just discussed, there is one more problem
 
 All in all, we'll add a step with a multi-line command that will make the pipeline wait until the application rolls out, and we'll make sure that all our steps have a name. Here we go.
 
-We'll replace the content of `jenkins-x.yml` with the command that follows.
+We'll create a new branch and replace the content of `jenkins-x.yml` with the command that follows.
+
+I> You'll see `# This is new` and `# This was modified` comments so that it's easier to figure out which parts of the pipeline are new, and which are left unchanged.
 
 ```bash
+git checkout -b better-pipeline
+
 echo "buildPack: go
 pipelineConfig:
   pipelines:
     pullRequest:
       build:
         preSteps:
+        # This was modified
         - name: unit-tests
           command: make unittest
       promote:
         steps:
+        # This is new
         - name: rollout
           command: |
-            NS=$(echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]')
-            kubectl -n \$NS rollout status deployment preview-preview
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
+        # This was modified
         - name: functional-tests
           command: ADDRESS=\`jx get preview --current 2>&1\` make functest
 " | tee jenkins-x.yml
@@ -166,7 +171,7 @@ pipelineConfig:
 
 What did we change? We added the `rollout` step that contains a multi-line `command` that defines the namespace where the preview is deployed. All we had to do is specify pipe (`|`) and indent all the lines of the command.
 
-Since the branch is part of the namespace and it is in upper case (e.g., `PR-27`), the namespace is converted to lower case letters to comply with the standard. The second line of the `rollout` command executes `kubectl rollout status` thus forcing the pipeline to wait until the app is fully up and running before executing functional tests. Additional, if the rollout will fail, the pipeline would fail as well.
+Since the branch is part of the namespace and it is in upper case (e.g., `PR-27`), the namespace is converted to lower case letters to comply with the standard. The second line of the `rollout` command sleeps for fifteen seconds. The reason for that wait is to ensure that the promotion build initiated by changing the repositories associated with automatic promotion to environments has started. Finally, the third line executes `kubectl rollout status` thus forcing the pipeline to wait until the app is fully up and running before executing functional tests. Additional, if the rollout will fail, the pipeline would fail as well.
 
 In addition to the new step, we also added `name` to all the steps we created in previous chapters. Now we have `unit-tests` as well as `functional-tests`. Please note that you should not use space and "special" characters in names. Even though it is not a requirement, we prefer to have the names all in lower case and words separated with dashes (`-`). We'll see, later on, what Jenkins X does with those names.
 
@@ -179,23 +184,21 @@ jx step syntax validate pipeline
 Assuming that you did not make a typo, the output should claim that the format of the pipeline was `successfully validated`. Now we can push the changes to GitHub.
 
 ```bash
-git checkout -b better-pipeline
-
 git add .
 
 git commit -m "rollout status"
 
-git push \
-    --set-upstream origin better-pipeline
+git push --set-upstream origin \
+    better-pipeline
 ```
 
 Since all the changes we did so far related to the `pullRequest` pipeline, we need to create one if we're going to test that everything works as expected.
 
 ```bash
 jx create pullrequest \
-  --title "Better pipeline" \
-  --body "What I can say?" \
-  --batch-mode
+    --title "Better pipeline" \
+    --body "What I can say?" \
+    --batch-mode
 ```
 
 Next, we'll explore the activities related to this pull request. We'll do that by limiting the activities for the branch that corresponds with the PR.
@@ -218,30 +221,28 @@ The output is as follows.
 
 ```
 ...
-vfarcic/go-demo-6/PR-101 #1                                1m57s    1m54s Succeeded
-  from build pack                                          1m57s    1m54s Succeeded
-    Credential Initializer Qbjrv                           1m57s       0s Succeeded
-    Working Dir Initializer Kjn62                          1m56s       0s Succeeded
-    Place Tools                                            1m55s       0s Succeeded
-    Build Container Build                                  1m53s      33s Succeeded
-    Build Make Linux                                       1m53s      29s Succeeded
-    Build Unit Tests                                       1m54s      27s Succeeded
-    Git Merge                                              1m54s       3s Succeeded
-    Git Source Vfarcic Go Demo 6 Pr 101 Server Qnnxw       1m54s       1s Succeeded https://github.com/vfarcic/go-demo-6
-    Postbuild Post Build                                   1m53s      33s Succeeded
-    Promote Functional Tests                               1m52s    1m49s Succeeded
-    Promote Jx Preview                                     1m53s    1m21s Succeeded
-    Promote Make Preview                                   1m53s      49s Succeeded
-    Promote Rollout                                        1m52s    1m46s Succeeded
-  Preview                                                    33s           https://github.com/vfarcic/go-demo-6/pull/101
-    Preview Application                                      33s           http://go-demo-6.cd-vfarcic-go-demo-6-pr-101.34.74.132.38.nip.io
+vfarcic/go-demo-6/PR-103 #1        1m36s 1m28s Succeeded
+  from build pack                  1m36s 1m28s Succeeded
+    Credential Initializer Qtb2s   1m36s    0s Succeeded
+    Working Dir Initializer Tchx7  1m35s    0s Succeeded
+    Place Tools                    1m34s    0s Succeeded
+    Git Source Vfarcic Go Demo ... 1m33s    1s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                      1m32s    2s Succeeded
+    Build Unit Tests               1m32s   25s Succeeded
+    Build Make Linux               1m32s   27s Succeeded
+    Build Container Build          1m31s   30s Succeeded
+    Postbuild Post Build           1m31s   31s Succeeded
+    Promote Make Preview           1m31s   51s Succeeded
+    Promote Jx Preview             1m30s 1m17s Succeeded
+    Promote Rollout                1m30s 1m18s Succeeded
+    Promote Functional Tests       1m30s 1m22s Succeeded
+  Preview                            18s        https://github.com/vfarcic/go-demo-6/pull/103
+    Preview Application              18s        http://go-demo-6.cd-vfarcic-go-demo-6-pr-103.35.196.24.179.nip.io
 ```
 
 You'll notice that now we have a new step `Promote Rollout`. It is a combination of the name of the stage (`promote`) and the `name` of the step we defined earlier. Similarly, you'll notice that our unit and functional tests are now properly named as well.
 
 Feel free to stop watching the activities by pressing *ctrl+c*.
-
-TODO: https://github.com/jenkins-x/jx/issues/4016
 
 To be on the safe side, we'll take a quick look at the logs to confirm that the `rollout status` command is indeed executed.
 
@@ -300,15 +301,15 @@ Let's start by retrieving a Codecov token for our *go-demo-6* repository.
 open "https://codecov.io/"
 ```
 
-I will skip giving you instructions how to add your *go-demo-6* fork into Codecov. I'm sure that you will be able to follow the instructins provided on the site.
+I will skip giving you instructions how to add your *go-demo-6* fork into Codecov. I'm sure that you will be able to sign up and follow the instructins provided on the site.
 
-NOTE: Copy the token
+TODO: Continue text
+
+NOTE: Optionally, install Codecov's GitHub App (the message will appear at the top)
 
 ```bash
 CODECOV_TOKEN=[...]
 ```
-
-NOTE: Optionally, install Codecov's GitHub App (the message will appear at the top)
 
 ```bash
 open "https://github.com/vfarcic/codecov"
@@ -327,15 +328,17 @@ RUN chmod +x /usr/local/bin/codecov.sh
 ```bash
 echo "buildPack: go
 pipelineConfig:
+  # This is new
   env:
   - name: CODECOV_TOKEN
-    value: \"$CODECOV_TOKEN\" # TODO: Replace with the token
+    value: \"$CODECOV_TOKEN\"
   pipelines:
     pullRequest:
       build:
         preSteps:
         - name: unit-tests
           command: make unittest
+        # This is new
         - name: code-coverage
           command: codecov.sh
           agent:
@@ -344,10 +347,11 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=$(echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]')
-            kubectl -n \$NS rollout status deployment preview-preview
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
-          command: ADDRESS=`jx get preview --current 2>&1` make functest
+          command: ADDRESS=\`jx get preview --current 2>&1\` make functest
 " | tee jenkins-x.yml
 ```
 
@@ -363,22 +367,128 @@ git push
 jx get activities \
     --filter go-demo-6/$BRANCH \
     --watch
+```
 
+```
+...
+    Build Code Coverage  35s  27s  Succeeded
+...
+```
+
+```bash
 # Cancel with *ctrl+c*
 
 jx get build logs --current
 
 # Select the latest build of the PR
+```
 
+```
+...
+
+  _____          _
+ / ____|        | |
+| |     ___   __| | ___  ___ _____   __
+| |    / _ \ / _` |/ _ \/ __/ _ \ \ / /
+| |___| (_) | (_| |  __/ (_| (_) \ V /
+ \_____\___/ \__,_|\___|\___\___/ \_/
+                              Bash-8a28df4
+
+
+x> No CI provider detected.
+    Testing inside Docker? http://docs.codecov.io/docs/testing-with-docker
+    Testing with Tox? https://docs.codecov.io/docs/python#section-testing-with-tox
+    project root: .
+--> token set from env
+    Yaml not found, that's ok! Learn more at http://docs.codecov.io/docs/codecov-yaml
+==> Running gcov in . (disable via -X gcov)
+find: unrecognized: -execdir
+BusyBox v1.29.3 (2019-01-24 07:45:07 UTC) multi-call binary.
+
+Usage: find [-HL] [PATH]... [OPTIONS] [ACTIONS]
+
+Search for files and perform actions on them.
+First failed action stops processing of current file.
+Defaults: PATH is current directory, action is '-print'
+
+        -L,-follow      Follow symlinks
+        -H              ...on command line only
+        -xdev           Don't descend directories on other filesystems
+        -maxdepth N     Descend at most N levels. -maxdepth 0 applies
+                        actions to command line arguments only
+        -mindepth N     Don't act on first N levels
+        -depth          Act on directory *after* traversing it
+
+Actions:
+        ( ACTIONS )     Group actions for -o / -a
+        ! ACT           Invert ACT's success/failure
+        ACT1 [-a] ACT2  If ACT1 fails, stop, else do ACT2
+        ACT1 -o ACT2    If ACT1 succeeds, stop, else do ACT2
+                        Note: -a has higher priority than -o
+        -name PATTERN   Match file name (w/o directory name) to PATTERN
+        -iname PATTERN  Case insensitive -name
+        -path PATTERN   Match path to PATTERN
+        -ipath PATTERN  Case insensitive -path
+        -regex PATTERN  Match path to regex PATTERN
+        -type X         File type is X (one of: f,d,l,b,c,s,p)
+        -perm MASK      At least one mask bit (+MASK), all bits (-MASK),
+                        or exactly MASK bits are set in file's mode
+        -mtime DAYS     mtime is greater than (+N), less than (-N),
+                        or exactly N days in the past
+        -mmin MINS      mtime is greater than (+N), less than (-N),
+                        or exactly N minutes in the past
+        -newer FILE     mtime is more recent than FILE's
+        -inum N         File has inode number N
+        -user NAME/ID   File is owned by given user
+        -group NAME/ID  File is owned by given group
+        -size N[bck]    File size is N (c:bytes,k:kbytes,b:512 bytes(def.))
+                        +/-N: file size is bigger/smaller than N
+        -links N        Number of links is greater than (+N), less than (-N),
+                        or exactly N
+        -prune          If current file is directory, don't descend into it
+If none of the following actions is specified, -print is assumed
+        -print          Print file name
+        -print0         Print file name, NUL terminated
+        -exec CMD ARG ; Run CMD with all instances of {} replaced by
+                        file name. Fails if CMD exits with nonzero
+        -exec CMD ARG + Run CMD with {} replaced by list of file names
+        -delete         Delete current file/directory. Turns on -depth option
+==> Python coveragepy not found
+==> Searching for coverage reports in:
+    + .
+    -> Found 1 reports
+==> Detecting git/mercurial file structure
+==> Reading reports
+    + ./coverage.txt bytes=1289
+==> Appending adjustments
+    http://docs.codecov.io/docs/fixing-reports
+    + Found adjustments
+==> Gzipping contents
+==> Uploading reports
+    url: https://codecov.io
+    query: branch=master&commit=eb67f2a869f16ce1a02d4903f6eec0af124300dc&build=&build_url=&name=&tag=&slug=vfarcic%2Fgo-demo-6&service=&flags=&pr=&job=
+    -> Pinging Codecov
+https://codecov.io/upload/v4?package=bash-8a28df4&token=4384f439-9da1-4be3-af60-ee80aed67bc8&branch=master&commit=eb67f2a869f16ce1a02d4903f6eec0af124300dc&build=&build_url=&name=&tag=&slug=vfarcic%2Fgo-demo-6&service=&flags=&pr=&job=
+    -> Uploading
+    -> View reports at https://codecov.io/github/vfarcic/go-demo-6/commit/eb67f2a869f16ce1a02d4903f6eec0af124300dc
+...
+```
+
+```bash
 kubectl create secret \
     generic codecov \
     --from-literal=token=$CODECOV_TOKEN
 ```
 
-```yaml
-buildPack: go
+```
+secret/codecov created
+```
+
+```bash
+echo "buildPack: go
 pipelineConfig:
   env:
+  # This was modified
   - name: CODECOV_TOKEN
     valueFrom:
       secretKeyRef:
@@ -398,14 +508,12 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=$(echo cd-$REPO_OWNER-go-demo-6-$BRANCH_NAME | tr '[:upper:]' '[:lower:]')
-            kubectl -n $NS rollout status deployment preview-preview
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
-          command: ADDRESS=`jx get preview --current 2>&1` make functest
-```
-
-```bash
-# TODO: Replace hard-coded domain with a variable
+          command: ADDRESS=\`jx get preview --current 2>&1\` make functest
+" | tee jenkins-x.yml
 
 jx step syntax validate pipeline
 
@@ -420,26 +528,36 @@ jx get activities \
     --watch
 
 # Cancel with *ctrl+c*
-
-# Open the `Preview` link to see the PR
-
-jx get build logs --current
-
-# Select the latest build of the PR
 ```
 
-## New Structure (e.g., `stages`)
+```
+...
+  Preview               21s https://github.com/vfarcic/go-demo-6/pull/104
+    Preview Application 21s http://go-demo-6.cd-vfarcic-go-demo-6-pr-104.34.214.94.88.nip.io
+```
 
-## Chat
+```bash
+# Open the `Preview` link to see the PR
+```
 
-## Loops
+![Figure 15-TODO: TODO:](images/ch15/codecov-github-pr.png)
 
-TODO: Continue code
+![Figure 15-TODO: TODO:](images/ch15/codecov-github-pr-checks.png)
 
-TODO: https://github.com/jenkins-x/jx/issues/4228
+NOTE: Click the *Merge pull request* followed by the *Confirm merge* button. Click the *Delete branch* button.
 
-```yaml
-buildPack: go
+```bash
+git checkout master
+
+git branch -d better-pipeline
+```
+
+## Overriding Pipelines, Stages And Steps And Implementing Loops
+
+```bash
+git pull
+
+echo "buildPack: go
 pipelineConfig:
   env:
   - name: CODECOV_TOKEN
@@ -451,14 +569,6 @@ pipelineConfig:
     pullRequest:
       build:
         preSteps:
-        - loop:
-          variable: ARCH
-          values:
-          - arch-1
-          - arch-2
-          - arch-3
-          steps:
-          - command: echo ${ARCH}
         - name: unit-tests
           command: make unittest
         - name: code-coverage
@@ -469,13 +579,16 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=$(echo cd-$REPO_OWNER-go-demo-6-$BRANCH_NAME | tr '[:upper:]' '[:lower:]')
-            kubectl -n $NS rollout status deployment preview-preview
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
-          command: ADDRESS=`jx get preview --current 2>&1` make functest
-```
+          command: ADDRESS=\`jx get preview --current 2>&1\` make functest
+    # This is new
+    overrides:
+    - pipeline: release
+" | tee jenkins-x.yml
 
-```bash
 jx step syntax validate pipeline
 
 git add .
@@ -485,44 +598,496 @@ git commit -m "Multi-architecture"
 git push
 
 jx get activities \
-    --filter go-demo-6/$BRANCH \
+    --filter go-demo-6/master \
     --watch
 
-# Cancel with *ctrl+c*
-
-jx get build logs --current
+# Stop with *ctrl+c*
 ```
 
-## Manipulating Defaults (doesn't work, https://github.com/jenkins-x/jx/pull/3934)
-
-```yaml
-buildPack: go
-pipelineConfig:
-  pipelines:
-    overrides:
-    - pipeline: pullRequest
-      stage: build
-      name: unit-tests
-      step:
-        command: make unittest
-      type: before
+```
+...
+vfarcic/go-demo-6/master #3        9s 4s Succeeded
+  from build pack                  9s 4s Succeeded
+    Credential Initializer Ch2fc   9s 0s Succeeded
+    Working Dir Initializer 4gsbn  8s 0s Succeeded
+    Place Tools                    7s 0s Succeeded
+    Git Source Vfarcic Go Demo ... 6s 0s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                      6s 1s Succeeded
+    Setup Jx Git Credentials       6s 1s Succeeded
 ```
 
 ```bash
+echo "buildPack: go
+pipelineConfig:
+  env:
+  - name: CODECOV_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: token
+        name: codecov
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - name: unit-tests
+          command: make unittest
+        - name: code-coverage
+          command: codecov.sh
+          agent:
+            image: vfarcic/codecov
+      promote:
+        steps:
+        - name: rollout
+          command: |
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
+        - name: functional-tests
+          command: ADDRESS=\`jx get preview --current 2>&1\` make functest
+    overrides:
+    - pipeline: release
+      # This is new
+      stage: build
+    # This is new
+    release:
+      promote:
+        steps:
+        - name: rollout
+          command: |
+            sleep 15
+            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+" | tee jenkins-x.yml
+
+jx step syntax validate pipeline
+
 git add .
 
-git commit -m "changing defaults"
+git commit -m "Multi-architecture"
 
 git push
 
 jx get activities \
-    --filter go-demo-6/$BRANCH \
+    --filter go-demo-6/master \
     --watch
 
+# NOTE: It'll take a while for rollout to time out.
+
+# Stop with *ctrl+c*
+```
+
+```
+...
+vfarcic/go-demo-6/master #5       4m59s 4m49s Failed Version: 1.0.193
+  from build pack                 4m59s 4m49s Failed
+    Credential Initializer G72ls  4m59s    0s Succeeded
+    Working Dir Initializer Z7ns2 4m58s    0s Succeeded
+    Place Tools                   4m57s    0s Succeeded
+    Git Source Vfarcic Go Demo... 4m56s    0s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                     4m56s    1s Succeeded
+    Setup Jx Git Credentials      4m56s    2s Succeeded
+    Promote Changelog             4m56s    8s Succeeded
+    Promote Helm Release          4m55s   16s Succeeded
+    Promote Jx Promote            4m55s 1m29s Succeeded
+    Promote Rollout               4m55s 4m45s Failed
+  Promote: staging                4m32s  1m6s Succeeded
+    PullRequest                   4m32s  1m6s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/4 Merge SHA: e943036bad3ecddce8769c64e5eaa39875d76611
+    Update                        3m26s    0s Succeeded
+    Promoted                      3m26s    0s Succeeded  Application is at: http://go-demo-6.cd-staging.34.214.94.88.nip.io
+```
+
+```bash
+echo "buildPack: go
+pipelineConfig:
+  env:
+  - name: CODECOV_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: token
+        name: codecov
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - name: unit-tests
+          command: make unittest
+        - name: code-coverage
+          command: codecov.sh
+          agent:
+            image: vfarcic/codecov
+      promote:
+        steps:
+        - name: rollout
+          command: |
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
+        - name: functional-tests
+          command: ADDRESS=\`jx get preview --current 2>&1\` make functest
+    # Removed overrides
+    release:
+      promote:
+        steps:
+        - name: rollout
+          command: |
+            sleep 15
+            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+" | tee jenkins-x.yml
+
+jx step syntax effective
+```
+
+```yaml
+buildPack: go
+pipelineConfig:
+  agent:
+    dir: /home/jenkins/go/src/REPLACE_ME_GIT_PROVIDER/REPLACE_ME_ORG/REPLACE_ME_APP_NAME
+    image: go
+    label: jenkins-go
+  env:
+  - name: CODECOV_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: token
+        name: codecov
+  pipelines:
+    pullRequest:
+      pipeline:
+        options:
+          containerOptions:
+            env:
+            - name: DOCKER_REGISTRY
+              valueFrom:
+                configMapKeyRef:
+                  key: docker.registry
+                  name: jenkins-x-docker-registry
+            - name: TILLER_NAMESPACE
+              value: kube-system
+            - name: DOCKER_CONFIG
+              value: /home/jenkins/.docker/
+            - name: GIT_AUTHOR_EMAIL
+              value: jenkins-x@googlegroups.com
+            - name: GIT_AUTHOR_NAME
+              value: jenkins-x-bot
+            - name: GIT_COMMITTER_EMAIL
+              value: jenkins-x@googlegroups.com
+            - name: GIT_COMMITTER_NAME
+              value: jenkins-x-bot
+            - name: JENKINS_URL
+              value: http://jenkins:8080
+            - name: XDG_CONFIG_HOME
+              value: /home/jenkins
+            name: ""
+            resources:
+              requests:
+                cpu: 400m
+                memory: 600Mi
+            securityContext:
+              privileged: true
+            volumeMounts:
+            - mountPath: /home/jenkins
+              name: workspace-volume
+            - mountPath: /var/run/docker.sock
+              name: docker-daemon
+            - mountPath: /home/jenkins/.docker
+              name: volume-0
+        stages:
+        - agent:
+            image: go
+          name: from-build-pack
+          steps:
+          - command: make unittest
+            dir: /workspace/source
+            image: go
+            name: build-unit-tests
+          - command: codecov.sh
+            dir: /workspace/source
+            image: vfarcic/codecov
+            name: build-code-coverage
+          - command: make linux
+            dir: /workspace/source
+            image: go
+            name: build-make-linux
+          - args:
+            - --cache=true
+            - --cache-dir=/workspace
+            - --context=/workspace/source
+            - --dockerfile=/workspace/source/Dockerfile
+            - --destination=036548781187.dkr.ecr.us-west-2.amazonaws.com/vfarcic/go-demo-6:${inputs.params.version}
+            - --cache-repo=036548781187.dkr.ecr.us-west-2.amazonaws.com/todo/cache
+            - --skip-tls-verify-registry=036548781187.dkr.ecr.us-west-2.amazonaws.com
+            command: /kaniko/executor
+            dir: /workspace/source
+            image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
+            name: build-container-build
+          - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION
+            dir: /workspace/source
+            image: go
+            name: postbuild-post-build
+          - command: make preview
+            dir: /workspace/source/charts/preview
+            image: go
+            name: promote-make-preview
+          - command: jx preview --app $APP_NAME --dir ../..
+            dir: /workspace/source/charts/preview
+            image: go
+            name: promote-jx-preview
+          - command: |
+              NS=`echo cd-$REPO_OWNER-go-demo-6-$BRANCH_NAME | tr '[:upper:]' '[:lower:]'`
+              sleep 15
+              kubectl -n $NS rollout status deployment preview-preview --timeout 3m
+            dir: /workspace/source
+            image: go
+            name: promote-rollout
+          - command: ADDRESS=`jx get preview --current 2>&1` make functest
+            dir: /workspace/source
+            image: go
+            name: promote-functional-tests
+    release:
+      pipeline:
+        options:
+          containerOptions:
+            env:
+            - name: DOCKER_REGISTRY
+              valueFrom:
+                configMapKeyRef:
+                  key: docker.registry
+                  name: jenkins-x-docker-registry
+            - name: TILLER_NAMESPACE
+              value: kube-system
+            - name: DOCKER_CONFIG
+              value: /home/jenkins/.docker/
+            - name: GIT_AUTHOR_EMAIL
+              value: jenkins-x@googlegroups.com
+            - name: GIT_AUTHOR_NAME
+              value: jenkins-x-bot
+            - name: GIT_COMMITTER_EMAIL
+              value: jenkins-x@googlegroups.com
+            - name: GIT_COMMITTER_NAME
+              value: jenkins-x-bot
+            - name: JENKINS_URL
+              value: http://jenkins:8080
+            - name: XDG_CONFIG_HOME
+              value: /home/jenkins
+            name: ""
+            resources:
+              requests:
+                cpu: 400m
+                memory: 600Mi
+            securityContext:
+              privileged: true
+            volumeMounts:
+            - mountPath: /home/jenkins
+              name: workspace-volume
+            - mountPath: /var/run/docker.sock
+              name: docker-daemon
+            - mountPath: /home/jenkins/.docker
+              name: volume-0
+        stages:
+        - agent:
+            image: go
+          name: from-build-pack
+          steps:
+          - command: jx step git credentials
+            dir: /workspace/source
+            image: go
+            name: setup-jx-git-credentials
+          - command: make build
+            dir: /workspace/source
+            image: go
+            name: build-make-build
+          - args:
+            - --cache=true
+            - --cache-dir=/workspace
+            - --context=/workspace/source
+            - --dockerfile=/workspace/source/Dockerfile
+            - --destination=036548781187.dkr.ecr.us-west-2.amazonaws.com/vfarcic/go-demo-6:${inputs.params.version}
+            - --cache-repo=036548781187.dkr.ecr.us-west-2.amazonaws.com/todo/cache
+            - --skip-tls-verify-registry=036548781187.dkr.ecr.us-west-2.amazonaws.com
+            command: /kaniko/executor
+            dir: /workspace/source
+            image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
+            name: build-container-build
+          - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:${VERSION}
+            dir: /workspace/source
+            image: go
+            name: build-post-build
+          - command: jx step changelog --version v${VERSION}
+            dir: /workspace/source/charts/go-demo-6
+            image: go
+            name: promote-changelog
+          - command: jx step helm release
+            dir: /workspace/source/charts/go-demo-6
+            image: go
+            name: promote-helm-release
+          - command: jx promote -b --all-auto --timeout 1h --version ${VERSION}
+            dir: /workspace/source/charts/go-demo-6
+            image: go
+            name: promote-jx-promote
+          - command: |
+              sleep 15
+              kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            dir: /workspace/source
+            image: go
+            name: promote-rollout
+```
+
+```bash
+echo "buildPack: go
+pipelineConfig:
+  env:
+  - name: CODECOV_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: token
+        name: codecov
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - name: unit-tests
+          command: make unittest
+        - name: code-coverage
+          command: codecov.sh
+          agent:
+            image: vfarcic/codecov
+      promote:
+        steps:
+        - name: rollout
+          command: |
+            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 15
+            kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
+        - name: functional-tests
+          command: ADDRESS=\`jx get preview --current 2>&1\` make functest
+    overrides:
+    - pipeline: release
+      # This is new
+      stage: build
+      name: make-build
+      steps:
+      - loop:
+          variable: GOOS
+          values:
+          - darwin
+          - linux
+          - windows
+          steps:
+          - name: build
+            command: CGO_ENABLED=0 GOOS=\${GOOS} GOARCH=amd64 go build -o bin/go-demo-6_\${GOOS} main.go
+    release:
+      promote:
+        steps:
+        - name: rollout
+          command: |
+            sleep 15
+            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+" | tee jenkins-x.yml
+
+jx step syntax validate pipeline
+
+cat Dockerfile
+```
+
+```
+FROM scratch
+EXPOSE 8080
+ENTRYPOINT ["/go-demo-6"]
+COPY ./bin/ /
+```
+
+```bash
+cat Dockerfile \
+    | sed -e \
+    's@/bin/ /@/bin/go-demo-6_linux /go-demo-6@g' \
+    | tee Dockerfile
+
+git add .
+
+git commit -m "Multi-architecture"
+
+git push
+
+jx get activities \
+    --filter go-demo-6/master \
+    --watch
+
+# Cancel with *ctrl+c*
+```
+
+```
+...
+vfarcic/go-demo-6/master #6        3m4s 2m55s Succeeded Version: 1.0.194
+  from build pack                  3m4s 2m55s Succeeded
+    Credential Initializer Xb9cv   3m4s    0s Succeeded
+    Working Dir Initializer Qknjp  3m3s    0s Succeeded
+    Place Tools                    3m2s    0s Succeeded
+    Git Source Vfarcic Go Demo...  3m0s    0s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                      3m0s    1s Succeeded
+    Setup Jx Git Credentials       3m0s    1s Succeeded
+    Build1                         3m0s   22s Succeeded
+    Build2                         3m0s   30s Succeeded
+    Build3                         3m0s   46s Succeeded
+    Build Container Build         2m59s   48s Succeeded
+    Build Post Build              2m59s   49s Succeeded
+    Promote Changelog             2m58s   53s Succeeded
+    Promote Helm Release          2m58s  1m2s Succeeded
+    Promote Jx Promote            2m57s 2m16s Succeeded
+    Promote Rollout               2m56s 2m47s Succeeded
+  Promote: staging                1m48s  1m7s Succeeded
+    PullRequest                   1m48s  1m7s Succeeded  PullRequest: ...
+    Update                          41s    0s Succeeded
+    Promoted                        41s    0s Succeeded  Application is at: ...
+```
+
+## Pipelines Without Buildpacks
+
+```bash
+echo "buildPack: none
+pipelineConfig:
+  pipelines:
+    release:
+      pipeline:
+        agent:
+          image: go
+        stages:
+        - name: nothing
+          steps:
+          - name: silly
+            command: echo \"This is a silly pipeline\"" \
+    | tee jenkins-x.yml
+
+git add .
+
+git commit -m "Without buildpack"
+
+git push
+
+jx get activities \
+    --filter go-demo-6/master \
+    --watch
+
+# Cancel with *ctrl+c*
+```
+
+```
+vfarcic/go-demo-6/master #7       14s 6s Succeeded
+  nothing                         14s 6s Succeeded
+    Credential Initializer Hwqm2  14s 0s Succeeded
+    Working Dir Initializer Lqnvn 13s 0s Succeeded
+    Place Tools                   12s 0s Succeeded
+    Git Source Vfarcic Go Demo... 11s 1s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                     11s 2s Succeeded
+    Silly                         10s 2s Succeeded
+```
+
+## The Schema
+
+```bash
 jx step syntax schema
 ```
 
 ```json
+JSON schema for jenkins-x.yml:
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "$ref": "#/definitions/ProjectConfig",
@@ -539,7 +1104,24 @@ jx step syntax schema
       "additionalProperties": false,
       "type": "object"
     },
-    ...
+    "Agent": {
+      "properties": {
+        "container": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ChatConfig": {
       "properties": {
         "developerChannel": {
@@ -1223,30 +1805,72 @@ jx step syntax schema
 ```bash
 jx step syntax schema --buildpack
 
-jx step syntax validate pipeline
-
 jx step syntax validate buildpacks
 ```
 
-TODO: https://cloudbees.atlassian.net/wiki/spaces/JO/pages/914326154/YAML+Syntax+Reference?utm_term=page&utm_source=connie-slack&utm_medium=referral-external
+```
+SUCCESS: classic: C++
+SUCCESS: classic: D
+SUCCESS: classic: appserver
+SUCCESS: classic: custom-jenkins
+SUCCESS: classic: dropwizard
+SUCCESS: classic: go
+SUCCESS: classic: gradle
+SUCCESS: classic: javascript
+SUCCESS: classic: liberty
+SUCCESS: classic: maven
+SUCCESS: classic: maven-java11
+SUCCESS: classic: python
+SUCCESS: classic: rust
+SUCCESS: classic: scala
+SUCCESS: classic: typescript
+SUCCESS: kubernetes: C++
+SUCCESS: kubernetes: D
+SUCCESS: kubernetes: apps
+SUCCESS: kubernetes: appserver
+SUCCESS: kubernetes: charts
+SUCCESS: kubernetes: csharp
+SUCCESS: kubernetes: custom-jenkins
+SUCCESS: kubernetes: cwp
+SUCCESS: kubernetes: docker
+SUCCESS: kubernetes: docker-helm
+SUCCESS: kubernetes: dropwizard
+SUCCESS: kubernetes: environment
+SUCCESS: kubernetes: go
+SUCCESS: kubernetes: go-mongodb
+SUCCESS: kubernetes: gradle
+SUCCESS: kubernetes: helm
+SUCCESS: kubernetes: javascript
+SUCCESS: kubernetes: jenkins
+SUCCESS: kubernetes: liberty
+SUCCESS: kubernetes: maven
+SUCCESS: kubernetes: maven-java11
+SUCCESS: kubernetes: ml-python-service
+SUCCESS: kubernetes: ml-python-training
+SUCCESS: kubernetes: nop
+SUCCESS: kubernetes: php
+SUCCESS: kubernetes: python
+SUCCESS: kubernetes: ruby
+SUCCESS: kubernetes: rust
+SUCCESS: kubernetes: scala
+SUCCESS: kubernetes: typescript
+```
 
 TODO: If static, use build pack pipelines as much as possible
 
-TODO: Multiple pipeline files: https://github.com/jenkins-x/jenkins-x-versions
+## Going Back To Where We Started
 
-TODO: https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646
+```bash
+git checkout extension-model-cd
 
-TODO: Blank build pack: https://github.com/jenkins-x/jenkins-x-versions/blob/master/jenkins-x-tekton.yml
+git merge -s ours master --no-edit
 
-TODO: Change the agent/image
+git checkout master
 
-TODO: Replace a lifecycle
+git merge extension-model-cd
 
-TODO: https://jenkins-x.io/architecture/jenkins-x-pipelines/#default-environment-variables
-
-TODO: Create a pipeline from scratch
-
-TODO: https://github.com/jenkins-x/jx/pull/3934
+git push
+```
 
 ## What Now?
 

@@ -264,4 +264,4 @@ kubectl config unset \
 # If existing cluster
 jx uninstall \
   --context $(kubectl config current-context) \
-  -b
+  --batch-mode

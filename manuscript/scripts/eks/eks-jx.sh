@@ -22,10 +22,6 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
-
 jx create cluster eks \
     --cluster-name jx-rocks \
     --region $AWS_DEFAULT_REGION \
@@ -35,11 +31,11 @@ jx create cluster eks \
     --nodes-max 6 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
-    --git-provider-kind github \
-    --batch-mode
+    --git-provider-kind github
 
-# When in doubt, use the default answers, except in the case listed below
+# When in doubt, use the default answers, except in the cases listed below
 # Answer with `n` to `Would you like to register a wildcard DNS ALIAS to point at this ELB address?`
+# Answer with `n` to `Would you like to enable long term logs storage? A bucket for provider eks will be created`
 
 #############################
 # Create Cluster Autoscaler #

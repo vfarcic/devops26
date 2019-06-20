@@ -844,5 +844,5 @@ If you chose to install Jenkins X in an existing Kubernetes cluster, you can rem
 ```bash
 jx uninstall \
   --context $(kubectl config current-context) \
-  -b
+  --batch-mode
 ```
