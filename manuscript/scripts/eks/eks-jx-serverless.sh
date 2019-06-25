@@ -25,7 +25,7 @@ echo "nexus:
 jx create cluster eks \
     --cluster-name jx-rocks \
     --region $AWS_DEFAULT_REGION \
-    --node-type t2.medium \
+    --node-type t2.large \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 6 \

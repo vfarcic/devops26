@@ -159,10 +159,21 @@ We can find the external ip address of the ingress gateway service and configure
 Note the ip from the output of `jx create addon istio` or find it with this command, we will refer to it as `ISTIO_IP`.
 
 ```bash
+# If not EKS
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
     get service istio-ingressgateway \
     --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+# If EKS
+ISTIO_HOST=$(kubectl \
+    --namespace istio-system \
+    get service istio-ingressgateway \
+    --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+# If EKS
+export ISTIO_IP="$(dig +short $ISTIO_HOST \
+    | tail -n 1)"
 
 echo $ISTIO_IP
 ```
@@ -170,14 +181,7 @@ echo $ISTIO_IP
 Let's continue with the other addons
 
 ```bash
-# Only if serverless
-NAMESPACE=cd
-
-# Only if static
-NAMESPACE=jx
-
-jx create addon prometheus \
-    --namespace $NAMESPACE
+# Prometheus is already installed with Istio
 
 jx create addon flagger
 ```
@@ -236,8 +240,6 @@ This configuration can be done using Flagger's `Canary` objects, that we can add
 cd go-demo-6
 
 git checkout master
-
-# TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
 
 echo "{{- if eq .Release.Namespace \"$NAMESPACE-production\" }}
 {{- if .Values.canary.enable }}

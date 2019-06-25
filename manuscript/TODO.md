@@ -15,6 +15,7 @@
 - [X] 13-pipeline-extension-model.md
 - [X] 14-upgrade.md
 - [ ] 15-advanced-pipelines.md
+- [ ] 99-progressive-delivery.md
 - [ ] 99-env-in-separate-cluster.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -25,7 +26,6 @@
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Publish "Ten Commandments Of GitOps Applied To Continuous Delivery"
-- [ ] 99-progressive-delivery.md
 - [ ] 99-gitops.md
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-pipeline-from-scratch.md
@@ -40,7 +40,7 @@
 - [ ] 99-custom-build-images.md
 - [ ] 99-vault.md
 - [ ] 99-ng-arg.md
-- [ ] 99-import-serverless.md
+- [ ] 99-serverless-apps.md (https://jenkins-x.io/developing/serverless-apps/)
 - [ ] 99-custom-jenkins-servers.md
 - [ ] 99-chatops-from-slack-to-jx.md
 - [ ] 99-rbac.md
