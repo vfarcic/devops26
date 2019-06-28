@@ -3,7 +3,7 @@
 W> The examples in this chapter work only with serverless Jenkins X. Nevertheless, pipelines defined in build packs use (almost) the same format as those used by serverless Jenkins X. When we create a new quickstart project or import an existing one into static Jenkins X, build pack pipelines are converted into Jenkinsfile. Therefore, even if you are not using serverless Jenkins X, advanced knowledge of writing YAML-based pipelines will help you when you choose to modify build pack pipelines.
 
 So far, we relied mostly on pipelines created for us through build packs. No matter how much effort the community puts into creating build packs, it is almost sure that they will not fulfill all our needs. Every organization has something "special" and that inevitably leads to discrepancies between generic and tailor-made pipelines. So far, we extended our pipelines without knowing much about the syntax. We did not yet explore the benefits additional instructions might provide.
-
+s
 You can think of the subject of this chapter as advanced pipelines, but that would be an overstatement. No matter whether you're using static of serverless pipelines, they are always simple. Or, to be more precise, they should be simple since their goal is not to define complex logic but rather to orchestrate automation defined somewhere else (e.g., scripts). That does not mean that there are no complex pipelines, but rather that those cases often reflect misunderstanding and the desire to solve problems in wrong places.
 
 I> Pipelines are orchestrators of automation and should not contain complex logic.
@@ -116,6 +116,8 @@ Here we go.
 We'll create a new branch and replace the content of `jenkins-x.yml` with the command that follows.
 
 I> You'll see `# This is new` and `# This was modified` comments so that it's easier to figure out which parts of the pipeline are new or modified, and which are left unchanged.
+
+W> Some of the lines might be too big, and the process of converting the manuscript into book formats might break them into multiple lines. Please use the Gists listed at the beginning of the chapter as a way to avoid potential problems.
 
 ```bash
 git checkout -b better-pipeline
