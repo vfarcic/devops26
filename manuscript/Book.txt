@@ -12,3 +12,4 @@
 12-prow.md
 13-pipeline-extension-model.md
 14-upgrade.md
+15-advanced-pipelines.md

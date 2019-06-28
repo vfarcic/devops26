@@ -1,32 +1,10 @@
-## TODO
-
-- [X] Code
-- [X] Write
-- [-] Code review static GKE
-- [X] Code review serverless GKE
-- [-] Code review static EKS
-- [X] Code review serverless EKS
-- [-] Code review static AKS
-- [X] Code review serverless AKS
-- [-] Code review existing static cluster
-- [-] Code review existing serverless cluster
-- [ ] Text review
-- [X] Gist
-- [ ] Review titles
-- [ ] Proofread
-- [ ] Diagrams
-- [ ] Add to slides
-- [ ] Publish on TechnologyConversations.com
-- [ ] Add to Book.txt
-- [ ] Publish on LeanPub.com
-
 # Extending Jenkins X Pipelines
 
-W> The examples in this chapter work only with serverless Jenkins X. Nevertheless, pipelines defined in build packs use (almost) the same format as those used by serverless Jenkins X. When we create a new quickstart project or import an existing one into static Jenkins X, build pack pipelines are converted into Jenkinsfile. Therefore, even if you are not using serveless Jenkins X, advanced knowledge of writing YAML-based pipelines will help you when you choose to modify build pack pipelines.
+W> The examples in this chapter work only with serverless Jenkins X. Nevertheless, pipelines defined in build packs use (almost) the same format as those used by serverless Jenkins X. When we create a new quickstart project or import an existing one into static Jenkins X, build pack pipelines are converted into Jenkinsfile. Therefore, even if you are not using serverless Jenkins X, advanced knowledge of writing YAML-based pipelines will help you when you choose to modify build pack pipelines.
 
-So far we relied mostly on pipelines created for us through build packs. No matter how much effort the community puts into creating build packs, it is almost certain that they will not fulfil all our needs. Every organization has something "special" and that inevitably leads to discrepancies between generic and tailor-made pipelines. So far, we extended our pipelines without knowing much about the syntax. We did not yet explore the benefits additional instructions might provide.
+So far, we relied mostly on pipelines created for us through build packs. No matter how much effort the community puts into creating build packs, it is almost sure that they will not fulfill all our needs. Every organization has something "special" and that inevitably leads to discrepancies between generic and tailor-made pipelines. So far, we extended our pipelines without knowing much about the syntax. We did not yet explore the benefits additional instructions might provide.
 
-You can think of the subject of this chapter as advanced pipelines, but that would be an overstatement. No matter whether you're using static of serverless pipelines, they are always simple. Or, to be more precise, they should be simple since their goal is not to define complex logic but rather to orchestrate automation defined somewhere else (e.g., scripts). That does not mean that there are no complex pipelines, but rather that those cases often reflect missunderstanding and the desire to solve problems in wrong places.
+You can think of the subject of this chapter as advanced pipelines, but that would be an overstatement. No matter whether you're using static of serverless pipelines, they are always simple. Or, to be more precise, they should be simple since their goal is not to define complex logic but rather to orchestrate automation defined somewhere else (e.g., scripts). That does not mean that there are no complex pipelines, but rather that those cases often reflect misunderstanding and the desire to solve problems in wrong places.
 
 I> Pipelines are orchestrators of automation and should not contain complex logic.
 
@@ -34,9 +12,9 @@ Now, let's define some objectives.
 
 ## What Are We Trying To Do?
 
-It would be silly to explore Jenkins X pipeline syntax in more depth using random and irrelevant examples. Instead, we'll define some real and tangible goals. it does not matter whether they fit your specific needs since the objective is for them to guide us in our effort to learn by producing tangible outcomes.
+It would be silly to explore Jenkins X pipeline syntax in more depth using random and irrelevant examples. Instead, we'll define some real and tangible goals. It does not matter whether they fit your specific needs since the objective is for them to guide us in our effort to learn by producing concrete outcomes.
 
-Our next mission is to add code coverage reports, to ensure that functional tests are executed only after a release rolls out, and that we build a version of our application binary for each of the popular operating systems (e.g., Windows, MacOS, and Linux). Now, you might think that those goals are useful, or you might think that they are a waste of time given your context. But, our real objective is not to accomplish those goals. Instead, we are using them as an excuse to learn some additional constructs that might come in handy. They will force us to learn a few new things.
+Our next mission is to add code coverage reports, to ensure that functional tests are executed only after a release rolls out and that we build a version of our application binary for each of the popular operating systems (e.g., Windows, MacOS, and Linux). Now, you might think that those goals are useful, or you might feel that they are a waste of time given your context. But, our real objective is not to accomplish those goals. Instead, we are using them as an excuse to learn some additional constructs that might come in handy. They will force us to learn a few new things.
 
 * We'll add names to pipeline steps
 * We'll learn how to define multi-line commands
@@ -45,11 +23,11 @@ Our next mission is to add code coverage reports, to ensure that functional test
 * We'll learn how to override pipelines, stages, and steps defined in build packs
 * We'll learn how to implement loops
 
-Those are only a fraction of what we could use. But, we need to start somewhere, and we have a set of improvements to our application that we'll be able to implement using the beforementined concepts. Later on, it'll be up to you to expand your knowledge of pipeline constructs by exploring the other definitions we can use.
+Those are only a fraction of what we could use. But, we need to start somewhere, and we have a set of improvements to our application that we'll be able to implement using the beforementioned concepts. Later on, it'll be up to you to expand your knowledge of pipeline constructs by exploring the other definitions we can use.
 
-You might find those improvements useful as they are, or you might think of them as things you do not need. Both options are OK since the goal is not to show you how to add specific steps like code coverage, but rather to showcase some of the pipeline constructs that we might use in the context of our projets. All in all, focus on value brought by additional pipeline instructions and not on examples I'll use to demonstrate how those constructs work.
+You might find those improvements useful as they are, or you might think of them as things you do not need. Both options are OK since the goal is not to show you how to add specific steps like code coverage, but rather to showcase some of the pipeline constructs that we might use in the context of our projects. All in all, focus on the value brought by additional pipeline instructions and not on examples I'll use to demonstrate how those constructs work.
 
-As always, we need a cluster with Jenkins X so that we can experiment with some new concepts and hopefuly improve our Jenkins X knowledge.
+As always, we need a cluster with Jenkins X so that we can experiment with some new concepts and hopefully improve our Jenkins X knowledge.
 
 ## Creating A Kubernetes Cluster With Jenkins X
 
@@ -117,19 +95,19 @@ pipelineConfig:
         - command: ADDRESS=`jx get preview --current 2>&1` make functest
 ```
 
-We're extending the `go` pipeline defined as a build pack by adding two steps. We're executing unit tests (`make unittest`) before the build steps, and we added funcinal tests as a step after those pre-defined for the `promote` lifecycle. Both of those steps have issues we might want to fix.
+We're extending the `go` pipeline defined as a build pack by adding two steps. We're executing unit tests (`make unittest`) before the build steps, and we added functional tests as a step after those pre-defined for the `promote` lifecycle. Both of those steps have issues we might want to fix.
 
-So far I tried my best to hide a big problem with execution of functional tests in our pipelines. They are executed after promotion, but there is no guarantee that our application is fully operational before we run the tests. If you create a pull request right now, without modifying the pipeline, you are likey going to experience failure. A pipeline run triggered by creation of a pull request will fail because the functional tests are executed not when the application in a preview environment is fully up-and-running but after the "deploy" instruction is sent to Kubernetes. As you probably already know, when we execute `kubectl apply`, Kube API responds with the acknowledgement that it received the instruction, not with the confirmation that the actual state converged to the desired one.
+So far, I tried my best to hide a big problem with the execution of functional tests in our pipelines. They are executed after promotion, but there is no guarantee that our application is fully operational before we run the tests. If you create a pull request right now, without modifying the pipeline, you are likely going to experience failure. A pipeline run triggered by the creation of a pull request will fail because the functional tests are executed not when the application in a preview environment is fully up-and-running but after the "deploy" instruction is sent to Kubernetes. As you probably already know, when we execute `kubectl apply`, Kube API responds with the acknowledgment that it received the instruction, not with the confirmation that the actual state converged to the desired one.
 
-There are quite a few ways to ensure that an application is rolled out before we run tests against it. We're using Helm so you might be thinking that `--wait` should be enough. Normally, that would be the correct assumption if we use tiller (Helm server) in the cluster. But, Jenkins X does not use tiller due to security and quite a few other issues. To be more precise, it does not use tiller by default. You're need to specify `--no-tiller false` argument when installing Jenkins X. If you followed the instructions (Gists) as they are, your cluster does not have it and Jenkins X uses Helm only to convert charts (templates) into "standard" Kubernetes YAML files. In that case, the simplified version of the deployment process consists of executing `helm template` command followed with `kubectl apply`.
+There are quite a few ways to ensure that an application is rolled out before we run tests against it. We're using Helm so you might be thinking that `--wait` should be enough. Usually, that would be the correct assumption if we use tiller (Helm server) in the cluster. But, Jenkins X does not use tiller due to security and quite a few other issues. To be more precise, it does not use tiller by default. You'll need to specify `--no-tiller false` argument when installing Jenkins X. If you followed the instructions (Gists) as they are, your cluster does not have it, and Jenkins X uses Helm only to convert charts (templates) into "standard" Kubernetes YAML files. In that case, the simplified version of the deployment process consists of executing `helm template` command followed with `kubectl apply`.
 
-All in all, we do not have tiller (Helm server) unless you customized the installation so we cannnot use `--wait` to tell the deployment (promotion) process to exit only after the application rolls out. Instead, we'll go back to basics and inject a step that will execute `kubectl rollout status`. It will serve two purposes. First, it will make the pipeline wait until the application rolls out so that we can execute functional tests without the fear that it will fail it the application is not yet fully up-and-running. The second benefit is that the command will fail if rollout times out. If a command fails, pipeline fails as well so we'll receive a notification that the new release could not roll out.
+All in all, we do not have tiller (Helm server) unless you customized the installation so we cannot use `--wait` to tell the deployment (promotion) process to exit only after the application rolls out. Instead, we'll go back to basics and inject a step that will execute `kubectl rollout status`. It will serve two purposes. First, it will make the pipeline wait until the application rolls out so that we can run functional tests without the fear that it will fail if the app is not yet fully up-and-running. The second benefit is that the command will fail if rollout times out. If a command fails, pipeline fails as well so we'll receive a notification that the new release could not roll out.
 
-However, the problem is that we cannot simply execute `kubectl rollout status`. We need to know the namespace where our application is deployed, and each preview is deployed in a separate and unique one. Fortunatelly, namespaces are created using a known pattern, so we will not have a problem figuring it out. And now we're getting to a real issue. We need to execute three commands, the first to figure out the namespace of a preview environment, the second to wait for a few seconds to ensure that the deployment was indeed created by the promotion process, and the third with `kubectl rollout status`. We cannot put them into separate commands because each is a separate session in a separate container. If we store the namespace in an environment variable in one step (`command`), that variable would not be available in the next. We could solve that by coonverting those three commands into one, but that would result in a very long single line instruction that would be very hard to read. We want readable code, don't we?
+However, the problem is that we cannot merely execute `kubectl rollout status`. We need to know the namespace where our application is deployed, and each preview is deployed in a separate and unique one. Fortunately, namespaces are created using a known pattern, so we will not have a problem figuring it out. And now we're getting to a real issue. We need to execute three commands, the first to figure out the namespace of a preview environment, the second to wait for a few seconds to ensure that the deployment was indeed created by the promotion process, and the third with `kubectl rollout status`. We cannot put them into separate commands because each is a different session in a separate container. If we store the namespace in an environment variable in one step (`command`), that variable would not be available in the next. We could solve that by converting those three commands into one, but that would result in a very long single line instruction that would be very hard to read. We want readable code, don't we?
 
 All that brings us to a new thing we'll learn about pipelines. We'll try to specify a multi-line command.
 
-Before we move on an implement what we just discussed, there is one more problem we'll try to solve. The few custom steps we added to the pipeline consisted only of `command` instructions. They are nameless. If you paid closer attention, you probably noticed that Jenkins X auto-generated meaningless names for the steps we added. It does not have a "crystal ball" to figure out how we'd like to call the step with the `make unittest` command. So, our second improment will be to add names to our custom steps. Those comming from buildpacks are already named, so we need to worry only for those we add directly too our pipelines.
+Before we move on an implement what we just discussed, there is one more problem we'll try to solve. The few custom steps we added to the pipeline consisted only of `command` instructions. They are nameless. If you paid closer attention, you probably noticed that Jenkins X auto-generated meaningless names for the steps we added. It does not have a "crystal ball" to figure out how we'd like to call the step with the `make unittest` command. So, our second improvement will be to add names to our custom steps. Those coming from buildpacks are already named, so we need to worry only for those we add directly to our pipelines.
 
 All in all, we'll add a step with a multi-line command that will make the pipeline wait until the application rolls out, and we'll make sure that all our steps have a name.
 
@@ -137,7 +115,7 @@ Here we go.
 
 We'll create a new branch and replace the content of `jenkins-x.yml` with the command that follows.
 
-I> You'll see `# This is new` and `# This was modified` comments so that it's easier to figure out which parts of the pipeline are new or moodified, and which are left unchanged.
+I> You'll see `# This is new` and `# This was modified` comments so that it's easier to figure out which parts of the pipeline are new or modified, and which are left unchanged.
 
 ```bash
 git checkout -b better-pipeline
@@ -167,9 +145,9 @@ pipelineConfig:
 
 What did we change? We added the `rollout` step that contains a multi-line `command` that defines the namespace where the preview is deployed, sleeps for a while, and waits until the `deployment` is rolled out. All we had to do is specify pipe (`|`) and indent all the lines with the commands.
 
-Since the branch is part of the namespace and it is in upper case (e.g., `PR-27`), the namespace is converted to lower case letters to comply with the standard. The second line of the `rollout` command sleeps for fifteen seconds. The reason for that wait is to ensure that the promotion build initiated by changing the repositories associated with automatic promotion to environments has started. Finally, the third line executes `kubectl rollout status` thus forcing the pipeline to wait until the app is fully up and running before executing functional tests. Additionally, if the rollout fails, the pipeline will fail as well.
+Since the branch is part of the namespace and it is in upper case (e.g., `PR-27`), the namespace is converted to lower case letters to comply with the standard. The second line of the `rollout` command sleeps for fifteen seconds. The reason for that wait is to ensure that the promotion build initiated by changing the repositories associated with automatic promotion to environments has started. Finally, the third line executes `kubectl rollout status`, thus forcing the pipeline to wait until the app is fully up and running before executing functional tests. Additionally, if the rollout fails, the pipeline will fail as well.
 
-In addition to the new step, we also added `name` to all the steps we created so far. Now we have `unit-tests`, `rollout`, and `functional-tests`. Please note that you should not use space and "special" characters in names. Even though it is not a requirement, we prefer to have the names using lower case letters and words separated with dashes (`-`). We'll see, later on, what Jenkins X does with those names.
+In addition to the new step, we also added a `name` to all the steps we created so far. Now we have `unit-tests`, `rollout`, and `functional-tests`. Please note that you should not use space and "special" characters in names. Even though it is not a requirement, we prefer to have the names using lower case letters and words separated with dashes (`-`). We'll see, later on, what Jenkins X does with those names.
 
 Before we proceed and push the updates to the new branch, we should validate whether our changes to the pipeline comply with the schema.
 
@@ -238,7 +216,7 @@ vfarcic/go-demo-6/PR-103 #1        1m36s 1m28s Succeeded
     Preview Application              18s        http://go-demo-6.cd-vfarcic-go-demo-6-pr-103.35.196.24.179.nip.io
 ```
 
-You'll notice that now we have a new step `Promote Rollout`. It is a combination of the name of the stage (`promote`) and the `name` of the step we defined earlier. Similarly, you'll notice that our unit and functional tests are now properly named as well.
+You'll notice that now we have a new step `Promote Rollout`. It is a combination of the name of the stage (`promote`) and the `name` of the step we defined earlier. Similarly, you'll notice that our unit and functional tests are now adequately named as well.
 
 Feel free to stop watching the activities by pressing *ctrl+c*.
 
@@ -264,13 +242,13 @@ deployment "preview-preview" successfully rolled out
 
 We can see that the pipeline was `Waiting for deployment "preview-preview" rollout to finish` and that the pipeline continued executing only after all three replicas of the application were rolled out. We can also see that the functional tests were executed only after the rollout, thus removing potential failure that could be caused by running tests before the application is fully up-and-running or, even worse, running them against the older release if the new one is still not rolled out.
 
-Now that we saw how to define multi-line commands as well as how to name our steps we'll explore how to work with environment variables and agents.
+Now that we saw how to define multi-line commands as well as how to name our steps, we'll explore how to work with environment variables and agents.
 
 ## Working With Environment Variables And Agents
 
-Let's say that we want to add code coverage to our pipeline. We could do that through a myriad of tools. However, since the goal is not to teach you how to setup code coverage and to explore which tool is better, we'll skip the selection process and use [Codecov](https://codecov.io) service. Just keep in mind that I'm not saying that it is better than the others nor that you must use a service for that, but rather that I needed an example to demonstrate a few new pipeline instrutions. Codecov seems like a good candidate.
+Let's say that we want to add code coverage to our pipeline. We could do that through a myriad of tools. However, since the goal is not to teach you how to set up code coverage and how to explore which tool is better, we'll skip the selection process and use [Codecov](https://codecov.io) service. Just keep in mind that I'm not saying that it is better than the others nor that you must use a service for that, but rather that I needed an example to demonstrate a few new pipeline instructions. Codecov seems like the right candidate.
 
-What do we need to do to integrate our pipeline with the Codecov service? If we check their instruction for Go applications we'll see that we should output code coverage to a text file. Since I'm trying to make the examples as agnostic to programming languages as possible, we'll skip changing Makefile that contains testing targets assuming that you'll read the Codecov instructions later on if you choose to use it. So, instead of telling you to apply ceertain changes to Makefile, we'll download a Gist I prepared.
+What do we need to do to integrate our pipeline with the Codecov service? If we check their instruction for Go applications, we'll see that we should output code coverage to a text file. Since I'm trying to make the examples as agnostic to programming languages as possible, we'll skip changing Makefile that contains testing targets assuming that you'll read the Codecov instructions later on if you choose to use it. So, instead of telling you to apply specific changes to Makefile, we'll download a Gist I prepared.
 
 ```bash
 curl -o Makefile \
@@ -285,7 +263,7 @@ Let's start by retrieving a Codecov token for our *go-demo-6* repository.
 open "https://codecov.io/"
 ```
 
-I will skip giving you instructions how to add your *go-demo-6* fork into Codecov. I'm sure that you will be able to sign up and follow the instructins provided on the site. Optinally, you can install their GitHub App (the message will appear at the top). What matter the most is the token you'll receive once you your fork of the *go-demo-6* repository to Codecov.
+I will skip giving you instructions on how to add your *go-demo-6* fork into Codecov. I'm sure that you will be able to sign up and follow the instructions provided on the site. Optionally, you can install their GitHub App (the message will appear at the top). What matter the most is the token you'll receive once you add the fork of the *go-demo-6* repository to Codecov.
 
 W> Please replace `[...]` with the Codecov token for the *go-demo-6* repository.
 
@@ -293,13 +271,13 @@ W> Please replace `[...]` with the Codecov token for the *go-demo-6* repository.
 CODECOV_TOKEN=[...]
 ```
 
-There are a few ways we can provide the info Codecov needs to calculate code coverage. We'll use a Shell script they provide. To make things simple, I already created a container image that contains the script. It is a very simple one and you can explore Dockerfile used to create the image from the [vfarcic/codecov](https://github.com/vfarcic/codecov) repository.
+There are a few ways we can provide the info Codecov needs to calculate code coverage. We'll use a Shell script they provide. To make things simple, I already created a container image that contains the script. It is a straightforward one, and you can explore Dockerfile used to create the image from the [vfarcic/codecov](https://github.com/vfarcic/codecov) repository.
 
 ```bash
 open "https://github.com/vfarcic/codecov"
 ```
 
-Open Dockerfile and you'll see that the definition is as follows.
+Open Dockerfile, and you'll see that the definition is as follows.
 
 ```
 FROM alpine:3.9
@@ -311,7 +289,7 @@ RUN chmod +x /usr/local/bin/codecov.sh
 
 I already created a public image `vfarcic/codecov` based on that definition, so there is no action on your part. We can start using it right away.
 
-So, what do we need to integrate Codecov with out pipeline? We need to define theenvironment variable `CODECOV_TOKEN` required by the `codecov.sh` script. We'll also need to add a new step that will execute that script. We already know how to add steps but this time there is a twist. We need to make sure that the new step is executed inside a container created from `vfarcic/codecov` image converted into a pipeline agent.
+So, what do we need to integrate Codecov with our pipeline? We need to define the environment variable `CODECOV_TOKEN` required by the `codecov.sh` script. We'll also need to add a new step that will execute that script. We already know how to add steps, but this time there is a twist. We need to make sure that the new step is executed inside a container created from `vfarcic/codecov` image converted into a pipeline agent.
 
 All in all, we need to figure out how to define environment variables as well as to define an agent based on a custom container image.
 
@@ -347,9 +325,9 @@ pipelineConfig:
 " | tee jenkins-x.yml
 ```
 
-Near the top of the pipeline is the `env` section that, in this case, defines a single varible `CODECOV_TOKEN`. We could have moved the `env` definition inside a pipeline, stage, or a step to limit its scope. As it is now, it will be available in all the steps of the pipeline.
+Near the top of the pipeline is the `env` section that, in this case, defines a single variable `CODECOV_TOKEN`. We could have moved the `env` definition inside a pipeline, stage, or a step to limit its scope. As it is now, it will be available in all the steps of the pipeline.
 
-We added a new step `code-coverage` inside the `pullRequest` pipeline. What makes it "special" is the `agent` section with the `image` set to `vfarcic/codecov`. As a result, that step will be executed inside a container based on that image. Just as with `env`, we could have defined `agent` in `pipelineConfig` and then all the steps in all the pipelines would run in containers based on that image. Or we could have defined it on the level of a single pipeline or a stage.
+We added a new step `code-coverage` inside the `pullRequest` pipeline. What makes it "special" is the `agent` section with the `image` set to `vfarcic/codecov`. As a result, that step will be executed inside a container based on that image. Just as with `env`, we could have defined `agent` in `pipelineConfig`, and then all the steps in all the pipelines would run in containers based on that image. Or we could have defined it on the level of a single pipeline or a stage.
 
 All in all, for the sake of diversity, we defined an environment variable available in all the steps, and an agent that will be used in a single step.
 
@@ -373,7 +351,7 @@ jx get activities \
     --watch
 ```
 
-After the unit tests are executed we should see the `Code Coverage` step of the `build` stage/lifecycle change the status to `succeeded`.
+After the unit tests are executed, we should see the `Code Coverage` step of the `build` stage/lifecycle change the status to `succeeded`.
 
 Feel free to cancel the watcher by pressing *ctrl+c*.
 
@@ -417,7 +395,7 @@ https://codecov.io/upload/v4?package=bash-8a28df4&token=4384f439-9da1-4be3-af60-
 ...
 ```
 
-As you can see, the coverage report was uploaded to Codecov for evaluation and we got a link where we can see the result. Feel free to visit it. We won't be using it in the exercises since there is a better way to see the results. I'll explain it soon. For now, there is an important issue we need to fix.
+As you can see, the coverage report was uploaded to Codecov for evaluation, and we got a link where we can see the result. Feel free to visit it. We won't be using it in the exercises since there is a better way to see the results. I'll explain it soon. For now, there is an important issue we need to fix.
 
 We added the Codecov token directly to the pipeline. As you can imagine, that is very insecure. There must be a way to provide the token without storing it in Git. Fortunately, Jenkins X pipelines have a solution. We can define an environment variable that will get the value from a Kubernetes secret. So, our next step is to create the secret.
 
@@ -461,7 +439,7 @@ pipelineConfig:
 " | tee jenkins-x.yml
 ```
 
-This time, instead of creating an `env` with a `value`, we used `valuefrom` with a reference to the Kubernetes secret `codecov` and the key `token`.
+This time, instead of creating an `env` with a `value`, we used `valuefrom` with reference to the Kubernetes secret `codecov` and the key `token`.
 
 Let's see whether our updated pipeline works correctly.
 
@@ -483,9 +461,9 @@ We validated the pipeline syntax, pushed the change to GitHub, and started watch
 
 Please stop watching the activity by pressing *ctrl+c*.
 
-Now that we are calculating code coverage in a secure way, we can take a look at the pull request. If the integration was successful, we should see Codecov entries.
+Now that we are securely calculating code coverage, we can take a look at the pull request. If the integration was successful, we should see Codecov entries.
 
-Please click on the `Preview` link from the last ativity to open the pull request in your favorite browser.
+Please click on the `Preview` link from the last activity to open the pull request in your favorite browser.
 
 You should see a comment in the pull request similar to the screenshot that follows.
 
@@ -499,7 +477,7 @@ Since delaying is not a good practice, let's merge the pull request right away. 
 
 Please click *Merge pull request* followed by the *Confirm merge* button. Click the *Delete branch* button.
 
-All that's left, before we move on, is to checkout the master branch locally, to pull the latest version of the code from GitHub, and to delete the local copy of the `better-pipeline` branch.
+All that's left, before we move on, is to check out the master branch locally, to pull the latest version of the code from GitHub, and to delete the local copy of the `better-pipeline` branch.
 
 ```bash
 git checkout master
@@ -511,21 +489,19 @@ git branch -d better-pipeline
 
 Off we go to the next challenge.
 
-## Overriding Pipelines, Stages And Steps And Implementing Loops
+## Overriding Pipelines, Stages, And Steps And Implementing Loops
 
-TODO: Continue text
+Our pipeline is currently building a Linux binary of our application before adding it to a container image. But what if we'd like to distribute the application also as executables for different operating systems? We could provide that same binary, but that would work only for Linux users since that is the architecture it is currently built for. We might want to extend the reach to Windows and MacOS users as well, and that would mean that we'd need to build two additional binaries. How could we do that?
 
-Our pipeline is currently building a Linux binary of our application before adding it to a container image. But what if we'd like to distribute the application also as an executable? We could provide that same executable but that would work only for Linux users. We might want to extend the reach to Windows and MacOS users as well, and that would mean that we'd need to build two additional binaries. How could we do that?
+Since our pipeline is already building a Linux executable through a step inherited from the build pack, we can add two additional steps that would build for the other two operating systems. But that approach would result in *go-demo-6* binary for Linux, and our new steps would, let's say, build *go-demo-6_Windows* and *go-demo-6_darwin*. That, however, would result in "strange" naming. In that context, it would make much more sense to have *go-demo-6_linux* instead of *go-demo-6*. We could add yet another step that would rename it, but then we'd be adding unnecessary complexity to the pipeline that would make those reading it wonder what we're doing. We could build the Linux executable again, but that would result in duplication of the steps.
 
-Since our pipeline is already building a Linux executable through a step inherited from the build pack, we can add two additional steps that would build for the out two operating systems. But that approach would result in *go-demo-6* binary for Linux, and our new steps could, let's say, build *go-demo-6_Windows* and *go-demo-6_darwin*. That, however, would result in "strange" naming. In that context, it would make much more sense to have *go-demo-6_linux*. We could add yet another step that would rename it, but than we'd be adding even more unnecessary complexity to the pipeline that would make those reading it wonder what we're doing. Or we could build the Linux executable again, but that would result in duplication of the steps.
+What might be a better solution is to remove the build step inherited from the build pack and add those that build the three binaries in its place. That would be a more optimum solution. One step removed, and three steps added. But those steps would be almost the same. The only difference would be an argument that defines each OS. We can do better than repeating almost the same step. Instead of having three steps, one for building a binary for each operating system, we'll create a loop that will iterate through values that represent operating systems and execute a step that builds the correct binary.
 
-What might be a better solution is to remove the build step inherited from the build pack and add those that build the three binaries in its place. That would be a more optimum solution. One step removed, and three steps added. But we can do better than that. Thoose would be the steps that are almost the same. The only difference would be an argument that defines each OS. Instead of having three steps, one for building a binary for each operating system, we'll create a loop that will iterate through values that represent operating systems and execute a step that builds the correct binary.
-
-All that might be too much to swallow at once, so we'll break it into two tasks. First we'll try to figure out how to remove a step from the inherited build pack pipeline. If we're successfull, we'll put the loop of steps in its place.
+All that might be too much to swallow at once, so we'll break it into two tasks. First, we'll try to figure out how to remove a step from the inherited build pack pipeline. If we're successful, we'll put the loop of steps in its place.
 
 Let's get going.
 
-We can use `overrides` instruction to override any inherited element. We'll start with the simplest version of the instruction and improve it over time.
+We can use the `overrides` instruction to remove or replace any inherited element. We'll start with the simplest version of the instruction and improve it over time.
 
 Please execute the command that follows to create a new version of `jenkins-x.yml`.
 
@@ -581,7 +557,7 @@ jx get activities \
     --watch
 ```
 
-The output of the last command is as follows.
+The output of the last command, limited to the relevant parts, is as follows.
 
 ```
 ...
@@ -595,13 +571,13 @@ vfarcic/go-demo-6/master #3        9s 4s Succeeded
     Setup Jx Git Credentials       6s 1s Succeeded
 ```
 
-Judging from the output of the latest activity, the number of steps dropped drastially. That's the expected behavior ssince we told Jenkins X to override the release pipeline with "nothing". We did not specify replacement steps that should be executed instead of those inherited from the build pack. So, the only steps executed arre those related to Git since they are universal and noot tied to any specific pipeline.
+Judging from the output of the latest activity, the number of steps dropped drastically. That's the expected behavior since we told Jenkins X to override the release pipeline with "nothing". We did not specify replacement steps that should be executed instead of those inherited from the build pack. So, the only steps executed are those related to Git since they are universal and not tied to any specific pipeline.
 
 Please press *ctrl+c* to stop watching the activities.
 
-In our case, overriding the whole `release` pipeline might be too much. We do not have a problem with all of, but only with the `build` stage inside the `release` pipeline. So, we'll override only that one.
+In our case, overriding the whole `release` pipeline might be too much. We do not have a problem with all of the inherited steps, but only with the `build` stage inside the `release` pipeline. So, we'll override only that one.
 
-Since we are about to modify the pipeline yet again, we might want to add the `rollout` command to the `release` pipeline as well. In the long run, it'll notify us if a release cannot be rolled out.
+Since we are about to modify the pipeline yet again, we might want to add the `rollout` command to the `release` pipeline as well. It'll notify us if a release cannot be rolled out.
 
 Off we go.
 
@@ -648,9 +624,9 @@ pipelineConfig:
 " | tee jenkins-x.yml
 ```
 
-We added the `stage: build` instruction to the existing override oof the `release` pipeline. we also added the `roollout` command as yet another step in the `promote` stage of the `release`pipeline.
+We added the `stage: build` instruction to the existing override of the `release` pipeline. We also added the `rollout` command as yet another step in the `promote` stage of the `release` pipeline.
 
-You probably know what comes next. We'll validate the pipeline systax, push the changes to GitHub and observe the activities hoping that they will tell us whether the change was successful or not.
+You probably know what comes next. We'll validate the pipeline syntax, push the changes to GitHub, and observe the activities hoping that they will tell us whether the change was successful or not.
 
 ```bash
 jx step syntax validate pipeline
@@ -666,7 +642,7 @@ jx get activities \
     --watch
 ```
 
-The output, limited to the latest build, is as followes.
+The output, limited to the latest build, is as follows.
 
 ```
 ...
@@ -688,15 +664,15 @@ vfarcic/go-demo-6/master #5       4m59s 4m49s Failed Version: 1.0.193
     Promoted                      3m26s    0s Succeeded  Application is at: http://go-demo-6.cd-staging.34.214.94.88.nip.io
 ```
 
-The first thing we can note is that this time the number of steps in the activity is closer to what we're used it. Now that we are not overriding the whole pipeline but only the `build` stage, almost all the steps inherited from the build pack are there. Only those related to the `build` stage are gone, simply because we limited the scope of the `ooverrides` instruction.
+The first thing we can note is that the number of steps in the activity is closer to what we're used to. Now that we are not overriding the whole pipeline but only the `build` stage, almost all the steps inherited from the build pack are there. Only those related to the `build` stage are gone, simply because we limited the scope of the `overrides` instruction.
 
-Another notable difference is that the `Promote Rollout` step is taking too long to execute, and will evventualy fail. That's also to be expected. We removed all the steps from the `build` stage, so our binary was not created and container image was not built. Jenkins X did execute `promote` steps that are deploying the new release but Kubernetes is bound to fail to pull the new image.
+Another notable difference is that the `Promote Rollout` step took too long to execute until it eventually `failed`. That's also to be expected. We removed all the steps from the `build` stage, so our binary was not created, and the container image was not built. Jenkins X did execute `promote` steps that are deploying the new release, but Kubernetes is bound to fail to pull the new image.
 
-That demonstrated the importance of executing `rolloout`, no matter wheteher we we tests or not. Without it, the pipeline would terminate successfully since we are not running tests against the staging environment. Before we added the `rollout` the promo¡tion was the last action executed as part of pipeline.
+That demonstrated the importance of executing `rollout`, no matter whether we run tests afterward. Without it, the pipeline would finish successfully since we are not running tests against the staging environment. Before we added the `rollout` step, the promotion was the last action executed as part of the pipeline.
 
 Please stop watching the activities by pressing *ctrl+c*.
 
-We are getting close to our goal. We just need to figure out how to override a specific step with the new one that will build binaries for all operating systems. But, how are we going to ovverride a specific step if we do not know which one it is? We could find all the steps of the pipeline by visiting the repositories that host build packs. But, that would be tedious. We'd need to go to a few repositories, check the source code of the related pipelines, and combine the result with the one we're rewriting right now. There must be a better way to get an insight into the pipeline related to *go-demo-6*.
+We are getting closer to our goal. We just need to figure out how to override a specific step with the new one that will build binaries for all operating systems. But, how are we going to override a particular step if we do not know which one it is? We could find all the steps of the pipeline by visiting the repositories that host build packs. But that would be tedious. We'd need to go to a few repositories, check the source code of the related pipelines, and combine the result with the one we're rewriting right now. There must be a better way to get an insight into the pipeline related to *go-demo-6*.
 
 Before we move on and try to figure out how to retrieve the full definition of the pipeline, we'll revert the current version to the state before we started "playing" with `overrides`. You'll see the reason for such a revert soon.
 
@@ -747,9 +723,9 @@ jx step syntax effective
 
 The output is the "effective" version of our pipeline. You can think of it as a merge of our pipeline combined with those it extends (e.g., from build packs). It is the same final version of the YAML pipeline Jenkins X would use as a blueprint for creating Tekton resources.
 
-The reason we're outputting the effective pipeline lies in our need to find the name of the step currently used to build the Linux binary. If we find its name, we will be able to override it.
+The reason we're outputting the effective pipeline lies in our need to find the name of the step currently used to build the Linux binary of the application. If we find its name, we will be able to override it.
 
-The output, limited to the relevants parts, is as follows.
+The output, limited to the relevant parts, is as follows.
 
 ```yaml
 buildPack: go
@@ -773,13 +749,15 @@ pipelineConfig:
           ...
 ```
 
-We know that the step we're looking for is somewhere inside the `release` pipeline, so that should limit the scope. It we take a look at the steps inside we can see that one of them executes the command `make build`. That's the one we should remove or, to be more precise, override.
+We know that the step we're looking for is somewhere inside the `release` pipeline, so that should limit the scope. If we take a look at the steps inside, we can see that one of them executes the command `make build`. That's the one we should remove or, to be more precise, override.
 
 You'll notice that the names of the steps are different in the effective version of the pipeline. For example, the `rollout` step we created earlier is now called `promote-rollout`. In the effective version of the pipelines, the step names are always prefixed with the stage. As a result, when we see the activities retrieved from Tekton pipeline runs, we see the two (stage and step) combined.
 
-There's one more explanation I promosed to deliver. Why did we revert the pipeline to the version before we added overrides? If we didn't, we would not find the step we were looking for. The whole `build` stage from the `release` pipeline would be gone since we have it overriden to nothing.
+There's one more explanation I promised to deliver. Why did we revert the pipeline to the version before we added overrides? If we didn't, we would not find the step we were looking for. The whole `build` stage from the `release` pipeline would be gone since we had it overridden to nothing.
 
-Now, let's get back to our mission. We know that the step we want to override in the effective version of the pipeline is named `build-make-build`. Since we know that the names are prefixed with the stage, we can deduce that the stage is `build` and the name of the step is `make-build`. Now that it's clear what to override, let's talk about loops.
+Now, let's get back to our mission. We know that the step we want to override in the effective version of the pipeline is named `build-make-build`. Since we know that the names are prefixed with the stage, we can deduce that the stage is `build` and the name of the step is `make-build`.
+
+Now that it's clear what to override, let's talk about loops.
 
 We can tell Jenkins X to loop between values and execute a step or a set of steps in each iteration. An example syntax could be as follows.
 
@@ -796,7 +774,7 @@ We can tell Jenkins X to loop between values and execute a step or a set of step
     - command: echo "The color is $COLOR"
 ```
 
-If we'd have that loop inside our pipeline, it would execute a single step five time, oncec for each of the `values` of the `loop`. What we put inside the `steps` section is up to us and the only imporant thing to note that `steps` in the `loop` use the same syntax as the `steps` anywhere else (e.g., in one of the stages).
+If we'd have that loop inside our pipeline, it would execute a single step five time, once for each of the `values` of the `loop`. What we put inside the `steps` section is up to us, and the only important thing to note is that `steps` in the `loop` use the same syntax as the `steps` anywhere else (e.g., in one of the stages).
 
 Now, let's see whether we can combine `overrides` with `loop` to accomplish our goal of building a binary for each of the "big" three operating systems.
 
@@ -855,7 +833,7 @@ pipelineConfig:
 " | tee jenkins-x.yml
 ```
 
-This time, we are overriding the step `make-build` in the `build` stage of the `release` pipeline. The "old" step will be replaced with a `loop` that iterates over the values that represent operating systems. Each iteration of the loop contains the `GOOS` variable with a different value and executes the `command` that uses it to customize how we build the binary. The end result should be *go-demo-6_* executable with the unique suffix that tells us where it is meant to be used in `linux`, `darwin`, or `windows`.
+This time we are overriding the step `make-build` in the `build` stage of the `release` pipeline. The "old" step will be replaced with a `loop` that iterates over the values that represent operating systems. Each iteration of the loop contains the `GOOS` variable with a different value and executes the `command` that uses it to customize how we build the binary. The end result should be *go-demo-6_* executable with the unique suffix that tells us where it is meant to be used (e.g., `linux`, `darwin`, or `windows`)s.
 
 I> If you're new to Go, the compiler uses environment variable `GOOS` to determine the target operating system for a build.
 
@@ -865,7 +843,7 @@ Next, we'll validate the pipeline and confirm that we did not introduce a typo i
 jx step syntax validate pipeline
 ```
 
-There's one more thing we should fix. In the past, our pipeline was building *go-demo-6* binary, and now we changed that to *go-demo-6_linux*, *go-demo-6_darwin*, and *go-demo-6_windows*. Intuition would tell us that we might need to change the reference to the new binary in Dockerfile, so let's take a quick look at it.
+There's one more thing we should fix. In the past, our pipeline was building the *go-demo-6* binary, and now we changed that to *go-demo-6_linux*, *go-demo-6_darwin*, and *go-demo-6_windows*. Intuition would tell us that we might need to change the reference to the new binary in Dockerfile, so let's take a quick look at it.
 
 ```bash
 cat Dockerfile
@@ -880,7 +858,7 @@ ENTRYPOINT ["/go-demo-6"]
 COPY ./bin/ /
 ```
 
-The last line will copy all the files from the `bin/` directory. That would introduce at least two problems. First of all, there is no need to have all three binaries inside container images we're building. That would make them bigger for no good reason. The second issue with the way binaries are copied is the `ENTRYPOINT`. It expect `/go-demo-6`, instead of `go-demo-6_linux` that we are building now. Fortunatelly, the fix to both of the issues is very simple. We can change the `COPY` so that only `go-demo-6_linux` is copied and that it is renamed to `go-demo-6` during the process. That will help us avoid copying unnecessary files and still fullfill the `ENTRYPOINT` requirement.
+The last line will copy all the files from the `bin/` directory. That would introduce at least two problems. First of all, there is no need to have all three binaries inside container images we're building. That would make them bigger for no good reason. The second issue with the way binaries are copied is the `ENTRYPOINT`. It expects `/go-demo-6`, instead of `go-demo-6_linux` that we are building now. Fortunately, the fix to both of the issues is straightforward. We can change the Dockerfile `COPY` instruction so that only `go-demo-6_linux` is copied and that it is renamed to `go-demo-6` during the process. That will help us avoid copying unnecessary files and will still fulfill the `ENTRYPOINT` requirement.
 
 ```bash
 cat Dockerfile \
@@ -930,15 +908,15 @@ vfarcic/go-demo-6/master #6        3m4s 2m55s Succeeded Version: 1.0.194
     Promoted                        41s    0s Succeeded  Application is at: ...
 ```
 
-We can make a few observations. The `Build Make Build` step is now gone, so the override worked correctly. We have `Build1`, `Build2`, and `Build3` in its place. Those are the three steps created a the result of having the loop with three iterations. Those are the steps that are building `windows`, `linux`, and `darwin` binaries. Finally, we can observe that the `Promote Rollout` step is now shown as `succeeded` providing a clear indication that the new building process (steps) worked correctly. Otherwise, the new release could not roll out and that step would fail.
+We can make a few observations. The `Build Make Build` step is now gone, so the override worked correctly. We have `Build1`, `Build2`, and `Build3` in its place. Those are the three steps created as a result of having the loop with three iterations. Those are the steps that are building `windows`, `linux`, and `darwin` binaries. Finally, we can observe that the `Promote Rollout` step is now shown as `succeeded`, thus providing a clear indication that the new building process (steps) worked correctly. Otherwise, the new release could not roll out, and that step would fail.
 
 Please stop watching the activities by pressing *ctrl+c*.
 
-Before we move on I must confess that I would not make the same implementation as the one we just explored. I'd rather change the `build` target in Makefile. That way there would be no need for any change to the pipeline. The build pack step would continue building by executing that Makefile target so there would be no need to override anything, and there would certainly be no need for a loop. Now, before you start throwing stones at mean, I must also state that `overriding` and `loop` can come in handy in some other scenarios. I had to come up with an example that would introduce you to `overrides` and `loop`, and that ended up being the need to cross-compile binaries, even if it could be accomplished in an easier and a better way. Remember, the "real" goal was to learn those constructs, and not how to cross compile with Go.
+Before we move on, I must confess that I would not make the same implementation as the one we just explored. I'd rather change the `build` target in Makefile. That way, there would be no need for any change to the pipeline. The build pack step would continue building by executing that Makefile target so there would be no need to override anything, and there would certainly be no need for a loop. Now, before you start throwing stones at me, I must also state that `overrides` and `loop` can come in handy in some other scenarios. I had to come up with an example that would introduce you to `overrides` and `loop`, and that ended up being the need to cross-compile binaries, even if it could be accomplished in an easier and a better way. Remember, the "real" goal was to learn those constructs, and not how to cross-compile with Go.
 
 ## Pipelines Without Buildpacks
 
-While the idea behind build packs is to cover a wide range of use cases, we might eaily be in a situation when what we want to accomplish is fundamentally different from any of the build packs. In such cases it probably does not make sense to have a pipeline based on a build pack. Instead, we can tell Jenkins X that our pipeline is not based on any build pack.
+While the idea behind build packs is to cover a wide range of use cases, we might easily be in a situation when what we want to accomplish is fundamentally different from any of the build packs. In such cases, it probably does not make sense to have a pipeline based on a build pack. Instead, we can tell Jenkins X that our pipeline is not based on any build pack.
 
 Please execute the command that follows to create a pipeline without a build pack.
 
@@ -958,7 +936,7 @@ pipelineConfig:
     | tee jenkins-x.yml
 ```
 
-In this context, the only line that matters is the first one that instructs Jenkins X not to use any `buildPack` by setting the value to `none`. The rest of the pipeline contains a silly example containing instructions that we already explored.
+In this context, the only line that matters is the first one that instructs Jenkins X not to use any `buildPack` by setting the value to `none`. The rest of the pipeline contains a silly example with constructs that we already explored.
 
 Now, let's push the change and confirm that none of the build packs is used by observing the activities.
 
@@ -992,9 +970,9 @@ We can see that all the steps we normally get from a build pack are gone. We are
 
 Please stop watching the activities by pressing *ctrl+c*.
 
-## Explore The Syntax Schema
+## Exploring The Syntax Schema
 
-I bet that you wondered how I knew that the are instructions like `ovderrides` and `loop`? I could have consulted documentation in [jenkins-x.io](http://jenkins-x.io), but the one is not always up-to-date. I could have consulted the code. As a matter of fact, most of what I know about pipelines comes from reviewing code of the project. I did that not only because I like reading code, but also because that was the only reliable way to find out all the instructions we can specify. Fortunatelly, things got a bit simpler since then, and the community added means to consult the full syntax schema with a single command.
+I bet that you wondered how I knew that there are instructions like `overrides` and `loop`? I could have consulted the documentation in [jenkins-x.io](http://jenkins-x.io), but it is not always up-to-date. I could have consulted the code. As a matter of fact, most of what I know about pipelines comes from reviewing the code of the project. I did that not only because I like reading code, but also because that was the only reliable way to find out all the instructions we can specify. Fortunately, things got a bit simpler since then, and the community added the means to consult the full syntax schema with a single command.
 
 ```bash
 jx step syntax schema
@@ -1040,9 +1018,9 @@ The output is too long to be presented in a book, so I'll choose a single constr
         ...
 ```
 
-We can see that `Loop` is one of the definitions and that it can contain `steps`, `values`, and `variables`. The array of steps contains a reference to the `Step` definition. If we scroll down to that definition, we can see that, among others, it can have a loop inside. All in all, a step can contain a loop, and a loop can contain steps inside it.
+We can see that `Loop` is one of the definitions and that it can contain `steps`, `values`, and `variables`. The array of steps includes a reference to the `Step` definition. If we scroll down to that definition, we can see that, among others, it can have a loop inside. All in all, a step can contain a loop, and a loop can include steps inside it.
 
-We won't go into all the definitions we can use inside pipelines. That would be too much and could easily fill an entire book alone. We will probably explore a couple of other scrhema definitions, and it's up to you to go through those we'll skip. For now, I'll use this oportunity to introduce you to a few other potentially useful commands.
+We won't go into all the definitions we can use inside pipelines. That would be too much and could easily fill an entire book alone. We will probably explore a couple of other schema definitions, and it's up to you to go through those we'll skip. For now, I'll use this opportunity to introduce you to a few other potentially useful commands.
 
 We can add `--buildpack` argument if we want to find out the schema that is used with build pack pipelines.
 
@@ -1052,19 +1030,19 @@ jx step syntax schema --buildpack
 
 Application pipeline and build pack schemas are very similar, but there are still a few differences. Use one schema or the other depending on whether you're planning to modify pipeline of your application or of a build pack.
 
-Since we are talking about build packt, it's worth noting that we can validate those already used by our cluster with the command that follows.
+Since we are talking about build packs, it's worth noting that we can validate those already used by our cluster with the command that follows.
 
 ```bash
 jx step syntax validate buildpacks
 ```
 
-If all the build packts are valid, we'll see the `SUCCESS` status in the output of each.
+If all the build packs are valid, we'll see the `SUCCESS` status in the output of each.
 
 ## What Now?
 
-If you are using static Jenkins X, you should consider relying no build packs as much as possible. Serverless Jenkins X is the future and most of the effort (new features, bug fixes, etc.) will be focused around it. Static Jenkins X is in "maintenance mode". That does not mean that you should use it. There are quite a few reasons why static Jenkins X might be a better option for you. We won't go into those reasons now. I am mentioning all this because you will move to serverless Jenkins X at some point and you do not want to spend your precious time rewriting your Jenkinsfiles into jenkins-x.yml format. If most of your pipelines is in build packs, you can easily switch from static to serverless Jenkins X. All you'd have to do is re-import your project, and let Jenkins X conovert the pipeline into the correct format.
+If you are using static Jenkins X, you should consider relying on build packs as much as possible. Serverless Jenkins X is the future, and most of the effort (new features, bug fixes, etc.) will be focused around it. On the other hand, static Jenkins X is in "maintenance mode". That does not mean that you should use it. There are quite a few reasons why static Jenkins X might be a better option for you. We won't go into those reasons now. I am mentioning all this because you will move to serverless Jenkins X at some point and you do not want to spend your precious time rewriting your Jenkinsfiles into the jenkins-x.yml format. If most of your pipelines is in build packs, you can easily switch from static to serverless Jenkins X. All you'd have to do is re-import your project and let Jenkins X convert the pipeline into the correct format.
 
-Before we leave, we'll restore the master to the `extension-model-cd`. Our jenkins-x.yml became too big for future examples so we'll go back to the much simpler one we had at the begining of this chapter. I will assume that you understood the constructs we used and that you will extend that knowledge by exploring the pipeline schema. If we'd keep adding everything we learn to our *go-demo-6* pipeline, we'd soon need multiple pages only to list jenkins-x.yml content.
+Before we leave, we'll restore the master to the `extension-model-cd`. Our jenkins-x.yml became too big for future examples so we'll go back to the much simpler one we had at the beginning of this chapter. I will assume that you understood the constructs we used and that you will extend that knowledge by exploring the pipeline schema. If we'd keep adding everything we learn to our *go-demo-6* pipeline, we'd soon need multiple pages only to list jenkins-x.yml content.
 
 ```bash
 git checkout extension-model-cd
