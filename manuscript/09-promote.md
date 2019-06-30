@@ -70,7 +70,7 @@ The output states that `no applications` were `found in environments production`
 How about staging? We must have the release of our *go-demo-6* application running there. Let's double check.
 
 ```bash
-jx get applications -e staging
+jx get applications --env staging
 ```
 
 The output is as follows.

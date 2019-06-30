@@ -24,9 +24,9 @@ jx get activities \
     --filter go-demo-6 \
     --watch
 
-jx get applications -e production
+jx get applications --env production
 
-jx get applications -e staging
+jx get applications --env staging
 
 VERSION=[...]
 

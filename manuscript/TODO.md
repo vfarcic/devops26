@@ -14,8 +14,8 @@
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
 - [X] 14-upgrade.md
-- [ ] 15-advanced-pipelines.md
-- [ ] 99-progressive-delivery.md
+- [X] 15-advanced-pipelines.md
+- [ ] 16-progressive-delivery.md
 - [ ] 99-env-in-separate-cluster.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph

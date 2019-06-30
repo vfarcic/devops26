@@ -147,7 +147,9 @@ cd ..
 
 ## Requirement Installation
 
-We can easily install Istio, Prometheus and Flagger with `jx`
+We can easily install Istio, Prometheus and Flagger with `jx`.
+
+NOTE: Addons are probably going to be merged into apps
 
 ```bash
 jx create addon istio
@@ -180,9 +182,9 @@ echo $ISTIO_IP
 
 Let's continue with the other addons
 
-```bash
-# Prometheus is already installed with Istio
+NOTE: Prometheus is already installed with Istio
 
+```bash
 jx create addon flagger
 ```
 
@@ -372,7 +374,7 @@ jx get activities \
 # Only if serverless
 # Press *ctrl+c* when the activity is finished
     
-jx get applications -e staging
+jx get applications --env staging
 
 VERSION=[...]
 
@@ -380,6 +382,14 @@ jx promote go-demo-6 \
     --version $VERSION \
     --env production \
     --batch-mode
+
+kubectl \
+    --namespace $NAMESPACE-production \
+    get all
+
+kubectl \
+    --namespace $NAMESPACE-production \
+    get virtualservice.networking.istio.io
 ```
 
 After detecting a new `Canary` object Flagger will automatically create some other objects to manage the canary deployment:
@@ -392,14 +402,17 @@ After detecting a new `Canary` object Flagger will automatically create some oth
 
 The primary and canary deployments manage the incumbent and new version of the deploy respectively. Flagger will have both running during the canary process and create the Istio `VirtualService` that sends traffic to one or another. Initially all traffic is sent to the primary deployment. Lets make a new deployment and see how it is being canaried.
 
-We are going to create a trivial change in the demo application, replacing `hello, PR!` in `main.go` to `hello canary, PR!`. Then we will commit and merge it to master to get a new version in the staging environment. 
+We are going to create a trivial change in the demo application, replacing `hello, PR!` in `main.go` to `hello, progressive!`. Then we will commit and merge it to master to get a new version in the staging environment. 
 
-Now in another terminal let's tail Flagger logs so we can get insights in the deployment process.
+Let's tail Flagger logs so we can get insights in the deployment process.
 
 ```bash
 kubectl --namespace istio-system logs \
-    --selector app.kubernetes.io/name=flagger
+    --selector app.kubernetes.io/name=flagger \
+    --follow
 ```
+
+NOTE: Stop with *ctrl+c*
 
 And once the new version is built we can promote to production the new version.
 
@@ -425,7 +438,15 @@ jx get activities \
 
 # Press *ctrl+c* when the activity is finished
 
-jx get applications -e staging
+# Only if serverless
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+# Only if serverless
+# Press *ctrl+c* when the activity is finished
+
+jx get applications --env staging
 
 VERSION=[...]
 
