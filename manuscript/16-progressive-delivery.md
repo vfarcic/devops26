@@ -530,14 +530,23 @@ kubectl \
 ```
 
 ```
+  Last Transition Time:  2019-06-30T05:50:57Z
+  Phase:                 Progressing
+  Tracked Configs:
 Events:
-  Type     Reason  Age   From     Message
-  ----     ------  ----  ----     -------
-  Normal   Synced  3m    flagger  New revision detected jx-go-demo-6.jx-production
-  Normal   Synced  3m    flagger  Scaling up jx-go-demo-6.jx-production
-  Warning  Synced  3m    flagger  Waiting for jx-go-demo-6.jx-production rollout to finish: 0 of 1 updated replicas are available
-  Normal   Synced  3m    flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Normal   Synced  2m    flagger  Advance jx-go-demo-6.jx-production canary weight 20
+  Type     Reason  Age                From     Message
+  ----     ------  ----               ----     -------
+  Warning  Synced  11m (x6 over 12m)  flagger  Halt advancement jx-go-demo-6-primary.cd-production waiting for rollout to finish: 0 of 3 updated replicas are available
+  Warning  Synced  11m                flagger  Halt advancement jx-go-demo-6-primary.cd-production waiting for rollout to finish: 1 of 3 updated replicas are available
+  Normal   Synced  11m                flagger  Initialization done! jx-go-demo-6.cd-production
+  Normal   Synced  60s                flagger  New revision detected! Scaling up jx-go-demo-6.cd-production
+  Normal   Synced  50s                flagger  Starting canary analysis for jx-go-demo-6.cd-production
+  Normal   Synced  50s                flagger  Advance jx-go-demo-6.cd-production canary weight 20
+  Warning  Synced  40s                flagger  Halt advancement no values found for metric istio_requests_total probably jx-go-demo-6.cd-production is not receiving traffic
+  Normal   Synced  30s                flagger  Advance jx-go-demo-6.cd-production canary weight 40
+  Normal   Synced  20s                flagger  Advance jx-go-demo-6.cd-production canary weight 60
+  Normal   Synced  10s                flagger  Advance jx-go-demo-6.cd-production canary weight 80
+  Normal   Synced  0s                 flagger  Promotion completed! Scaling down jx-go-demo-6.cd-production
 ```
 
 Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
