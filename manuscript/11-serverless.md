@@ -73,7 +73,7 @@ In this and the next few chapters, we'll explore what serverless gives us, and i
 
 What you've seen so far is Jenkins X first generation, and now we're moving into the second.
 
-W> At the time of this writing, serverless Jenkins X works only with GitHub repository. At least, that is the status in April 2019. The community is working on extending the support for other Git providers, and I will update the book as soon as that happens.
+W> At the time of this writing, serverless Jenkins X works only with GitHub repositories. At least, that is the status in April 2019. The community is working on extending the support for other Git providers, and I will update the book as soon as that happens.
 
 I> For practice purposes, GitHub should not be an issue since all the examples we used so far were using GitHub.
 

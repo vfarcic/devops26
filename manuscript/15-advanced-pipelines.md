@@ -29,7 +29,7 @@ You might find those improvements useful as they are, or you might think of them
 
 As always, we need a cluster with Jenkins X so that we can experiment with some new concepts and hopefully improve our Jenkins X knowledge.
 
-## Creating A Kubernetes Cluster With Jenkins X
+## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
 You can skip this section if you kept the cluster from the previous chapter and it contains **serverless Jenkins X**. Otherwise, we'll need to create a new Jenkins X cluster.
 
@@ -1043,6 +1043,8 @@ If all the build packs are valid, we'll see the `SUCCESS` status in the output o
 ## What Now?
 
 If you are using static Jenkins X, you should consider relying on build packs as much as possible. Serverless Jenkins X is the future, and most of the effort (new features, bug fixes, etc.) will be focused around it. On the other hand, static Jenkins X is in "maintenance mode". That does not mean that you should use it. There are quite a few reasons why static Jenkins X might be a better option for you. We won't go into those reasons now. I am mentioning all this because you will move to serverless Jenkins X at some point and you do not want to spend your precious time rewriting your Jenkinsfiles into the jenkins-x.yml format. If most of your pipelines is in build packs, you can easily switch from static to serverless Jenkins X. All you'd have to do is re-import your project and let Jenkins X convert the pipeline into the correct format.
+
+I> We explored only a fraction of the Jenkins X pipeline syntax. Please consult [Jenkins X Pipeline Syntax Reference](https://jenkins-x.io/architecture/pipeline-syntax-reference/) for more info.
 
 Before we leave, we'll restore the master to the `extension-model-cd`. Our jenkins-x.yml became too big for future examples so we'll go back to the much simpler one we had at the beginning of this chapter. I will assume that you understood the constructs we used and that you will extend that knowledge by exploring the pipeline schema. If we'd keep adding everything we learn to our *go-demo-6* pipeline, we'd soon need multiple pages only to list jenkins-x.yml content.
 

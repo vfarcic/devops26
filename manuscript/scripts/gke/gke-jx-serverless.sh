@@ -68,10 +68,10 @@ gcloud compute disks delete \
 # Remove container images from GCR
 IMAGE=go-demo-6
 for TAG in $(gcloud container images \
-    list-tags gcr.io/$PROJECT/$IMAGE \
-    --format='get(tags)')
+  list-tags gcr.io/$PROJECT/$IMAGE \
+  --format='get(tags)')
 do
-	gcloud container images \
-        delete gcr.io/$PROJECT/$IMAGE:$TAG \
-        --quiet
+  gcloud container images \
+    delete gcr.io/$PROJECT/$IMAGE:$TAG \
+    --quiet
 done

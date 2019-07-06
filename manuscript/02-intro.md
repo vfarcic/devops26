@@ -203,13 +203,13 @@ Next, the installation of Jenkins X itself and a few other applications (e.g., C
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
-The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster. This is the step that might possibly fail during our setup. The GCP default quotas are very low, and you might not be allowed to create additional load balancers. If that's the case, please open the [Quotas](https://console.cloud.google.com/iam-admin/quotas) page, select those that are at the maximum, and click the *Edit Quotas* button. Increasing a quota is a manual process. Nevertheless, they do it relatively fast, so you should not have to wait very long.
+The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster. This is the step that might possibly fail during our setup. The GCP default quotas are very low, and you might not be allowed to create additional load balancers. If that's the case, please open the [Quotas](https://console.cloud.google.com/iam-admin/quotas) page, select those that are at the maximum, and click the *Edit Quotas* button. Increasing a quota is a manual process. Nevertheless, they do it relatively fast, so you should not have to wait very long.
 
 Once the load balancer is created, `jx` will use its hostname to deduce the IP.
 
 Since we did not specify a custom domain for our cluster, the process will combine the IP of the load balancer with the [nip.io](http://nip.io/) service to create a fully qualified domain, and we'll be asked whether we want to proceed using it. Type `y` or merely press the enter key to continue.
 
-You might be asked *to enable long term logs storage*. Make sure to answer with *n*. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
+Jenkins X will *enable long term logs storage* automatically, and ask you for the *Google Cloud Zone*. Feel free to keep the one selected by default.
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
