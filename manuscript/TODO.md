@@ -18,6 +18,7 @@
 - [ ] 16-progressive-delivery.md
 - [ ] 99-serverless-apps.md
 - [ ] 99-monitoring-with-prometheus.md
+- [ ] 99-logging.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
@@ -30,7 +31,6 @@
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
 - [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-logging.md
 - [ ] 99-knative.md
 - [ ] 99-nexus-integration.md
 - [ ] 99-share-jx-access.md

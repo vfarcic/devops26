@@ -56,7 +56,7 @@ Those of you using serverless Jenkins X already experienced Knative, of sorts. T
 
 Tekton, however, is designed only for "special" type of processes, mostly those associated with continuous integration and continuous delivery pipelines. It is not, however, suited for long-running applications designed to handle requests. So, why am I talking about Tekton if it does not allow us run our applications as serverless? The answer lies in Tekton's father.
 
-Tekton is a Knative spin-off. It's forked from it in hopes to provide CI/CD capabilities. Or, to be more precise, Tekton was born out of the [Knative Build](TODO:) component. But, Knative still stays the most promising way to run serverless applications in Kubernetes. It is the father of Tekton, which we've been using for a while now given that it is an integral part of serverless Jenkins X.
+Tekton is a Knative spin-off. It's forked from it in hopes to provide CI/CD capabilities. Or, to be more precise, Tekton was born out of the [Knative Build](https://knative.dev/docs/build/) component, which is now conosidered deprecated. But, Knative still stays the most promising way to run serverless applications in Kubernetes. It is the father of Tekton, which we've been using for a while now given that it is an integral part of serverless Jenkins X.
 
 Now, I could walk you through the details of Knative definitions, but that would be out of the scope of this book. It's about Jenkins X, not about Knative and other platforms for running serverless application. But, my unwilingness to show you ups and downs of Knative does not mean that we cannot use it. As a matter of fact, Jenkins X already provides means to select whether we want to create a quickstart or import an existing project that will be deployed as a serverless application using Knative. We just need to let Jenkins X know that's what we want, and it'll do the heavy lifing of creating the definition (YAML file) that we need.
 
@@ -68,11 +68,9 @@ But, before we proceed further, we'll need a cluster with any flavor of Jenkins 
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
-TODO: Rewrite
-
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [14-upgrade.sh](https://gist.github.com/00404a74924beadda4143ac26e8fbaa1) Gist.
+I> All the commands from this chapter are available in the [TODO:](TODO:) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
@@ -121,7 +119,7 @@ jx import --pack go --batch-mode
 cd ..
 ```
 
-Now we are ready to work on create a first serverless application using Knative.
+Now we are ready to work on creating the first serverless application using Knative.
 
 ## Installing Gloo and Knative
 
@@ -150,15 +148,15 @@ kubectl get namespaces
 The output is as follows.
 
 ```
-NAME              STATUS   AGE
-cd                Active   66m
-cd-production     Active   59m
-cd-staging        Active   59m
-default           Active   67m
-gloo-system       Active   2m1s
-knative-serving   Active   117s
-kube-public       Active   67m
-kube-system       Active   67m
+NAME            STATUS AGE
+cd              Active 66m
+cd-production   Active 59m
+cd-staging      Active 59m
+default         Active 67m
+gloo-system     Active 2m1s
+knative-serving Active 117s
+kube-public     Active 67m
+kube-system     Active 67m
 ```
 
 We can see that we got a two new Namespaces. As you can probably guess, `gloo-system` contains Gloo components, while Knative runs in `knative-serving`. Keep in mind that we did not get all the Knative components, but only `serving`, which is in charge of running Pods as serverless loads.
@@ -324,92 +322,94 @@ jx get activities \
 
 Unless you are the fastest reader on earth, the pipeline run should have finished and you'll notice that the is no difference in the steps. It is the same no matter whether we are using serverless or any other type of deployment. So, feel free to stop the activity by pressing *ctrl+c*, and we'll take a look at the Pods and see whether that shows anything interesting.
 
-TODO: Continue text
-
-TODO: Limit the output to knative Pods
+Let's see the Pod of the new application deployed to the staging environment.
 
 ```bash
-kubectl --namespace cd-staging get pods
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
-The output, limited to the `jx-knative`, is as follows.
+The output is as follows.
 
 ```
-NAME                                          READY   STATUS    RESTARTS   AGE
+NAME           READY STATUS  RESTARTS AGE
+jx-knative-... 2/2   Running 0        84s
+```
+
+The Pod is there, as we expected. The strange thing is the number of Pods. There are two, even though our application needs only one. Let's describe the Pod and see what we'll get.
+
+```bash
+kubectl --namespace cd-staging \
+    describe pod \
+    --selector serving.knative.dev/service=jx-knative
+```
+
+The output, limited to the relevant parts, is as follows.
+
+```yaml
 ...
-jx-knative-svtns-deployment-cb88ffb5d-cwtc5   2/2     Running   0          20s
+Containers:
+  ...
+  queue-proxy:
+    ...
+    Image:     gcr.io/knative-releases/github.com/knative/serving/cmd/queue@sha256:...
+    ,,,
 ```
 
-TODO: What is the second container?
+The `queue-proxy` container was "injected" into the Pod. It serves as a proxy responsible for request queue parameters, and it reports metrics to the Autoscaler. In other words, request are reaching our application through this container. Later on, when we explore scaling our Knative-based applicatins, that container will be the one responsible for providing metrics used to make scaling-related decisions.
+
+Let's see which other resources were created for us.
 
 ```bash
 kubectl --namespace cd-staging get all
 ```
 
+The output, limited to the relevant parts, is as follows.
+
 ```
-NAME                                READY   STATUS    RESTARTS   AGE
-pod/jx-go-demo-6-765d76bd99-22xvb   1/1     Running   3          59m
-pod/jx-go-demo-6-765d76bd99-56445   1/1     Running   3          59m
-pod/jx-go-demo-6-765d76bd99-hkghz   1/1     Running   2          59m
-pod/jx-go-demo-6-db-arbiter-0       1/1     Running   0          59m
-pod/jx-go-demo-6-db-primary-0       1/1     Running   0          59m
-pod/jx-go-demo-6-db-secondary-0     1/1     Running   0          59m
-
-NAME                               TYPE           CLUSTER-IP      EXTERNAL-IP                                           PORT(S)           AGE
-service/go-demo-6                  ClusterIP      10.31.246.121   <none>                                                80/TCP            59m
-service/jx-go-demo-6-db            ClusterIP      10.31.240.129   <none>                                                27017/TCP         59m
-service/jx-go-demo-6-db-headless   ClusterIP      None            <none>                                                27017/TCP         59m
-service/jx-knative                 ExternalName   <none>          istio-ingressgateway.istio-system.svc.cluster.local   <none>            48m
-service/jx-knative-svtns-service   ClusterIP      10.31.240.93    <none>                                                80/TCP,9090/TCP   48m
-
-NAME                                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/jx-go-demo-6                  3         3         3            3           59m
-deployment.apps/jx-knative-svtns-deployment   0         0         0            0           48m
-
-NAME                                                    DESIRED   CURRENT   READY   AGE
-replicaset.apps/jx-go-demo-6-765d76bd99                 3         3         3       59m
-replicaset.apps/jx-knative-svtns-deployment-cb88ffb5d   0         0         0       48m
-
-NAME                                         DESIRED   CURRENT   AGE
-statefulset.apps/jx-go-demo-6-db-arbiter     1         1         59m
-statefulset.apps/jx-go-demo-6-db-primary     1         1         59m
-statefulset.apps/jx-go-demo-6-db-secondary   1         1         59m
-
-NAME                                   NAME         VERSION    GIT URL
-release.jenkins.io/go-demo-6-1.0.221   go-demo-6    v1.0.221   https://github.com/vfarcic/go-demo-6
-release.jenkins.io/jx-knative-0.0.2    jx-knative   v0.0.2     https://github.com/vfarcic/jx-knative
-
-NAME                                                              READY   REASON
-podautoscaler.autoscaling.internal.knative.dev/jx-knative-svtns   False   NoTraffic
-
-NAME                                                        AGE
-image.caching.internal.knative.dev/jx-knative-svtns-cache   48m
-
-NAME                                                                                        READY   REASON
-clusteringress.networking.internal.knative.dev/route-3cdfc09b-9d44-11e9-8bb1-42010a8e0064   True
-
-NAME                                   DOMAIN                                        READY   REASON
-route.serving.knative.dev/jx-knative   jx-knative.cd-staging.35.243.171.144.nip.io   True
-
-NAME                                     DOMAIN                                        LATESTCREATED      LATESTREADY        READY   REASON
-service.serving.knative.dev/jx-knative   jx-knative.cd-staging.35.243.171.144.nip.io   jx-knative-svtns   jx-knative-svtns   True
-
-NAME                                           LATESTCREATED      LATESTREADY        READY   REASON
-configuration.serving.knative.dev/jx-knative   jx-knative-svtns   jx-knative-svtns   True
-
-NAME                                            SERVICE NAME               GENERATION   READY   REASON
-revision.serving.knative.dev/jx-knative-svtns   jx-knative-svtns-service   1            True
+...
+service/jx-knative               ...
+service/jx-knative-svtns-service ...
+...
+deployment.apps/jx-knative-...
+...
+replicaset.apps/jx-knative-...
+...
+podautoscaler.autoscaling.internal.knative.dev/jx-knative-...
+...
+image.caching.internal.knative.dev/jx-knative-...
+,,,
+clusteringress.networking.internal.knative.dev/route-...
+...
+route.serving.knative.dev/jx-knative ...
+...
+service.serving.knative.dev/jx-knative ...
+...
+configuration.serving.knative.dev/jx-knative ...
+...
+revision.serving.knative.dev/jx-knative-...
 ```
+
+As you can see, quite a few resources were created from a single YAML definition with a (`serving.knative.dev`) `Service`. There are some core Kuberentes resources we are likely already familiar with, like Deployment, ReplicaSet, Pod, Service. Even if that would be all we've got, we could already conclude that Knative service simplifies things since it would take us approximately double the lines in YAML to define the same things (Deployment and Service, the rest was created by those) ourselves. But, we got so much more. There are sevven or more resources created from Knative specific Custom Resource Definitions (CRDs). Their responsabilities differ. One (`podautoscaler.autoscaling`) is in charge of scaling based on the number of requests or other metrics, the other (`image.caching`) of caching of the image so that boot-up time is faster, a few are making sure that networking is working as expected, and so on and so forth. We'll get more familiar with those features later.
+
+There is one inconvenience though. As of today (July 7), `get applications` does not report Knative-based applications correctly. 
 
 ```bash
 jx get applications --env staging
 ```
+
+The output is as follows.
 
 ```
 APPLICATION STAGING PODS URL
 go-demo-6   1.0.221 3/3  http://go-demo-6.cd-staging.35.190.185.247.nip.io
 knative     svtns
 ```
+
+The `go-demo-6` application is reported correctly, but the one based on Knative is not. Hopefully, that will be fixed soon. Until then, feel free to monitor the progress through the [issue 4635](https://github.com/jenkins-x/jx/issues/4635).
+
+Knative defines its own Service that, just like those available in the Kubernetes core, can be queried to get the domain through which we can access the application. We can query it just as we would query the "normal" Service, the main difference being that it is called `ksvc`, instead of `svc`. We'll use it to retrieve the domain through which we can access and, therefore, test whether the newly deployed serverless application works as expected.
 
 ```bash
 ADDR=$(kubectl --namespace cd-staging \
@@ -419,235 +419,91 @@ ADDR=$(kubectl --namespace cd-staging \
 echo $ADDR
 ```
 
+The output should be similar to the one that follows.
+
 ```
 jx-knative.cd-staging.35.243.171.144.nip.io
 ```
 
+As you can see, the pattern is the same no matter whether it is a "normal" or a Knative service. Jenkins X is making sure that the URLTemplate we explored in the [Changing URL Patterns](#upgrade-url-template) subchapter is applied no matter the type of the Service or the Ingress used to route external requests to the application. In this case, it is the default one that combines the name of the service (`jx-knative`) with the environment (`cd-staging`) and the cluster domain (`35.243.171.144.nip.io`).
+
+Now comes the moment of truth. Is our application working. Can we access it?
+
 ```bash
 curl "$ADDR"
-
-# It might takes a while if the Pod is not running
 ```
 
-```
-Hello from:  Jenkins X golang http example
-```
+The good news is that we did get the `Hello` greeting as the output, so the application is working. But, that was probably the slowest response you ever saw from such a simple application. Why did it take so long? The answer to that questions lies in the scaling nature of serverless applications. Since no one sent a request to the application before, there was no need to it to run any replica. The moment we sent the first request, Knative detected it and initiated scaling that, after a while, resulted in the first replica running inside the cluster. As a result, we received the familiar greeting, only after the image is pulled, the Pod was started, and the application inside it was initiated. Don't worry about that "slowness" since it manifests itself only initially before Knative creates the cache. You'll see soon that the boot-up time will be very fast from now on.
 
-```bash
-kubectl --namespace cd-staging get pods
-```
-
-```
-NAME                                          READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-765d76bd99-22xvb                 1/1     Running   3          63m
-jx-go-demo-6-765d76bd99-56445                 1/1     Running   3          63m
-jx-go-demo-6-765d76bd99-hkghz                 1/1     Running   2          63m
-jx-go-demo-6-db-arbiter-0                     1/1     Running   0          63m
-jx-go-demo-6-db-primary-0                     1/1     Running   0          63m
-jx-go-demo-6-db-secondary-0                   1/1     Running   0          63m
-jx-knative-svtns-deployment-cb88ffb5d-5fflx   2/2     Running   0          100s
-```
-
-```bash
-# Wait for a while, around 7 minutes for the first Pod, less for those that follow.
-
-kubectl --namespace cd-staging get pods
-```
-
-```
-NAME                            READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-765d76bd99-22xvb   1/1     Running   3          69m
-jx-go-demo-6-765d76bd99-56445   1/1     Running   3          69m
-jx-go-demo-6-765d76bd99-hkghz   1/1     Running   2          69m
-jx-go-demo-6-db-arbiter-0       1/1     Running   0          69m
-jx-go-demo-6-db-primary-0       1/1     Running   0          69m
-jx-go-demo-6-db-secondary-0     1/1     Running   0          69m
-```
+So, let's take a look at that "famous" Pod that was created out of thin air.
 
 ```bash
 kubectl --namespace cd-staging \
-    describe ksvc jx-knative
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
+The output is as follows.
+
 ```
-Name:         jx-knative
-Namespace:    cd-staging
-Labels:       chart=jx-knative-0.0.2
-              jenkins.io/chart-release=jx
-              jenkins.io/version=9
-Annotations:  jenkins.io/chart: env
-              kubectl.kubernetes.io/last-applied-configuration:
-                {"apiVersion":"serving.knative.dev/v1alpha1","kind":"Service","metadata":{"annotations":{"jenkins.io/chart":"env"},"labels":{"chart":"jx-k...
-              serving.knative.dev/creator: system:serviceaccount:cd:tekton-bot
-              serving.knative.dev/lastModifier: system:serviceaccount:cd:tekton-bot
-API Version:  serving.knative.dev/v1alpha1
-Kind:         Service
-Metadata:
-  Creation Timestamp:  2019-07-03T03:40:01Z
-  Generation:          1
-  Resource Version:    25813
-  Self Link:           /apis/serving.knative.dev/v1alpha1/namespaces/cd-staging/services/jx-knative
-  UID:                 3cd75478-9d44-11e9-8a0a-42010a8e006e
-Spec:
-  Run Latest:
-    Configuration:
-      Revision Template:
-        Metadata:
-          Creation Timestamp:  <nil>
-        Spec:
-          Container:
-            Image:              gcr.io/devops26/jx-knative:0.0.2
-            Image Pull Policy:  IfNotPresent
-            Liveness Probe:
-              Http Get:
-                Path:                 /
-                Port:                 0
-              Initial Delay Seconds:  60
-              Period Seconds:         10
-              Success Threshold:      1
-              Timeout Seconds:        1
-            Name:                     
-            Readiness Probe:
-              Http Get:
-                Path:             /
-                Port:             0
-              Period Seconds:     10
-              Success Threshold:  1
-              Timeout Seconds:    1
-            Resources:
-              Limits:
-                Cpu:     100m
-                Memory:  256Mi
-              Requests:
-                Cpu:        80m
-                Memory:     128Mi
-          Timeout Seconds:  300
-Status:
-  Address:
-    Hostname:  jx-knative.cd-staging.svc.cluster.local
-  Conditions:
-    Last Transition Time:        2019-07-03T03:40:09Z
-    Status:                      True
-    Type:                        ConfigurationsReady
-    Last Transition Time:        2019-07-03T03:40:09Z
-    Status:                      True
-    Type:                        Ready
-    Last Transition Time:        2019-07-03T03:40:09Z
-    Status:                      True
-    Type:                        RoutesReady
-  Domain:                        jx-knative.cd-staging.35.243.171.144.nip.io
-  Domain Internal:               jx-knative.cd-staging.svc.cluster.local
-  Latest Created Revision Name:  jx-knative-svtns
-  Latest Ready Revision Name:    jx-knative-svtns
-  Observed Generation:           1
-  Traffic:
-    Percent:        100
-    Revision Name:  jx-knative-svtns
-Events:
-  Type    Reason   Age                From                Message
-  ----    ------   ----               ----                -------
-  Normal  Created  59m                service-controller  Created Configuration "jx-knative"
-  Normal  Created  59m                service-controller  Created Route "jx-knative"
-  Normal  Updated  59m (x5 over 59m)  service-controller  Updated Service "jx-knative"
+NAME           READY STATUS  RESTARTS AGE
+jx-knative-... 2/2   Running 0        24s
 ```
+
+We can see a single Pod created shortwhile ago. Now, let's observe what we'll get with a little bit of patience.
+
+Please wait for seven minutes, or more, berfore executing the command that follows.
+
+```bash
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
+```
+
+The output shows that `no resources` were `found`. The Pod is gone. No one was using our application so Knative removed it to save resources. It scaled it down to zero replicas.
+
+If you're anything like me, you must be wondering about the conofiguration. What are the parameters governing Knative scaling decisions? Can they be fine tuned?
+
+The configuration that governs scaling is stored in `config-autoscaler` ConfigMap.
 
 ```bash
 kubectl --namespace knative-serving \
     describe configmap config-autoscaler
 ```
 
-```
-Name:         config-autoscaler
-Namespace:    knative-serving
-Labels:       serving.knative.dev/release=devel
-Annotations:  kubectl.kubernetes.io/last-applied-configuration:
-                {"apiVersion":"v1","data":{"_example":"################################\n#                              #\n#    EXAMPLE CONFIGURATION     ...
+The output is tooo big to be presented in a book. It is a well documented configuration example that explains what we'd need to do too change any aspect of Knative's scaling logic.
 
-Data
-====
-_example:
-----
-################################
-#                              #
-#    EXAMPLE CONFIGURATION     #
-#                              #
-################################
+In a nutshel, Knative's scaling algorythm is based no the average number of concurrent requests. By default, it will try to target hundred parallel requests served by a single Pod. That would mean that if there are three hundred concurent requests, the system should scale to three replicas so that each can handle a hundred.
 
-# This block is not actually functional configuration,
-# but serves to illustrate the available configuration
-# options and document them in a way that is accessible
-# to users that `kubectl edit` this config map.
-#
-# These sample configuration options may be copied out of
-# this block and unindented to actually change the configuration.
+Now, the calculation for the number of Pods is not as simple as the number of concurent requests divided by hundred (or whatever we defined the `container-concurrency-target-default` to be). The Knative scaler calculated average number of parallel requests over a sixty seconds window so it takes a minute for the system to stablize at the desired level of concurrency. There is also a six seconds window that might make the system enter into the panic mode if during that period the number of requests is more than double of the target concurrency.
 
-# The Revision ContainerConcurrency field specifies the maximum number
-# of requests the Container can handle at once. Container concurrency
-# target percentage is how much of that maximum to use in a stable
-# state. E.g. if a Revision specifies ContainerConcurrency of 10, then
-# the Autoscaler will try to maintain 7 concurrent connections per pod
-# on average. A value of 0.7 is chosen because the Autoscaler panics
-# when concurrency exceeds 2x the desired set point. So we will panic
-# before we reach the limit.
-container-concurrency-target-percentage: "1.0"
-
-# The container concurrency target default is what the Autoscaler will
-# try to maintain when the Revision specifies unlimited concurrency.
-# Even when specifying unlimited concurrency, the autoscaler will
-# horizontally scale the application based on this target concurrency.
-#
-# A value of 100 is chosen because it's enough to allow vertical pod
-# autoscaling to tune resource requests. E.g. maintaining 1 concurrent
-# "hello world" request doesn't consume enough resources to allow VPA
-# to achieve efficient resource usage (VPA CPU minimum is 300m).
-container-concurrency-target-default: "100"
-
-# When operating in a stable mode, the autoscaler operates on the
-# average concurrency over the stable window.
-stable-window: "60s"
-
-# When observed average concurrency during the panic window reaches 2x
-# the target concurrency, the autoscaler enters panic mode. When
-# operating in panic mode, the autoscaler operates on the average
-# concurrency over the panic window.
-panic-window: "6s"
-
-# Max scale up rate limits the rate at which the autoscaler will
-# increase pod count. It is the maximum ratio of desired pods versus
-# observed pods.
-max-scale-up-rate: "10"
-
-# Scale to zero feature flag
-enable-scale-to-zero: "true"
-
-# Tick interval is the time between autoscaling calculations.
-tick-interval: "2s"
-
-# Dynamic parameters (take effect when config map is updated):
-
-# Scale to zero grace period is the time an inactive revision is left
-# running before it is scaled to zero (min: 30s).
-scale-to-zero-grace-period: "30s"
-
-Events:  <none>
-```
-
-TODO: Rewrite
-Algorithm
-Knative Serving autoscaling is based on the average number of in-flight requests per pod (concurrency). The system has a default target concurrency of 100 but we used 10 for our service. We loaded the service with 50 concurrent requests so the autoscaler created 5 pods (50 concurrent requests / target of 10 = 5 pods)
-
-TODO: Rewrite
-Panic
-The autoscaler calculates average concurrency over a 60 second window so it takes a minute for the system to stablize at the desired level of concurrency. However the autoscaler also calculates a 6 second panic window and will enter panic mode if that window reached 2x the target concurrency. In panic mode the autoscaler operates on the shorter, more sensitive panic window. Once the panic conditions are no longer met for 60 seconds, the autoscaler will return to the initial 60 second stable window.
+I'll let you goo through the documentation and explore the details. What matters, for now, is that the system, as it is now, should scale the number of Pod if we send it more than a hundred parallel requests. But, before we do that, we'll check whether the application scaled down to zero replicas.
 
 ```bash
 kubectl --namespace cd-staging \
-     get pods
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
+```
 
-# Repeat if `jx-knative-*` Pod is still running
+If the output states that `no resources` were `found`, the Pods are gone, and we can proceed. Otherwise, wait for a while longer and repeat the previous command.
 
-# Apache Benchmark (ab) doesn't work with HTTP 1.1
+We ensured that no Pods are running only to simplify the "experiment" that follow. When nothing is running, the calculation is as simple as the number of concurent requests divided by the target concurrency equals the number of replicas. Otherwise, the calculation would be more complicated than that and our "experiment" would need to be more elaborated.
 
+So, we want to see what happens when we send hundreds of parallel requests to the application. We'll use [siege](https://github.com/JoeDog/siege) for that. It is a small and simple tool that TODO:.
+
+TODO: Rewrite
+Siege is an open source regression test and benchmark utility. It can stress test a single URL with a user defined number of simulated users, or it can read many URLs into memory and stress them simultaneously. The program reports the total number of hits recorded, bytes transferred, response time, concurrency, and return status. Siege supports HTTP/1.0 and 1.1 protocols, the GET and POST directives, cookies, transaction logging, and basic authentication. Its features are configurable on a per user basis.
+
+TODO: Rewrite
+Most features are configurable with command line options which also include default values to minimize the complexity of the program's invocation. Siege allows you to stress a web server with n number of users t number of times, where n and t are defined by the user. It records the duration time of the test as well as the duration of each single transaction. It reports the number of transactions, elapsed time, bytes transferred, response time, transaction rate, concurrency and the number of times the server responded OK, that is status code 200.
+
+TODO: Rewrite
+Siege was designed and implemented by Jeffrey Fulmer in his position as Webmaster for Armstrong World Industries. It was modeled in part after Lincoln Stein's torture.pl and it's data reporting is almost identical. But torture.pl does not allow one to stress many URLs simultaneously; out of that need siege was born....
+
+TODO: Rewrite
+When a HTTP server is being hit by the program, it is said to be "under siege."
+
+```bash
 kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
@@ -655,11 +511,14 @@ kubectl run siege \
      -- -c 300 -b -t 20S "http://$ADDR/" \
      && kubectl \
      --namespace cd-staging \
-     get pods
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
+TODO: Continue text
+
 ```
-f you don't see a command prompt, try pressing enter.
+If you don't see a command prompt, try pressing enter.
 
 Lifting the server siege...      done.
 
@@ -682,16 +541,10 @@ the .siegerc file in your home directory; change
 the directive 'show-logfile' to false.
 Session ended, resume using 'kubectl attach siege -c siege -i -t' command when the pod is running
 pod "siege" deleted
-NAME                                           READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-b4cc65cf8-rkrwv                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-rlqgn                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-tck4j                   1/1     Running   3          9h
-jx-go-demo-6-db-arbiter-0                      1/1     Running   0          9h
-jx-go-demo-6-db-primary-0                      1/1     Running   0          9h
-jx-go-demo-6-db-secondary-0                    1/1     Running   0          9h
-jx-knative-gx5qh-deployment-66dd9d8d79-7lwds   2/2     Running   0          19s
-jx-knative-gx5qh-deployment-66dd9d8d79-cjljb   2/2     Running   0          17s
-jx-knative-gx5qh-deployment-66dd9d8d79-gr65d   2/2     Running   0          21s
+NAME                                          READY   STATUS    RESTARTS   AGE
+jx-knative-cvl52-deployment-9bb9f458c-46v8q   2/2     Running   0          18s
+jx-knative-cvl52-deployment-9bb9f458c-76hw6   2/2     Running   0          20s
+jx-knative-cvl52-deployment-9bb9f458c-9hd86   2/2     Running   0          18s
 ```
 
 ```bash
@@ -797,7 +650,7 @@ jx get activities \
 
 ```
 ...
-vfarcic/environment-tekton-staging/master #6                1m5s     1m3s Succeeded
+vfarcic/environment-tekton-staging/master #3                1m5s     1m3s Succeeded
   from build pack                                           1m5s     1m3s Succeeded
     Credential Initializer 45xmk                            1m5s       0s Succeeded
     Working Dir Initializer Vf8cm                           1m4s       0s Succeeded
@@ -816,27 +669,21 @@ kubectl --namespace cd-staging get ksvc
 
 ```
 NAME         DOMAIN                                       LATESTCREATED      LATESTREADY        READY   REASON
-jx-knative   jx-knative.cd-staging.35.196.158.54.nip.io   jx-knative-64brz   jx-knative-64brz   True
+jx-knative   jx-knative.cd-staging.35.196.111.72.nip.io   jx-knative-2mjq9   jx-knative-2mjq9   True
 ```
 
 ```bash
-kubectl --namespace cd-staging get pods
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
 ```
-NAME                                           READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-b4cc65cf8-rkrwv                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-rlqgn                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-tck4j                   1/1     Running   3          9h
-jx-go-demo-6-db-arbiter-0                      1/1     Running   0          9h
-jx-go-demo-6-db-primary-0                      1/1     Running   0          9h
-jx-go-demo-6-db-secondary-0                    1/1     Running   0          9h
-jx-knative-gx5qh-deployment-66dd9d8d79-gr65d   2/2     Running   0          11m
+No resources found.
 ```
 
 ```bash
 # Repeat if `jx-knative-*` Pods of the last release are still running
-# The old release might still be running
 
 kubectl run siege \
     --image yokogawa/siege \
@@ -845,7 +692,8 @@ kubectl run siege \
      -- -c 18 -b -t 30S "http://$ADDR/" \
      && kubectl \
      --namespace cd-staging \
-     get pods
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
 ```
@@ -855,7 +703,7 @@ Lifting the server siege...      done.
 
 Transactions:                      0 hits
 Availability:                   0.00 %
-Elapsed time:                  29.34 secs
+Elapsed time:                  29.30 secs
 Data transferred:               0.00 MB
 Response time:                  0.00 secs
 Transaction rate:               0.00 trans/sec
@@ -872,53 +720,37 @@ the .siegerc file in your home directory; change
 the directive 'show-logfile' to false.
 Session ended, resume using 'kubectl attach siege -c siege -i -t' command when the pod is running
 pod "siege" deleted
-NAME                                           READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-b4cc65cf8-rkrwv                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-rlqgn                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-tck4j                   1/1     Running   3          9h
-jx-go-demo-6-db-arbiter-0                      1/1     Running   0          9h
-jx-go-demo-6-db-primary-0                      1/1     Running   0          9h
-jx-go-demo-6-db-secondary-0                    1/1     Running   0          9h
-jx-knative-64brz-deployment-5d676d69d6-64922   2/2     Running   0          8s
-jx-knative-64brz-deployment-5d676d69d6-9m7hr   2/2     Running   0          30s
-jx-knative-64brz-deployment-5d676d69d6-bc95p   2/2     Running   0          30s
-jx-knative-64brz-deployment-5d676d69d6-lbnhn   2/2     Running   0          31s
-jx-knative-64brz-deployment-5d676d69d6-vg27f   2/2     Running   0          30s
-jx-knative-gx5qh-deployment-66dd9d8d79-gr65d   2/2     Running   0          14m
+NAME                                          READY   STATUS    RESTARTS   AGE
+jx-knative-2mjq9-deployment-677989b59-btm2b   2/2     Running   0          31s
+jx-knative-2mjq9-deployment-677989b59-gcxjb   2/2     Running   0          33s
+jx-knative-2mjq9-deployment-677989b59-gf2kz   2/2     Running   0          29s
+jx-knative-2mjq9-deployment-677989b59-qknmj   2/2     Running   0          31s
+jx-knative-2mjq9-deployment-677989b59-tt7pd   2/2     Running   0          31s
 ```
 
 ```bash
 # Wait for a while (e.g., 2 min)
 
-kubectl --namespace cd-staging get pods
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
 ```
-NAME                                           READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-b4cc65cf8-rkrwv                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-rlqgn                   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-tck4j                   1/1     Running   3          9h
-jx-go-demo-6-db-arbiter-0                      1/1     Running   0          9h
-jx-go-demo-6-db-primary-0                      1/1     Running   0          9h
-jx-go-demo-6-db-secondary-0                    1/1     Running   0          9h
-jx-knative-64brz-deployment-5d676d69d6-lbnhn   2/2     Running   0          2m4s
-jx-knative-gx5qh-deployment-66dd9d8d79-gr65d   2/2     Running   0          16m
+NAME                                          READY   STATUS    RESTARTS   AGE
+jx-knative-2mjq9-deployment-677989b59-qknmj   2/2     Running   0          2m32s
 ```
 
 ```bash
 # Wait for a while (e.g., 5-10 min)
 
-kubectl --namespace cd-staging get pods
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
 ```
-NAME                           READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-b4cc65cf8-rkrwv   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-rlqgn   1/1     Running   3          9h
-jx-go-demo-6-b4cc65cf8-tck4j   1/1     Running   3          9h
-jx-go-demo-6-db-arbiter-0      1/1     Running   0          9h
-jx-go-demo-6-db-primary-0      1/1     Running   0          9h
-jx-go-demo-6-db-secondary-0    1/1     Running   0          9h
+No resources found.
 ```
 
 ```bash
@@ -998,33 +830,53 @@ jx get activities \
 
 # Cancel with *ctrl+c*
 
-kubectl --namespace cd-staging get pods
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
 ```
 
 ```
-NAME                                          READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-b4cc65cf8-rkrwv                  1/1     Running   3          10h
-jx-go-demo-6-b4cc65cf8-rlqgn                  1/1     Running   3          10h
-jx-go-demo-6-b4cc65cf8-tck4j                  1/1     Running   3          10h
-jx-go-demo-6-db-arbiter-0                     1/1     Running   0          10h
-jx-go-demo-6-db-primary-0                     1/1     Running   0          10h
-jx-go-demo-6-db-secondary-0                   1/1     Running   0          10h
-jx-knative-d7msk-deployment-cbdbb9fbb-g2n88   2/2     Running   0          14m51s
+NAME                                           READY   STATUS    RESTARTS   AGE
+jx-knative-7j9xm-deployment-5887cfdf96-hz528   2/2     Running   0          34s
 ```
 
 ```bash
-# NOTE: Should send logs to a central location (https://knative.dev/v0.5-docs/serving/installing-logging-metrics-traces/)
+# Wait for 10+ minutes
+
+kubectl --namespace cd-staging \
+    get pods \
+    --selector serving.knative.dev/service=jx-knative
+```
+
+```
+NAME                                           READY   STATUS    RESTARTS   AGE
+jx-knative-7j9xm-deployment-5887cfdf96-hz528   2/2     Running   0          12m
+```
+
+```bash
+# NOTE: Should send logs to a central location and monitor with Prometheus (https://knative.dev/v0.5-docs/serving/installing-logging-metrics-traces/)
 
 cd ../go-demo-6
 
 git checkout -b serverless
 
 ls -1 charts/go-demo-6/templates
+```
 
+```
+NOTES.txt
+_helpers.tpl
+deployment.yaml
+service.yaml
+```
+
+```bash
 # NOTE: If ksvc.yaml is not there, the project was created long time ago and it does not support KNative
 
+TODO: Continue code
+
 TODO: Delete the application
-TODO: Copy the chartss directory to charts-orig
+TODO: Copy the charts directory to charts-orig
 TODO: Delete the chart
 TODO: Import the application
 TODO: Diff the changes
@@ -1114,12 +966,29 @@ knativeDeploy: true
 ```
 
 ```bash
+cat jenkins-x.yml
+```
+
+```yaml
+buildPack: go
+pipelineConfig:
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - command: make unittest
+      promote:
+        steps:
+        - command: ADDRESS=`jx get preview --current 2>&1` make functest
+```
+
+```bash
 cat jenkins-x.yml \
   | sed '$ d' \
   | tee jenkins-x.yml
 ```
 
-```
+```yaml
 buildPack: go
 pipelineConfig:
   pipelines:
@@ -1151,6 +1020,12 @@ Created Pull Request: https://github.com/vfarcic/go-demo-6/pull/109
 
 ```bash
 BRANCH=[...] # e.g., `PR-109`
+
+jx get activities \
+    --filter go-demo-6/$BRANCH \
+    --watch
+
+# Cancel with *ctrl+c*
 ```
 
 ## TODO
