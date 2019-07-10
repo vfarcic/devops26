@@ -75,7 +75,7 @@ We could write a full book about Istio, so we will focus on the traffic shifting
 Prometheus is the monitoring and alerting system of choice for Kubernetes clusters. It stores time series data that can be queried using PromQL, its query language. Time series collection happens via pull over HTTP.
 Many systems integrate with Prometheus as data store for their metrics.
 
-When Istio is enabled for a service it sends a number of metrics to Prometheus with no need to adapt our aplication. We will focus on the response times and status codes.
+Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our aplication. We will focus on the response times and status codes.
 
 ## Flagger
 
@@ -204,7 +204,6 @@ Istio and Flagger can also be installed manually using Helm.
 helm repo add gcsweb.istio.io https://gcsweb.istio.io/gcs/istio-release/releases/1.1.5/charts/
 helm install --name istio-init istio-init
 helm install --name istio istio
-helm install --name prometheus stable/prometheus
 helm repo add flagger https://flagger.app
 helm install --name flagger flagger/flagger
 helm install --name flagger-grafana flagger/grafana
