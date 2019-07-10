@@ -66,7 +66,7 @@ We will explore how Jenkins X integrates Flagger, Istio and Prometheus, projects
 
 Istio is a service mesh that can run on top of Kubernetes. It has become very popular and allows traffic management, for example sending a percentage of the traffic to a different service and other advanced networking such as point to point security, policy enforcement or automated tracing, monitoring and logging.
 
-When Istio is enabled for a service it deploys an Envoy proxy alongside with it as a sidecar container. These proxies mediate in all network communication between services.
+Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our aplication. We will focus on the response times and status codes.
 
 We could write a full book about Istio, so we will focus on the traffic shifting and metric gathering capabilities of Istio and how we use those to enable Canary deployments.
 
@@ -84,7 +84,7 @@ Flagger is a project sponsored by WeaveWorks using Istio to automate canarying a
 
 [Flagger](https://github.com/stefanprodan/flagger) is a **Kubernetes** operator that automates the promotion of canary deployments using **Istio** routing for traffic shifting and **Prometheus** metrics for canary analysis.
 
-Flagger requires Istio and Prometheus installed, plus the installation of the Flagger controller itself. It also offers a Grafana dashboard to monitor the deployment progress.
+Flagger requires Istio, plus the installation of the Flagger controller itself. It also offers a Grafana dashboard to monitor the deployment progress.
 
 The deployment rollout is defined by a Canary object that will generate primary and canary Deployment objects. When the Deployment is edited, for instance to use a new image version, the Flagger controller will shift the loads from 0% to 50% with 10% increases every minute, then it will shift to the new deployment or rollback if response errors and request duration metrics fail.
 
@@ -147,15 +147,17 @@ cd ..
 
 ## Requirement Installation
 
-We can easily install Istio, Prometheus and Flagger with `jx`.
+We can easily install Istio and Flagger with `jx`
 
 NOTE: Addons are probably going to be merged into apps
 
 ```bash
-jx create addon istio
+jx create addon istio --version 1.1.7
 ```
 
-When installing Istio a new ingress gateway servie is created that can send all the incoming traffic to services based on Istio rules or `VirtualServices`. This achieves a similar functionality than that of the ingress controller, but using Istio configuration instead of ingresses, that allows us to create more advanced rules for incoming traffic.
+NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
+
+When installing Istio a new ingress gateway service is created that can send all the incoming traffic to services based on Istio rules or `VirtualServices`. This achieves a similar functionality than that of the ingress controller, but using Istio configuration instead of ingresses, that allows us to create more advanced rules for incoming traffic.
 
 We can find the external ip address of the ingress gateway service and configure a wildcard DNS for it, so we can use multiple hostnames for different services.
 Note the ip from the output of `jx create addon istio` or find it with this command, we will refer to it as `ISTIO_IP`.
@@ -196,7 +198,7 @@ It will also configure an Istio ingress gateway to accept incoming external traf
 TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)ss
 TODO: vfarcic is this what you mean?
 
-Istio, Prometheus and Flagger can also be installed manually using Helm.
+Istio and Flagger can also be installed manually using Helm.
 
 ```bash
 helm repo add gcsweb.istio.io https://gcsweb.istio.io/gcs/istio-release/releases/1.1.5/charts/

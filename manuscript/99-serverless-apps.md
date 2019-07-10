@@ -1,3 +1,30 @@
+## TODO
+
+- [X] Code
+- [ ] Write
+- [ ] Code review static GKE
+- [X] Code review serverless GKE
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
+- [ ] Text review
+- [ ] Gist
+- [ ] Review titles
+- [ ] Proofread
+- [ ] Diagrams
+- [ ] Add to workshop slides
+- [ ] Add to talk slides
+- [ ] Publish on TechnologyConversations.com
+- [ ] Add to Book.txt
+- [ ] Publish on LeanPub.com
+- [ ] Convert https://www.devopstoolkitseries.com to Knative
+- [ ] Create a PR to add the app to `jx get applications`
+
+TODO: https://github.com/jenkins-x/jx/issues/4668
+
 # Using Jenkins X To Define And Run Serverless Deployments
 
 W> The examples in this chapter work both in **static** and **serverless** Jenkins X.
@@ -6,65 +33,73 @@ We already saw how we can run serverless flavor of Jenkins X. That helped with m
 
 ## What is Serverless Computing?
 
-To understand serverless computing, one needs to understand the challenges we are facing with more "traditional" types of deployments of oour applications. A long time ago, most of us were deploying our applications directly to servers. We had to decide the size (memory and CPU) of the ndoes where our applications would run, we had to create those servers, and we had to maintain them. The situation improved with the emergence of cloud computing. We still had to do all those things, but now those tasks were much easier due to simplicity of the APIs and services cloud vendors gave us. Suddenly, we had (a perceptino of) infinite resources and all we had to do is run a command and a few minutes later the servers (VMs) we needed would materialize. Things become much easier and faster. But, that did not remove the tasks of creating and maintaining servers, but rather made them more straightforward. Concepts like immutability become mainstream as well. As a result, we got much needed reliability, reduced drastically lean time, and started to rip benefits of elasticity.
+To understand serverless computing, one needs to understand the challenges we are facing with more "traditional" types of deployments of our applications. A long time ago, most of us were deploying our apps directly to servers. We had to decide the size (memory and CPU) of the nodes where our applications would run, we had to create those servers, and we had to maintain them. The situation improved with the emergence of cloud computing. We still had to do all those things, but now those tasks were much easier due to the simplicity of the APIs and services cloud vendors gave us. Suddenly, we had (a perception of) infinite resources and all we had to do is run a command, and a few minutes later the servers (VMs) we needed would materialize. Things become much easier and faster. But, that did not remove the tasks of creating and maintaining servers. Instead, that made them more straightforward. Concepts like immutability become mainstream as well. As a result, we got much-needed reliability, reduced drastically lean time, and started to rip benefits of elasticity.
 
-Still, some important questions were left ununswered. Should we keep our servers running even when our applications are not serving any requests? If we shouldn't, how can we ensure that they are readily available when we do need them? Who should be responsible for maintenance of those servers? Is it our infrastruture department, our clod provider, oor can we build a system that will do that for us without human intervention?
+Still, some important questions were left unanswered. Should we keep our servers running even when our applications are not serving any requests? If we shouldn't, how can we ensure that they are readily available when we do need them? Who should be responsible for the maintenance of those servers? Is it our infrastructure department, our cloud provider, or can we build a system that will do that for us without human intervention?
 
-Things changed with the emergence fo containers and schedulers. After a few years of uncertainty created by having too many options on the table, the situation stabilized around Kubernetes that become de-facto standard. At roughly the same time, in parallel with the rise of popularity of containers and schedulers, solutions serverless computing concepts started to materialize. Those solutions were not related with each other or, to be more precise, were not during the first few years. Kubernetes provided us to run microservices as well as more traditional types of applications, while serverless focused on running functions (often only a few lines of code). For now, we'll focus on serverless computing or, as some call it function-as-a-service.
+Things changed with the emergence of containers and schedulers. After a few years of uncertainty created by having too many options on the table, the situation stabilized around Kubernetes that become the de-facto standard. At roughly the same time, in parallel with the rise of popularity of containers and schedulers, solutions for serverless computing concepts started to materialize. Those solutions were not related to each other or, to be more precise, they were not during the first few years. Kubernetes provided us with means to run microservices as well as more traditional types of applications, while serverless focused on running functions (often only a few lines of code).
 
-The name serverless is missleading by giving the impression that they are no servers involved. They are certainly still there, but the concept and the solutions implementing them allow us (users) to ignore their existence. The major cloud providers (AWS, Microsoft Azure, and Google) all came up with solutions for serverless computing. Developers could focus on writing functions with a few additional lines of code specific to our serverless computing vendor. Everything else required for running and scaling those functions become transparent.
+The name serverless is misleading by giving the impression that they are no servers involved. They are certainly still there, but the concept and the solutions implementing them allow us (users) to ignore their existence. The major cloud providers (AWS, Microsoft Azure, and Google) all came up with solutions for serverless computing. Developers could focus on writing functions with a few additional lines of code specific to our serverless computing vendor. Everything else required for running and scaling those functions become transparent.
 
-But not everything is great in the serverless world. The number of use-cases that can be fullfilled with writing functions (as oposed to applications) is limited. Even when we do have enough use-cases to make serverless computing wortwhile effort, a bigger concern is lurking just around the corner. We are likely going to be locked to a vendor given that none of them implements any type of industry standard. No matter whether we choose AWS Labda, Azure Functions, or Google Cloud Functions, the code we write will not be portable from one vendor to another. That does not mean that there are no serverless frameworks that are not tied to a specific cloud provider. There are, but we'd need to maintain them ourselves, be it on-prem or inside clusters running in public cloud. That removes one of the most important benefits of the serverless concepts.
+But not everything is excellent in the serverless world. The number of use-cases that can be fulfilled with writing functions (as opposed to applications) is limited. Even when we do have enough use-cases to make serverless computing worthwhile effort, a more significant concern is lurking just around the corner. We are likely going to be locked to a vendor given that none of them implements any type of industry standard. No matter whether we choose AWS Lambda, Azure Functions, or Google Cloud Functions, the code we write will not be portable from one vendor to another. That does not mean that there are no serverless frameworks that are not tied to a specific cloud provider. There are, but we'd need to maintain them ourselves, be it on-prem or inside clusters running in a public cloud. That removes one of the most essential benefits of serverless concepts.
 
 That's where Kuberentes comes into play.
 
 ## Serverless Deployments In Kubernetes
 
-At this point, I must make an assumption that you, dear reader, might dissagree with. Most of the companies will run at least some (if not all) of their applications in Kubernetes. It is becoming (or it already is) a standard API that will be used by (almost) everyone. Why is that assumption important? If I am right, than (almost) everyone will have a Kubernetes cluster. Everyone will spend time maintaining it, and everyone will have some level of in-house knowledge of how it works. If that assumption is correct, it stands to reason that Kubernetes would be the best choice of a platform to run serverless applications as well. That would avoid vendor lock-in ginve that Kubernetes can run (almost) anywhere. A Kubernetes-based serverless computing would provide quite a few other benefits. We could be free to write our applications in any language, instead of being limited to what function-as-a-service provided by cloud providers offers. Also, we would be limited to writing only functions. A microservice, or even a monolith could run as a serverless application. We just need to find a solution to make that happen. After all, proprietary cloud-specific serverless solutions use containers (of sorts) as well, and the standard mechanism for running containers is Kubernetes.
+At this point, I must make an assumption that you, dear reader, might dissagree with. Most of the companies will run at least some (if not all) of their applications in Kubernetes. It is becoming (or it already is) a standard API that will be used by (almost) everyone. Why is that assumption important? If I am right, then (almost) everyone will have a Kubernetes cluster. Everyone will spend time maintaining it, and everyone will have some level of in-house knowledge of how it works. If that assumption is correct, it stands to reason that Kubernetes would be the best choice of a platform to run serverless applications as well. That would avoid vendor lock-in since Kubernetes can run (almost) anywhere.
 
-There is an increasing number of Kubernetes platforms that allow us to run serverless applications. We won't go into all of those, but fastrack the conversation by me stating that Knative is likely going to become the de-fasco standard how to deploy serverless load to Kubernetes.
+Kubernetes-based serverless computing would provide quite a few other benefits. We could be free to write our applications in any language, instead of being limited by those supported by function-as-a-service solutions offered by cloud vendors. Also, we would not be limited to writing only functions. A microservice or even a monolith could run as a serverless application. We just need to find a solution to make that happen. After all, proprietary cloud-specific serverless solutions use containers (of sorts) as well, and the standard mechanism for running containers is Kubernetes.
 
-[Knative](https://knative.dev/) is an open source project that delivers components used to build and run serverless applications on Kubernetes. We can use it to scale-to-zero, autoscale, in-cluster builds, and eventing framework for applications on Kubernetes. That part of the project we're interested in right now is it's ability to convert our applicatins into serverless deployments. That should allow us both to save resources (memory and CPU) when oour applications are idle, as well as to scale them fast when trafic increases.
+There is an increasing number of Kubernetes platforms that allow us to run serverless applications. We won't go into all of those, but fastrack the conversation by me stating that Knative is likely going to become the de-facto standard how to deploy serverless load to Kubernetes.
 
-Now that we discussed what is serverless and that I made an outlandish statement that Kubernetes is the platform where your serverless applications are running, let's discuss which types of scenarios are a good fit for serverless deployments.
+[Knative](https://knative.dev/) is an open source project that delivers components used to build and run serverless applications on Kubernetes. We can use it to scale-to-zero, to autoscale, for in-cluster builds, and as an eventing framework for applications on Kubernetes. The part of the project we're interested in right now is its ability to convert our applications into serverless deployments. That should allow us both to save resources (memory and CPU) when our applications are idle, as well as to scale them fast when trafic increases.
+
+Now that we discussed what is serverless and that I made an outlandish statement that Kubernetes is the platform where your serverless applications should be running, let's talk which types of scenarios are a good fit for serverless deployments.
 
 ## Which Types Of Applications Should Run As Serverless?
 
-Initially, the idea was only for functions to run as serverless. Those would be single-purpose pieces of code that contain only a small number of lines of code. A typical example of a serverless application would be image processing function that responds to a single request and can run to a limited period. Those restrictions are imposed by implementations of serverless computing in cloud providers. But, if we adopt Kubernetes as the platform to run serverless deployments, those restrictions might not be valid any more. We can say that any application that can be packaged into a container image can run as a serverless deployment in Kubernetes. That, however, does not mean that any container is as good of a candidate as any other. The smaller the application or, to be more precise, the faster its boot-up time is, the better the candidate for serverless deployments. However, things are not as straight forward as they may seem. Not being a good candidate does not mean that one should not compete at all. Knative, as many other serverless frameworks do allow us to fine tune configurations. We can, for example, specify with Knative that there should never be less than one replica of an application. That would solve the problem of slow boot-up while still maintaining some of the benefits of serverless deployments. In such a case, there would always be at least one replica to handle request, while we would benefit from having elasticity serverless providers.
+Initially, the idea was to have only functions running as serverless loads. Those would be single-purpose pieces of code that contain only a small number of lines of code. A typical example of a serverless application would be an image processing function that responds to a single request and can run for a limited period. Restrictions like the size of applications (functions) and their maximum duration are imposed by implementations of serverless computing in cloud providers. But, if we adopt Kubernetes as the platform to run serverless deployments, those restrictions might not be valid anymore. We can say that any application that can be packaged into a container image can run as a serverless deployment in Kubernetes. That, however, does not mean that any container is as good of a candidate as any other. The smaller the application or, to be more precise, the faster its boot-up time is, the better the candidate for serverless deployments.
 
-The size and the booot-up time are not the only criteria we can use to decide whether an application should be serverless or not. We might want to consider traffic as well. If, for example, our application has high traffic and it receives requests throughout the whole day, we might never need to scale it down to zero replicas. Similarly, our application might not be designed in a way that every request is processes by a different replica. After all, most of the applications can handle a huge number of requests by a single replica. In such cases, serverless computing implemented by cloud vendors and based on function-as-a-service might not be a good choice. But, as we already discussed, there are other serverless platforms and those based on Kubernetes do not follow those rules. Since we can run any container as serverless, any type of application can be deployed as such, and that means that a single replica can handle as many requests as its design allows. Also, Knative and other platforms do can be configured to have a minimum number of replicas, so they might be well suited even for the applications with constant flow of traffic.
+However, things are not as straight forward as they may seem. Not being a good candidate does not mean that one should not compete at all. Knative, as many other serverless frameworks do allow us to fine-tune configurations. We can, for example, specify with Knative that there should never be less than one replica of an application. That would solve the problem of slow boot-up while still maintaining some of the benefits of serverless deployments. In such a case, there would always be at least one replica to handle requests, while we would benefit from having the elasticity of serverless providers.
 
-All in all, if it can run in a container, it can be converted into a serverless deployment, while still understanding that smaller applications with faster boot-up times are better candidates than others. If there is a rule one should follow when deciding whether to run an application as serverless is its state. Or, to be more precise, the luck of it. If an application is stateless, it might be a good candidate for serverless computing.
+The size and the booot-up time are not the only criteria we can use to decide whether an application should be serverless or not. We might want to consider traffic as well. If, for example, our app has high traffic and it receives requests throughout the whole day, we might never need to scale it down to zero replicas. Similarly, our application might not be designed in a way that every request is processed by a different replica. After all, most of the apps can handle a vast number of requests by a single replica. In such cases, serverless computing implemented by cloud vendors and based on function-as-a-service might not be the right choice. But, as we already discussed, there are other serverless platforms, and those based on Kubernetes do not follow those rules. Since we can run any container as serverless, any type of applications can be deployed as such, and that means that a single replica can handle as many requests as its design allows. Also, Knative and other platforms can be configured to have a minimum number of replicas, so they might be well suited even for the applications with a constant flow of traffic.
 
-Now, let us imagine that you have an application that is not a good candidate to be serverless. Does that mean that we cannot rip any benefit from frameworks like Knative? We can, since there is still the question of deployments to different environments. Normally, we have permanent and temporary environments. The examples of the former would be staging and production. If we do not want our application to be serverless in production, we will probably not want it to be any different in staging. Otherwise, the behavior would be different and we could not say that we tested exactly the same behavior as the one we expect to run in production. So, in most cases, if an application should not be serverless in production, it should not be serverless in any other permanent environment. But, that does not mean that it shouldn't be serverless in temporary environments.
+All in all, if it can run in a container, it can be converted into a serverless deployment, as long as we understand that smaller applications with faster boot-up times are better candidates than others. If there is a rule we should follow when deciding whether to run an application as serverless, it is related to the state. Or, to be more precise, the luck of it. If an application is stateless, it might be the right candidate for serverless computing.
 
-Let's take as an example a temporary environment in which we deploy an application as a result of making a pull request. It would be a temporary environment since we'd remove it the moment that pull request is closed. It's timespan is relatively short. It could exist for a few minutes, but sometimes that could be days or even weeks. It all depends no how fast we are in closing pull requests. Nevertheless, the is a high chance that the application deployed in such temporary environment will have low trafic. We would normally run a set of automated tests when the pull request is created or when we make changes to it. That would certainly result in traffic spike. But, after that, the traffic would be mucch lower and most of the time non-existent. We might open the application to have a look at it, we might run some manual tests, and then we would wait for the pull request to be approved or for someone to push additional changes if we found some issues or inconsistencies. That means that the deployment in question would be unused most of the time. Still, if it would be a "traditional" deployment, it would oocupy resources for no particular reason. That might even discourage us from making temporary environments due to high costs.
+Now, let us imagine that you have an application that is not the right candidate to be serverless. Does that mean that we cannot rip any benefit from frameworks like Knative? We can since there is still the question of deployments to different environments.
 
-Given that pull requests deployments are not the final verifiations before deploying to production (that's what permanent environments are for), we do not need to insist that they are the same as production. On the other hand, the applications in such environments are mostly unused. Those facts lead us to conclude that temporary (often pull-request based) environments are a great candidate for serverless deployments, no matter the deployment type we use in permanent environments (e.g., staging and production).
+Typically, we have permanent and temporary environments. The examples of the former would be staging and production. If we do not want our application to be serverless in production, we will probably not want it to be any different in staging. Otherwise, the behavior would be different, and we could not say that we tested precisely the same behavior as the one we expect to run in production. So, in most cases, if an application should not be serverless in production, it should not be serverless in any other permanent environment. But, that does not mean that it shouldn't be serverless in temporary environments.
+
+Let's take an environment in which we deploy an application as a result of making a pull request as an example. It would be a temporary environment since we'd remove it the moment that pull request is closed. Its time span is relatively short. It could exist for a few minutes, but sometimes that could be days or even weeks. It all depends on how fast we are in closing pull requests.
+
+Nevertheless, there is a high chance that the application deployed in such temporary environment will have low trafic. We would typically run a set of automated tests when the pull request is created or when we make changes to it. That would certainly result in a traffic spike. But, after that, the traffic would be much lower and most of the time non-existent. We might open the application to have a look at it, we might run some manual tests, and then we would wait for the pull request to be approved or for someone to push additional changes if we found some issues or inconsistencies. That means that the deployment in question would be unused most of the time. Still, if it would be a "traditional" deployment, it would oocupy resources for no particular reason. That might even discourage us from making temporary environments due to high costs.
+
+Given that  deployments based on pull requests are not used for final validations before deploying to production (that's what permanent environments are for), we do not need to insist that they are the same as production. On the other hand, the applications in such environments are mostly unused. Those facts lead us to conclude that temporary (often pull-request based) environments are a great candidate for serverless deployments, no matter the deployment type we use in permanent environments (e.g., staging and production).
 
 Now that we saw some of the use cases for serverless computing, there is still an important one that we did not discuss.
 
 ## Why Do We Need Jenkins X To Be Serverless?
 
-There are quite a few problems with the traditional Jenkins. Most of use already know them so I'll repeat them only briefly. Jenkins (without X) does not scale, it is not fault tolerant, it's resource usage is heavy, it is slow, it is not API-driven, and so on. To put it in other words, it was not designed yesterday, but when those things were not as important as they are today. Jenkins had to go away for Jenkins X to take its place. Initially, Jenkins X had a stripped-down version of Jenkins but, since the release 2, not a single line of the traditional Jenkins is left in Jenkins X. Now it is fully serverless thanks to Tekton and a lot of custom code written from scratch to support the need for a modern Kubernetes-based solution. Excluding a very thin later that mostly acts as an API gateway, Jenkins X is fully serverless. Nothing runs when there are no builds, and it scales to accomodate any load. And that might be the best example of serverless computing we can have.
+There are quite a few problems with the traditional Jenkins. Most of us already know them, so I'll repeat them only briefly. Jenkins (without X) does not scale, it is not fault-tolerant, it's resource usage is heavy, it is slow, it is not API-driven, and so on. In other words, it was not designed yesterday, but when those things were not as important as they are today. Jenkins had to go away for Jenkins X to take its place.
 
-Coontinuous integration and continuous delivery flows are temporary by their nature. When we make a change to a Git repository, it notifies the cluster, and a set of processes are spun. Each Git webhook requests results in a pipeline run that builds, validates, and deploys a new release and, once those processes are finished, it dissapears from the system. Nothing is executing when there are no pipeline runs, and we can have as many of them in parallel as we need. It is elastic and resource efficient, and the heavy lifting is done by Tekton.
+Initially, Jenkins X had a stripped-down version of Jenkins but, since the release 2, not a single line of the traditional Jenkins is left in Jenkins X. Now it is fully serverless thanks to Tekton and a lot of custom code written from scratch to support the need for a modern Kubernetes-based solution. Excluding a very thin layer that mostly acts as an API gateway, Jenkins X is fully serverless. Nothing runs when there are no builds, and it scales to accommodate any load. And that might be the best example of serverless computing we can have.
 
-## What Is Tekton?
+Coontinuous integration and continuous delivery flows are temporary by their nature. When we make a change to a Git repository, it notifies the cluster, and a set of processes are spun. Each Git webhook request results in a pipeline run that builds, validates, and deploys a new release and, once those processes are finished, it dissapears from the system. Nothing is executing when there are no pipeline runs, and we can have as many of them in parallel as we need. It is elastic and resource-efficient, and the heavy lifting is done by Tekton.
 
-Those of you using serverless Jenkins X already experienced Knative, of sorts. Tekton is a spin-off project of Knative and it is an important component in the solution. It is in charge of creating pipeline runs (special type of Pods) when needed, and destroying them when finished. Thanks to Tekton the total footprint of serverless Jenkins X is very small when idle. Similarly, it allowes the solution to scale to almost any size, when that is needed.
+Continuous integration and continuous delivery tools are probably one of the best examples of a use-case that fits well in serverless computing concepts.
 
-Tekton, however, is designed only for "special" type of processes, mostly those associated with continuous integration and continuous delivery pipelines. It is not, however, suited for long-running applications designed to handle requests. So, why am I talking about Tekton if it does not allow us run our applications as serverless? The answer lies in Tekton's father.
+## What Is Tekton And How Does It Fix Jenkins X?
 
-Tekton is a Knative spin-off. It's forked from it in hopes to provide CI/CD capabilities. Or, to be more precise, Tekton was born out of the [Knative Build](https://knative.dev/docs/build/) component, which is now conosidered deprecated. But, Knative still stays the most promising way to run serverless applications in Kubernetes. It is the father of Tekton, which we've been using for a while now given that it is an integral part of serverless Jenkins X.
+Those of you using serverless Jenkins X already experienced Knative, of sorts. Tekton is a spin-off project of Knative, and it is the essential component in the solution. It is in charge of creating pipeline runs (a special type of Pods) when needed and destroying them when finished. Thanks to Tekton, the total footprint of serverless Jenkins X is very small when idle. Similarly, it allows the solution to scale to almost any size when that is needed.
 
-Now, I could walk you through the details of Knative definitions, but that would be out of the scope of this book. It's about Jenkins X, not about Knative and other platforms for running serverless application. But, my unwilingness to show you ups and downs of Knative does not mean that we cannot use it. As a matter of fact, Jenkins X already provides means to select whether we want to create a quickstart or import an existing project that will be deployed as a serverless application using Knative. We just need to let Jenkins X know that's what we want, and it'll do the heavy lifing of creating the definition (YAML file) that we need.
+Tekton is designed only for "special" type of processes, mostly those associated with continuous integration and continuous delivery pipelines. It is not, however, suited for long-running applications designed to handle requests. So, why am I talking about Tekton if it does not allow us to run our applications as serverless? The answer lies in Tekton's father.
 
-Now, let's take a look at Jenkins X as an example of both a set of serverless applications, as well as a tool that allows us to convert our existing applications into serverless deployments.
+Tekton is a Knative spin-off. It was forked from it in hopes to provide better CI/CD capabilities. Or, to be more precise, Tekton was born out of the [Knative Build](https://knative.dev/docs/build/) component, which is now considered deprecated. But, Knative still stays the most promising way to run serverless applications in Kubernetes. It is the father of Tekton, which we've been using for a while now given that it is an integral part of serverless Jenkins X.
 
-Installing serverless flavor of Jenkins X is as easy as execution of a single command. That problem is solved, but you might be wondering how to convert your applications into serverless deployments. Fortunatelly, Jenkins X has you covered for that as well.
+Now, I could walk you through the details of Knative definitions, but that would be out of the scope of this subject. It's about Jenkins X, not about Knative and other platforms for running serverless application. But, my unwilingness to show you the ups and downs of Knative does not mean that we cannot use it. As a matter of fact, Jenkins X already provides means to select whether we want to create a quickstart or import an existing project that will be deployed as a serverless application using Knative. We just need to let Jenkins X know that's what we want, and it'll do the heavy lifing of creating the definition (YAML file) that we need.
 
-But, before we proceed further, we'll need a cluster with any flavor of Jenkins X.
+So, Jenkins X is an excellent example of both a set of serverless applications that constitute the solution, as well as a tool that allows us to convert our existing applications into serverless deployments. All we have to do to accomplish the latter is to express that as our desire, and Jenkins X will do all the heavy lifting of creating the correct definitions for our applications as well as to move them through their life cycles.
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
@@ -135,6 +170,8 @@ Now that we know the "elevator pitch" for Gloo, we can proceed and install it.
 jx create addon gloo
 ```
 
+W> TODO: EKS: waiting for external IP on Gloo cluster ingress proxy service clusteringress-proxy in namespace gloo-system ...
+
 Judging from the output, we can see that the process checked whether `glooctl` is installed and, if it isn't, it set it up for us. The command line tool has quite a few features but the only one that matters (for now) is that it installs Knative. Furter on, the process installed Gloo and Knative in our cluster and it configured our team to use `knative` as the default deployment kind. What that means is that, from now on, every new application we add through a quickstart or by importing an existing project will be deployed as Knative.
 
 The default deployment mechanism can be changed at any time.
@@ -146,6 +183,8 @@ kubectl get namespaces
 ```
 
 The output is as follows.
+
+I> The outputs are from serverless Jenkins X running in GKE. If you're using a different combination, you might experience some differences when comparing the output from this book with the one on your screen.
 
 ```
 NAME            STATUS AGE
@@ -218,6 +257,7 @@ The output, limited to the relevant parts, is as follows.
 ...
 # enable this flag to use knative serve to deploy the app
 knativeDeploy: true
+...
 ```
 
 As you can see, the `knativeDeploy` variable is set to `true`. All the past projects, at least those created after May 2019, had that value set to `false`, simply because we did not have the Gloo addon installed and our team deployment setting was set to `default` instead of `knative`. But, now that we changed that, `knativeDeploy` will be set to `true` for all the new projects, unless chanrge the deployment setting again.
@@ -322,7 +362,17 @@ jx get activities \
 
 Unless you are the fastest reader on earth, the pipeline run should have finished and you'll notice that the is no difference in the steps. It is the same no matter whether we are using serverless or any other type of deployment. So, feel free to stop the activity by pressing *ctrl+c*, and we'll take a look at the Pods and see whether that shows anything interesting.
 
-Let's see the Pod of the new application deployed to the staging environment.
+Before we take a look at the Pod of the new application deployed to the staging environment, we'll confirm that the latest run of the staging environment pipeline is finished.
+
+```bash
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+```
+
+Feel free to press *ctrl+c* when the staging environment pipeline run is finished.
+
+Now we can have a look at the Pod running as part of our serverless application.
 
 ```bash
 kubectl --namespace cd-staging \
@@ -336,6 +386,8 @@ The output is as follows.
 NAME           READY STATUS  RESTARTS AGE
 jx-knative-... 2/2   Running 0        84s
 ```
+
+W> If the output states that `no resources` were `found`, the Pod enough time passed without any traffic and the application was scaled to zero replicas. We'll see a similar effect and comment on it a few more times. Just keep in mind that the next command that describes the Pod will not work since it was already removed.
 
 The Pod is there, as we expected. The strange thing is the number of Pods. There are two, even though our application needs only one. Let's describe the Pod and see what we'll get.
 
@@ -379,7 +431,7 @@ replicaset.apps/jx-knative-...
 podautoscaler.autoscaling.internal.knative.dev/jx-knative-...
 ...
 image.caching.internal.knative.dev/jx-knative-...
-,,,
+...
 clusteringress.networking.internal.knative.dev/route-...
 ...
 route.serving.knative.dev/jx-knative ...
@@ -433,7 +485,7 @@ Now comes the moment of truth. Is our application working. Can we access it?
 curl "$ADDR"
 ```
 
-The good news is that we did get the `Hello` greeting as the output, so the application is working. But, that was probably the slowest response you ever saw from such a simple application. Why did it take so long? The answer to that questions lies in the scaling nature of serverless applications. Since no one sent a request to the application before, there was no need to it to run any replica. The moment we sent the first request, Knative detected it and initiated scaling that, after a while, resulted in the first replica running inside the cluster. As a result, we received the familiar greeting, only after the image is pulled, the Pod was started, and the application inside it was initiated. Don't worry about that "slowness" since it manifests itself only initially before Knative creates the cache. You'll see soon that the boot-up time will be very fast from now on.
+The good news is that we did get the `Hello` greeting as the output, so the application is working. But, that might have been the slowest response you ever saw from such a simple application. Why did it take so long? The answer to that questions lies in the scaling nature of serverless applications. Since no one sent a request to the application before, there was no need to it to run any replica. The moment we sent the first request, Knative detected it and initiated scaling that, after a while, resulted in the first replica running inside the cluster. As a result, we received the familiar greeting, only after the image is pulled, the Pod was started, and the application inside it was initiated. Don't worry about that "slowness" since it manifests itself only initially before Knative creates the cache. You'll see soon that the boot-up time will be very fast from now on.
 
 So, let's take a look at that "famous" Pod that was created out of thin air.
 
@@ -508,7 +560,7 @@ kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
      -it --rm \
-     -- -c 300 -b -t 20S "http://$ADDR/" \
+     -- -c 300 -t 20S "http://$ADDR/" \
      && kubectl \
      --namespace cd-staging \
     get pods \
@@ -673,13 +725,7 @@ jx-knative   jx-knative.cd-staging.35.196.111.72.nip.io   jx-knative-2mjq9   jx-
 ```
 
 ```bash
-kubectl --namespace cd-staging \
-    get pods \
-    --selector serving.knative.dev/service=jx-knative
-```
-
-```
-No resources found.
+curl "http://$ADDR/"
 ```
 
 ```bash
@@ -689,7 +735,7 @@ kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
      -it --rm \
-     -- -c 18 -b -t 30S "http://$ADDR/" \
+     -- -c 500 -t 60S "http://$ADDR/" \
      && kubectl \
      --namespace cd-staging \
     get pods \
@@ -701,18 +747,18 @@ If you don't see a command prompt, try pressing enter.
 
 Lifting the server siege...      done.
 
-Transactions:                      0 hits
-Availability:                   0.00 %
-Elapsed time:                  29.30 secs
-Data transferred:               0.00 MB
-Response time:                  0.00 secs
-Transaction rate:               0.00 trans/sec
-Throughput:                     0.00 MB/sec
-Concurrency:                    0.00
-Successful transactions:           0
+Transactions:                  19078 hits
+Availability:                 100.00 %
+Elapsed time:                  59.63 secs
+Data transferred:               0.78 MB
+Response time:                  1.04 secs
+Transaction rate:             319.94 trans/sec
+Throughput:                     0.01 MB/sec
+Concurrency:                  332.52
+Successful transactions:       19078
 Failed transactions:               0
-Longest transaction:            0.00
-Shortest transaction:           0.00
+Longest transaction:            8.29
+Shortest transaction:           0.01
 
 FILE: /var/log/siege.log
 You can disable this annoying message by editing
@@ -720,16 +766,16 @@ the .siegerc file in your home directory; change
 the directive 'show-logfile' to false.
 Session ended, resume using 'kubectl attach siege -c siege -i -t' command when the pod is running
 pod "siege" deleted
-NAME                                          READY   STATUS    RESTARTS   AGE
-jx-knative-2mjq9-deployment-677989b59-btm2b   2/2     Running   0          31s
-jx-knative-2mjq9-deployment-677989b59-gcxjb   2/2     Running   0          33s
-jx-knative-2mjq9-deployment-677989b59-gf2kz   2/2     Running   0          29s
-jx-knative-2mjq9-deployment-677989b59-qknmj   2/2     Running   0          31s
-jx-knative-2mjq9-deployment-677989b59-tt7pd   2/2     Running   0          31s
+NAME                                           READY   STATUS    RESTARTS   AGE
+jx-knative-bqj68-deployment-777b9bdc4d-59w95   2/2     Running   0          58s
+jx-knative-bqj68-deployment-777b9bdc4d-5l8pb   2/2     Running   0          58s
+jx-knative-bqj68-deployment-777b9bdc4d-8qm52   2/2     Running   0          61s
+jx-knative-bqj68-deployment-777b9bdc4d-c52fb   2/2     Running   0          58s
+jx-knative-bqj68-deployment-777b9bdc4d-j4p8h   2/2     Running   0          58s
 ```
 
 ```bash
-# Wait for a while (e.g., 2 min)
+# Wait for a while (e.g., 1 min)
 
 kubectl --namespace cd-staging \
     get pods \
@@ -761,7 +807,7 @@ cat charts/jx-knative/templates/ksvc.yaml \
     | tee charts/jx-knative/templates/ksvc.yaml
 ```
 
-```
+```yaml
 {{- if .Values.knativeDeploy }}
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
@@ -853,6 +899,8 @@ NAME                                           READY   STATUS    RESTARTS   AGE
 jx-knative-7j9xm-deployment-5887cfdf96-hz528   2/2     Running   0          12m
 ```
 
+## Converting Existing Projects Into Serverless Applications
+
 ```bash
 # NOTE: Should send logs to a central location and monitor with Prometheus (https://knative.dev/v0.5-docs/serving/installing-logging-metrics-traces/)
 
@@ -874,12 +922,6 @@ service.yaml
 # NOTE: If ksvc.yaml is not there, the project was created long time ago and it does not support KNative
 
 TODO: Continue code
-
-TODO: Delete the application
-TODO: Copy the charts directory to charts-orig
-TODO: Delete the chart
-TODO: Import the application
-TODO: Diff the changes
 
 # If old
 echo "knativeDeploy: false" \
@@ -966,6 +1008,12 @@ knativeDeploy: true
 ```
 
 ```bash
+# If GKE
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
 cat jenkins-x.yml
 ```
 
@@ -1007,7 +1055,11 @@ git commit -m "Added Knative"
 
 git push \
     --set-upstream origin serverless
+```
 
+## Using Serverless Deployments With Pull Requests
+
+```bash
 jx create pullrequest \
     --title "Serverless with Knative" \
     --body "What I can say?" \
@@ -1019,24 +1071,276 @@ Created Pull Request: https://github.com/vfarcic/go-demo-6/pull/109
 ```
 
 ```bash
+PR_GH_ADDR=[...] # e.g., https://github.com/vfarcic/go-demo-6/pull/109
+
 BRANCH=[...] # e.g., `PR-109`
 
 jx get activities \
     --filter go-demo-6/$BRANCH \
     --watch
-
-# Cancel with *ctrl+c*
 ```
 
-## TODO
+```
+vfarcic/go-demo-6/PR-115 #1                                1m31s    1m28s Succeeded
+  from build pack                                          1m31s    1m28s Succeeded
+    Credential Initializer 84rtk                           1m31s       1s Succeeded
+    Working Dir Initializer Hvxnq                          1m30s       1s Succeeded
+    Place Tools                                            1m29s       0s Succeeded
+    Git Source Vfarcic Go Demo 6 Pr 115 Server Hvj28       1m28s       2s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                                              1m27s       5s Succeeded
+    Build Step2                                            1m27s      29s Succeeded
+    Build Make Linux                                       1m27s      31s Succeeded
+    Build Container Build                                  1m27s      35s Succeeded
+    Postbuild Post Build                                   1m27s      36s Succeeded
+    Promote Make Preview                                   1m26s      59s Succeeded
+    Promote Jx Preview                                     1m26s    1m23s Succeeded
+  Preview                                                     4s           https://github.com/vfarcic/go-demo-6/pull/115
+    Preview Application                                       4s           http://go-demo-6.cd-vfarcic-go-demo-6-pr-115.34.73.141.184.nip.io
+```
 
-* Combining serverless with "normal" (e.g. MongoDB)
-* Pull requests or only pull requests
-* Logging to a centralized location (https://knative.dev/docs/serving/accessing-logs/, https://knative.dev/v0.5-docs/serving/samples/telemetry-go/index.html)
-* Metrics (https://knative.dev/docs/serving/accessing-metrics/)
-* Convert https://www.devopstoolkitseries.com to Knative
-* Create a PR to add the app to `jx get applications`
+```bash
+# Cancel with *ctrl+c*
 
+GH_USER=[...]
+
+PR_NAMESPACE=$(\
+  echo $NAMESPACE-$GH_USER-go-demo-6-$BRANCH \
+  | tr '[:upper:]' '[:lower:]')
+
+echo $PR_NAMESPACE
+```
+
+```
+cd-vfarcic-go-demo-6-pr-115
+```
+
+```bash
+kubectl --namespace $PR_NAMESPACE \
+    get pods
+```
+
+```
+NAME                                          READY   STATUS    RESTARTS   AGE
+go-demo-6-ng479-deployment-5c46757fbf-cdql8   2/2     Running   2          6m44s
+preview-preview-db-856f5d4cb-ljqjw            1/1     Running   0          6m44s
+```
+
+```bash
+PR_ADDR=$(kubectl --namespace $PR_NAMESPACE \
+    get ksvc go-demo-6 \
+    --output jsonpath="{.status.domain}")
+
+echo $PR_ADDR
+```
+
+```
+go-demo-6.cd-vfarcic-go-demo-6-pr-115.34.73.141.184.nip.io
+```
+
+```bash
+curl "$PR_ADDR/demo/hello"
+
+# NOTE: We could have clicked the *here* link in the PR and added `/demo/hello` to the end of the address
+
+kubectl --namespace cd-staging get pods
+```
+
+```
+NAME                                           READY   STATUS    RESTARTS   AGE
+jx-go-demo-6-56fdbcb4c7-b5rjm                  1/1     Running   2          4h12m
+jx-go-demo-6-56fdbcb4c7-whw47                  1/1     Running   1          4h12m
+jx-go-demo-6-56fdbcb4c7-wn645                  1/1     Running   1          4h12m
+jx-go-demo-6-db-arbiter-0                      1/1     Running   0          4h12m
+jx-go-demo-6-db-primary-0                      1/1     Running   0          4h12m
+jx-go-demo-6-db-secondary-0                    1/1     Running   0          4h12m
+jx-knative-txdl5-deployment-7456cfddc4-n5459   2/2     Running   0          27m
+```
+
+```bash
+jx repo
+
+# Navigate to the pull request
+
+# Merge the PR
+
+git checkout master
+
+git pull
+
+jx get activities \
+    --filter go-demo-6/master \
+    --watch
+
+# Cancel with *ctrl+c*
+
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+# Cancel with *ctrl+c*
+
+kubectl --namespace cd-staging get pods
+```
+
+```
+...
+vfarcic/environment-tekton-staging/master #5                     37s      36s Succeeded
+  from build pack                                                37s      36s Succeeded
+    Credential Initializer X988p                                 37s       0s Succeeded
+    Working Dir Initializer 5kqbg                                37s       0s Succeeded
+    Place Tools                                                  36s       0s Succeeded
+    Git Source Vfarcic Environment Tekton Stag L8969 5cr         35s       1s Succeeded https://github.com/vfarcic/environment-tekton-staging
+    Git Merge                                                    35s       1s Succeeded
+    Setup Jx Git Credentials                                     35s       2s Succeeded
+    Build Helm Apply                                             34s      33s Succeeded
+```
+
+```bash
+kubectl --namespace cd-staging get pods
+```
+
+```
+NAME                                           READY   STATUS    RESTARTS   AGE
+go-demo-6-fnjp9-deployment-6b7cb5bdd8-snlpz    2/2     Running   0          65s
+jx-go-demo-6-db-arbiter-0                      1/1     Running   0          4h21m
+jx-go-demo-6-db-primary-0                      1/1     Running   0          4h21m
+jx-go-demo-6-db-secondary-0                    1/1     Running   0          4h21m
+jx-knative-txdl5-deployment-7456cfddc4-n5459   2/2     Running   0          36m
+```
+
+```bash
+ADDR=$(kubectl --namespace cd-staging \
+    get ksvc go-demo-6 \
+    --output jsonpath="{.status.domain}")
+
+echo $ADDR
+```
+
+```
+go-demo-6.cd-staging.34.73.141.184.nip.io
+```
+
+```bash
+curl "$ADDR/demo/hello"
+```
+
+```
+hello, PR!
+```
+
+## Limiting Serverless Deployments Only To Pull Requests
+
+```bash
+cd ..
+
+# If Tekton
+git clone https://github.com/$GH_USER/environment-tekton-staging
+
+# If Tekton
+cd environment-tekton-staging
+
+echo "go-demo-6:
+  knativeDeploy: false" \
+    | tee -a env/values.yaml
+
+git add .
+
+git commit -m "Removed Knative"
+
+git pull
+
+git push
+
+cd ../go-demo-6
+
+# NOTE: ing is not recreated on environment changes
+
+echo "go-demo-6 rocks" \
+    | tee README.md
+
+git add .
+
+git commit -m "Removed Knative"
+
+git pull
+
+git push
+
+jx get activities \
+    --filter go-demo-6/master \
+    --watch
+```
+
+```
+...
+vfarcic/go-demo-6/master #3                                    1m42s    1m38s Succeeded Version: 1.0.251
+  from build pack                                              1m42s    1m38s Succeeded
+    Credential Initializer 5kb6g                               1m42s       0s Succeeded
+    Working Dir Initializer R6hkz                              1m41s       0s Succeeded
+    Place Tools                                                1m40s       0s Succeeded
+    Git Source Vfarcic Go Demo 6 Master Releas Kxxgh Q47       1m39s       0s Succeeded https://github.com/vfarcic/go-demo-6
+    Git Merge                                                  1m39s       1s Succeeded
+    Setup Jx Git Credentials                                   1m39s       2s Succeeded
+    Build Make Build                                           1m39s      20s Succeeded
+    Build Container Build                                      1m38s      24s Succeeded
+    Build Post Build                                           1m38s      24s Succeeded
+    Promote Changelog                                          1m38s      31s Succeeded
+    Promote Helm Release                                       1m37s      41s Succeeded
+    Promote Jx Promote                                         1m37s    1m33s Succeeded
+  Promote: staging                                               51s      47s Succeeded
+    PullRequest                                                  51s      45s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/6 Merge SHA: 115c4b1b9c5d96054e88cab09619a800c72e233b
+    Update                                                        5s       1s Succeeded
+```
+
+```bash
+# Cancel with *ctrl+c*
+
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+```
+
+```
+...
+vfarcic/environment-tekton-staging/master #7                     38s      36s Succeeded
+  from build pack                                                38s      36s Succeeded
+    Credential Initializer 84xn4                                 38s       0s Succeeded
+    Working Dir Initializer Fb46q                                37s       0s Succeeded
+    Place Tools                                                  36s       0s Succeeded
+    Git Source Vfarcic Environment Tekton Stag Dbj7k Rxz         35s       0s Succeeded https://github.com/vfarcic/environment-tekton-staging
+    Git Merge                                                    35s       1s Succeeded
+    Setup Jx Git Credentials                                     35s       1s Succeeded
+    Build Helm Apply                                             34s      32s Succeeded
+```
+
+```bash
+# Cancel with *ctrl+c*
+
+kubectl --namespace cd-staging get pods
+```
+
+```
+NAME                                           READY   STATUS    RESTARTS   AGE
+jx-go-demo-6-598fbb4b48-flzbq                  1/1     Running   0          65s
+jx-go-demo-6-598fbb4b48-tccpk                  1/1     Running   0          55s
+jx-go-demo-6-598fbb4b48-tlqgb                  1/1     Running   0          65s
+jx-go-demo-6-db-arbiter-0                      1/1     Running   0          4h32m
+jx-go-demo-6-db-primary-0                      1/1     Running   0          4h32m
+jx-go-demo-6-db-secondary-0                    1/1     Running   0          4h32m
+jx-knative-txdl5-deployment-7456cfddc4-n5459   2/2     Running   0          48m
+```
+
+```bash
+ADDR=$(kubectl --namespace cd-staging \
+    get ing go-demo-6 \
+    --output jsonpath="{.spec.rules[0].host}")
+
+echo $ADDR
+
+curl "$ADDR/demo/hello"
+
+# NOTE: There's no need for instructins how to do the same with the prod env.
+```
 
 ## What Now?
 
