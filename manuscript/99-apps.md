@@ -155,8 +155,10 @@ TODO: Continue code
 NOTE: Except GKE
 
 ```bash
-jx create addon istio
+jx create addon istio --version 1.1.7
 ```
+
+NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
 
 NOTE: GKE
 
