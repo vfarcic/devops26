@@ -312,4 +312,6 @@ anchore-cli --u admin --p anchore --url $ANCHORE_CLI_URL image vuln openjdk:10-j
 # TODO: Enable prometheus metrics
 
 # TODO: Enable events notification
+
+# TODO: owasp-zap addon
 ```

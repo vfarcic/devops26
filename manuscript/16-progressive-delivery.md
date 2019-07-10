@@ -149,6 +149,8 @@ cd ..
 
 We can easily install Istio and Flagger with `jx`
 
+NOTE: Addons are probably going to be merged into apps
+
 ```bash
 jx create addon istio --version 1.1.7
 ```
@@ -161,15 +163,28 @@ We can find the external ip address of the ingress gateway service and configure
 Note the ip from the output of `jx create addon istio` or find it with this command, we will refer to it as `ISTIO_IP`.
 
 ```bash
+# If not EKS
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
     get service istio-ingressgateway \
     --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
+# If EKS
+ISTIO_HOST=$(kubectl \
+    --namespace istio-system \
+    get service istio-ingressgateway \
+    --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+# If EKS
+export ISTIO_IP="$(dig +short $ISTIO_HOST \
+    | tail -n 1)"
+
 echo $ISTIO_IP
 ```
 
 Let's continue with the other addons
+
+NOTE: Prometheus is already installed with Istio
 
 ```bash
 jx create addon flagger
@@ -228,8 +243,6 @@ This configuration can be done using Flagger's `Canary` objects, that we can add
 cd go-demo-6
 
 git checkout master
-
-# TODO: Carlos: Shouldn't we test canary in staging first (probably much faster though)?
 
 echo "{{- if eq .Release.Namespace \"$NAMESPACE-production\" }}
 {{- if .Values.canary.enable }}
@@ -362,7 +375,7 @@ jx get activities \
 # Only if serverless
 # Press *ctrl+c* when the activity is finished
     
-jx get applications -e staging
+jx get applications --env staging
 
 VERSION=[...]
 
@@ -370,6 +383,14 @@ jx promote go-demo-6 \
     --version $VERSION \
     --env production \
     --batch-mode
+
+kubectl \
+    --namespace $NAMESPACE-production \
+    get all
+
+kubectl \
+    --namespace $NAMESPACE-production \
+    get virtualservice.networking.istio.io
 ```
 
 After detecting a new `Canary` object Flagger will automatically create some other objects to manage the canary deployment:
@@ -382,14 +403,17 @@ After detecting a new `Canary` object Flagger will automatically create some oth
 
 The primary and canary deployments manage the incumbent and new version of the deploy respectively. Flagger will have both running during the canary process and create the Istio `VirtualService` that sends traffic to one or another. Initially all traffic is sent to the primary deployment. Lets make a new deployment and see how it is being canaried.
 
-We are going to create a trivial change in the demo application, replacing `hello, PR!` in `main.go` to `hello canary, PR!`. Then we will commit and merge it to master to get a new version in the staging environment. 
+We are going to create a trivial change in the demo application, replacing `hello, PR!` in `main.go` to `hello, progressive!`. Then we will commit and merge it to master to get a new version in the staging environment. 
 
-Now in another terminal let's tail Flagger logs so we can get insights in the deployment process.
+Let's tail Flagger logs so we can get insights in the deployment process.
 
 ```bash
 kubectl --namespace istio-system logs \
-    --selector app.kubernetes.io/name=flagger
+    --selector app.kubernetes.io/name=flagger \
+    --follow
 ```
+
+NOTE: Stop with *ctrl+c*
 
 And once the new version is built we can promote to production the new version.
 
@@ -415,7 +439,15 @@ jx get activities \
 
 # Press *ctrl+c* when the activity is finished
 
-jx get applications -e staging
+# Only if serverless
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+# Only if serverless
+# Press *ctrl+c* when the activity is finished
+
+jx get applications --env staging
 
 VERSION=[...]
 
@@ -499,14 +531,23 @@ kubectl \
 ```
 
 ```
+  Last Transition Time:  2019-06-30T05:50:57Z
+  Phase:                 Progressing
+  Tracked Configs:
 Events:
-  Type     Reason  Age   From     Message
-  ----     ------  ----  ----     -------
-  Normal   Synced  3m    flagger  New revision detected jx-go-demo-6.jx-production
-  Normal   Synced  3m    flagger  Scaling up jx-go-demo-6.jx-production
-  Warning  Synced  3m    flagger  Waiting for jx-go-demo-6.jx-production rollout to finish: 0 of 1 updated replicas are available
-  Normal   Synced  3m    flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Normal   Synced  2m    flagger  Advance jx-go-demo-6.jx-production canary weight 20
+  Type     Reason  Age                From     Message
+  ----     ------  ----               ----     -------
+  Warning  Synced  11m (x6 over 12m)  flagger  Halt advancement jx-go-demo-6-primary.cd-production waiting for rollout to finish: 0 of 3 updated replicas are available
+  Warning  Synced  11m                flagger  Halt advancement jx-go-demo-6-primary.cd-production waiting for rollout to finish: 1 of 3 updated replicas are available
+  Normal   Synced  11m                flagger  Initialization done! jx-go-demo-6.cd-production
+  Normal   Synced  60s                flagger  New revision detected! Scaling up jx-go-demo-6.cd-production
+  Normal   Synced  50s                flagger  Starting canary analysis for jx-go-demo-6.cd-production
+  Normal   Synced  50s                flagger  Advance jx-go-demo-6.cd-production canary weight 20
+  Warning  Synced  40s                flagger  Halt advancement no values found for metric istio_requests_total probably jx-go-demo-6.cd-production is not receiving traffic
+  Normal   Synced  30s                flagger  Advance jx-go-demo-6.cd-production canary weight 40
+  Normal   Synced  20s                flagger  Advance jx-go-demo-6.cd-production canary weight 60
+  Normal   Synced  10s                flagger  Advance jx-go-demo-6.cd-production canary weight 80
+  Normal   Synced  0s                 flagger  Promotion completed! Scaling down jx-go-demo-6.cd-production
 ```
 
 Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.

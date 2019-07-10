@@ -440,7 +440,7 @@ As you can see, there is the third environment named `dev`. We'll explore it lat
 Now that we know which environments we have, we can combine that information and list only the applications in one of them. Let's see which ones are running in the staging environment.
 
 ```bash
-jx get applications -e staging
+jx get applications --env staging
 ```
 
 The output is as follows.

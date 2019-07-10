@@ -1,4 +1,12 @@
-https://gist.github.com/carlossg/1d60c766d9b7546ddb50b414dceb918eclear
+# https://jenkins-x.io/news/alibaba-container-service-jenkins-x/
+
+# Activate *Container Service*, *Resource Orchestration Service (ROS)*, *RAM*, and *Auto Scaling* services
+
+# Create the [Container Service roles](https://www.alibabacloud.com/help/doc-detail/86484.htm?spm=a2c63.p38356.b99.38.663a333eMXExon).
+
+# Download and install aliyun-cli (e.g., `brew install aliyun-cli`)
+
+aliyun configure
 
 REGION=ap-southeast-1
 
@@ -21,7 +29,7 @@ aliyun vpc CreateVSwitch \
 VSWITCH_ID=[...]
 
 aliyun ecs ImportKeyPair \
-    --KeyPairName jx-rocks2 \
+    --KeyPairName jx-rocks \
     --RegionId ${REGION} \
     --PublicKeyBody "$(cat ~/.ssh/id_rsa.pub)"
 
@@ -35,7 +43,7 @@ echo "{
     \"disable_rollback\": true,
     \"timeout_mins\": 60,
     \"region_id\": \"${REGION}\",
-    \"zoneid\": \"${REGION}a\",
+    \"zoneid\": \"${REGION}b\",
     \"snat_entry\": true,
     \"cloud_monitor_flags\": false,
     \"public_slb\": true,
@@ -44,26 +52,34 @@ echo "{
     \"worker_system_disk_category\": \"cloud_efficiency\",
     \"worker_system_disk_size\": 120,
     \"worker_instance_charge_type\": \"PostPaid\",
-    \"vpcid\": \"${VPC}\",
-    \"vswitchid\": \"${VSWITCH}\",
-    \"container_cidr\": \"172.20.0.0/16\",
-    \"service_cidr\": \"172.21.0.0/20\",
-    \"key_pair\": \"jx-rocks2\"
+    \"vpcid\": \"${VPC_ID}\",
+    \"vswitchid\": \"${VSWITCH_ID}\",
+    \"container_cidr\": \"192.168.0.0/16\",
+    \"service_cidr\": \"10.0.0.0/20\",
+    \"key_pair\": \"jx-rocks\"
 }" | tee cluster/alibaba-k8s.json
 
-aliyun cs  POST /clusters \
+aliyun cs POST /clusters \
     --header "Content-Type=application/json" \
     --body "$(cat cluster/alibaba-k8s.json)"
 
 CLUSTER_ID=[...]
 
-# Wait until the cluster is created
-
 aliyun cs GET /k8s/${CLUSTER_ID}/user_config \
     | jq -r ".config" \
     | tee cluster/kubecfg-alibaba
 
+# Repeat if error
+
 export KUBECONFIG=$PWD/cluster/kubecfg-alibaba
+
+aliyun ecs CreateInstance \
+    --RegionId ${REGION} \
+    --ZoneId ${REGION}a \
+    --InstanceType ecs.t5-lc2m1.nano \
+    --ImageId  \
+    --help
+
 
 kubectl get nodes
 
@@ -75,21 +91,15 @@ kubectl patch \
 
 kubectl get storageclasses
 
-echo "chartmuseum:
-  persistence:
-    size: 20Gi
-jenkins:
-  Persistence:
-    Size: 20Gi
-monocular:
-  mongodb:
-    persistence:
-      size: 20Gi
-nexus:
-  enabled: false" \
-    | tee myvalues.yaml
+# open "https://cr.console.aliyun.com/"
 
-NAMESPACE=jx-rocks-ns
+open "https://cr.console.aliyun.com/$REGION/instances/namespaces"
+
+# Create Namespace
+
+# Convert it to *Public*
+
+NAMESPACE=[...]
 
 cat << EOF > cluster/alibaba-namespace.json
 {
@@ -99,33 +109,53 @@ cat << EOF > cluster/alibaba-namespace.json
 }
 EOF
 
+aliyun cr PUT /namespace/${NAMESPACE} \
+    --header "Content-Type=application/json" \
+    --body "$(cat cluster/alibaba-namespace.json)"
+
 aliyun cr POST /namespace/${NAMESPACE} \
     --header "Content-Type=application/json" \
     --body "$(cat cluster/alibaba-namespace.json)"
 
-cat << EOF > namespace.json
-{
-    "Namespace": {
-        "AutoCreate": true,
-        "DefaultVisibility": "public"
-    }
-}
-EOF
-
-# Create docker login password from the console
-
-DOCKER_USERNAME=[...]
-
-DOCKER_PASSWORD=[...]
-
 jx install \
     --provider alibaba \
     --default-admin-password=admin \
-    --default-environment-prefix tekton \
-    --git-provider-kind github \
+    --default-environment-prefix=jx-rocks \
     --docker-registry=registry.${REGION}.aliyuncs.com \
     --docker-registry-org=${NAMESPACE} \
-    --namespace cd \
-    --prow \
-    --tekton \
-    --batch-mode
+    --tekton
+
+# When in doubt, use the default answers, except in the case listed below
+# Answer with `n` to `Would you like to enable long term logs storage? A bucket for provider eks will be created`
+
+# Create docker login password from the console
+
+# This is not Docker Hub, but the user in Alibaba
+DOCKER_USERNAME=[...]
+
+# This is not Docker Hub, but the password in Alibaba
+DOCKER_PASSWORD=[...]
+
+AUTH=$(echo -n "${DOCKER_USERNAME}:${DOCKER_PASSWORD}" | base64)
+
+DATA=$(cat << EOF | base64
+{
+    "auths": {
+        "registry.${REGION}.aliyuncs.com": {
+            "auth": "${AUTH}"
+        }
+    }
+}
+EOF
+)
+
+cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: jenkins-docker-cfg
+  namespace: jx
+data:
+  config.json: ${DATA}
+EOF

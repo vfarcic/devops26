@@ -52,7 +52,7 @@ export AWS_DEFAULT_REGION=us-west-2
 jx create cluster eks \
     --cluster-name jx-rocks \
     --region $AWS_DEFAULT_REGION \
-    --node-type t2.medium \
+    --node-type t2.large \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 6 \
@@ -81,7 +81,7 @@ aws autoscaling \
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 # If EKS
@@ -232,7 +232,7 @@ aws elbv2 delete-load-balancer \
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 # If EKS
@@ -264,4 +264,4 @@ kubectl config unset \
 # If existing cluster
 jx uninstall \
   --context $(kubectl config current-context) \
-  -b
+  --batch-mode

@@ -60,9 +60,9 @@ jx get applications
 
 jx get env
 
-jx get applications -e staging
+jx get applications --env staging
 
-jx get applications -e production
+jx get applications --env production
 
 open "https://github.com/$GH_USER/jx-go/releases"
 

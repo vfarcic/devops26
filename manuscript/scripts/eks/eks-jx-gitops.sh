@@ -22,14 +22,10 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
-
 jx create cluster eks \
     --cluster-name jx-rocks \
     --region $AWS_DEFAULT_REGION \
-    --node-type t2.medium \
+    --node-type t2.large \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 6 \
@@ -37,8 +33,7 @@ jx create cluster eks \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
     --gitops \
-    --no-gitops-vault \
-    --batch-mode
+    --no-gitops-vault
 
 # When in doubt, use the default answers, except in the case listed below
 # Answer with `n` to `Would you like to register a wildcard DNS ALIAS to point at this ELB address?`
@@ -65,7 +60,7 @@ aws autoscaling \
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 echo $IAM_ROLE
@@ -112,7 +107,7 @@ aws elbv2 delete-load-balancer \
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleNam \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 echo $IAM_ROLE

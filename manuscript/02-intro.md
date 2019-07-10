@@ -171,10 +171,7 @@ While at the subject of scaling, we'll have a minimum of three nodes (`--min-num
 
 We'll also set the default Jenkins X password to `admin` (`--default-admin-password`). Otherwise, the process will create a random one. 
 
-Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create two GitHub repositories:
-
-* one for the staging environment 
-* one for the production environment 
+Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create two GitHub repositories, one for staging and the other for the production environment.
 
 The `jx-rocks` prefix will be used to form their names. We won't go into much detail about those environments and repositories just yet. That's reserved for one of the following chapters.
 
@@ -198,23 +195,23 @@ First, the GCP authentication screen should open asking you to confirm that you 
 
 Next, `jx` will ensure that all the GCP services we need (`container` and `compute`) are enabled.
 
-Once we're authenticated and the services are enabled, `jx` will create a cluster. It should take only a few minutes.
+Once we're authenticated, and the services are enabled, `jx` will create a cluster after you answer a couple of questions. The default values should suffice for now. It should take only a few minutes. 
 
 Once the GKE cluster is up and running, the process will create a `jx` Namespace. It will also modify your local `kubectl` context and create a ClusterRoleBinding that will give you the necessary administrative permissions.
 
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll ask us a few additional questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later.
+
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
-The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace. If it's not there (and it shouldn't be at this point), it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
-
-Once we chose to install Ingress, the process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster. This is the step that might possibly fail during our setup. The GCP default quotas are very low, and you might not be allowed to create additional load balancers. If that's the case, please open the [Quotas](https://console.cloud.google.com/iam-admin/quotas) page, select those that are at the maximum, and click the *Edit Quotas* button. Increasing a quota is a manual process. Nevertheless, they do it relatively fast, so you should not have to wait very long.
+The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster. This is the step that might possibly fail during our setup. The GCP default quotas are very low, and you might not be allowed to create additional load balancers. If that's the case, please open the [Quotas](https://console.cloud.google.com/iam-admin/quotas) page, select those that are at the maximum, and click the *Edit Quotas* button. Increasing a quota is a manual process. Nevertheless, they do it relatively fast, so you should not have to wait very long.
 
 Once the load balancer is created, `jx` will use its hostname to deduce the IP.
 
 Since we did not specify a custom domain for our cluster, the process will combine the IP of the load balancer with the [nip.io](http://nip.io/) service to create a fully qualified domain, and we'll be asked whether we want to proceed using it. Type `y` or merely press the enter key to continue.
 
-Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
+Jenkins X will *enable long term logs storage* automatically, and ask you for the *Google Cloud Zone*. Feel free to keep the one selected by default.
 
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll ask us a few additional questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -246,7 +243,7 @@ export AWS_DEFAULT_REGION=us-west-2
 
 Please replace the first `[...]` with the AWS Access Key ID, and the second with the AWS Secret Access Key. I am assuming that you are already familiar with AWS and you know how to create those keys, or that you already have them. If that's not the case, please follow the instructions from the [Managing Access Keys for Your AWS Account Root User](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) page.
 
-Now we're ready to create an EKS cluster. We'll name it `jx-rocks` (`--cluster-name`). It will run inside `us-west-2` region (`--region`) and on `t2.medium` (2 CPUs and 4 GB RAM) machines (`--node-type`). Unlike with GKE, we won't get a Cluster Autoscaler out of the box, but we'll fix that later. For now, you can assume that there eventually will be autoscaling, so there's no need to worry whether the current capacity is enough. If anything, it is likely more than we will need from the start. Still, even though autoscaling will come later, we'll set the current (`--nodes`) and the minimum (`--nodes-min`) number of nodes to three, and the maximum to six ( `--nodes-max`). That will be converted into AWS Auto-Scaling Groups and, in case of a misstep, it'll protect us from ending up with more nodes than we can afford.
+Now we're ready to create an EKS cluster. We'll name it `jx-rocks` (`--cluster-name`). It will run inside `us-west-2` region (`--region`) and on `t2.large` (2 CPUs and 8 GB RAM) machines (`--node-type`). Unlike with GKE, we won't get a Cluster Autoscaler out of the box, but we'll fix that later. For now, you can assume that there eventually will be autoscaling, so there's no need to worry whether the current capacity is enough. If anything, it is likely more than we will need from the start. Still, even though autoscaling will come later, we'll set the current (`--nodes`) and the minimum (`--nodes-min`) number of nodes to three, and the maximum to six ( `--nodes-max`). That will be converted into AWS Auto-Scaling Groups and, in case of a misstep, it'll protect us from ending up with more nodes than we can afford.
 
 We'll also set the default Jenkins X password to `admin` (`--default-admin-password`). Otherwise, the process will create a random one. Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create a few repositories (one for staging and the other for production), and that prefix will be used to form their names. We won't go into much detail about those environments and repositories just yet. That's reserved for one of the follow-up chapters.
 
@@ -256,7 +253,7 @@ Feel free to change any of the values in the command that follows to suit your n
 jx create cluster eks \
     --cluster-name jx-rocks \
     --region $AWS_DEFAULT_REGION \
-    --node-type t2.medium \
+    --node-type t2.large \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 6 \
@@ -268,17 +265,17 @@ Let's explore what we're getting with that command. You should be able to correl
 
 W> Do not be too hasty answering `jx` questions. For all other types of Kubernetes clusters, we can safely use the default answers (enter key). But, in the case of EKS, there is one question that we'll answer with a non-default value. I'll explain it in more detail when we get there. For now, keep an eye on the "`would you like to register a wildcard DNS ALIAS to point at this ELB address?`" question.
 
-The process started creating an EKS cluster right away. This will typically take around ten minutes, during which you won't see any movement in `jx` console output. It uses CloudFormation to set up EKS,as well as worker nodes, so you can monitor the progress by visiting the [CloudFormation page](https://console.aws.amazon.com/cloudformation/).
+The process started creating an EKS cluster right away. This will typically take around ten minutes, during which you won't see any movement in `jx` console output. It uses CloudFormation to set up EKS as well as worker nodes, so you can monitor the progress by visiting the [CloudFormation page](https://console.aws.amazon.com/cloudformation/).
 
-The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace. If it's not there (and it shouldn't be at this point), it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer.
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later.
 
-Once we chose to install Ingress, the process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
+The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
 
 Jenkins X recommends using a custom DNS name to access services in your Kubernetes cluster. However, there is no way for me to know if you have a domain available for use or not. Instead, we'll use the [nip.io](http://nip.io/) service to create a fully qualified domain. To do that, we'll have to answer with `n` to the question *"would you like to register a wildcard DNS ALIAS to point at this ELB address?"*. As a result, we'll be presented with another question. *"Would you like to wait and resolve this address to an IP address and use it for the domain?"*. Answer with `y` (or press the enter key since that is the default answer). The process will wait until Elastic Load Balancer (ELB) is created and use its hostname to deduce its IP.
 
-Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
+You might be asked *to enable long term logs storage*. Make sure to answer with *n*. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
 
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -327,7 +324,7 @@ The last change we'll have to do in AWS is to add a few additional permissions t
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 echo $IAM_ROLE
@@ -413,19 +410,19 @@ Once we're authenticated, `jx` will create a cluster. It should take around ten 
 
 Once the AKS cluster is up and running, the process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later.
+
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
-The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace. If it's not there (and it shouldn't be at this point), it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
-
-Once we chose to install Ingress, the process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
+The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
 
 Once the load balancer is created, `jx` will use its hostname to deduce its IP.
 
 Since we did not specify a custom domain for our cluster, the process will combine that IP with the [nip.io](http://nip.io/) service to create a fully qualified domain, and we'll be asked whether we want to proceed using it. Type `y` or merely press the enter key to continue.
 
-Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
+You might be asked *to enable long term logs storage*. Make sure to answer with *n*. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
 
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. The next question is whether we want `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. Choose the default value (Kubernetes Workloads).
+Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -641,27 +638,21 @@ jx install \
 
 If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll notice that `jx install` executes the same steps as those performed by `jx cluster create`, except that the latter creates a cluster first. You can think of `jx install` as a subset of `jx cluster create`.
 
-The process will create a `jx` Namespace. It will also modify your local `kubectl` context.
-
-At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
-
-The next in line is Ingress. The process will try to find it inside the Namespace specified as `--ingress-namespace`. If you did not set that argument, it'll ask you whether you'd like to install it. Type `y` or merely press the enter key since that is the default answer. You'll notice that we'll use the default answers for all the subsequent questions, since they are sensible and provide a set of best practices.
-
-If we did choose to install Ingress, the process installs it through a Helm chart.
-
-Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
-
-Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few more questions. 
-
 * Which kind do we want to install? Static or serverless? 
 
 Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. 
 
-The next question is:
+The process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 
-* `Kubernetes Workloads: Automated CI+CD with GitOps Promotion` or `Library Workloads: CI+Release but no CD`. 
+At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
-Choose the default value (Kubernetes Workloads).
+The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart.
+
+You might be asked *to enable long term logs storage*. Make sure to answer with *n*. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
+
+Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
+
+Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few more questions. 
 
 A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
@@ -689,7 +680,6 @@ kubectl --namespace jx get pods
 
 The output is as follows.
 
-Note:
 ```
 NAME                                 READY STATUS  RESTARTS AGE
 jenkins-...                          1/1   Running 0        7m
@@ -808,7 +798,7 @@ When we created Cluster Autoscaler, we had to add a policy that will allow it to
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \
     | select(.RoleName \
-    | startswith(\"eksctl-jx-rocks-nodegroup-0-NodeInstanceRole\")) \
+    | startswith(\"eksctl-jx-rocks-nodegroup\")) \
     .RoleName")
 
 echo $IAM_ROLE
@@ -854,5 +844,5 @@ If you chose to install Jenkins X in an existing Kubernetes cluster, you can rem
 ```bash
 jx uninstall \
   --context $(kubectl config current-context) \
-  -b
+  --batch-mode
 ```
