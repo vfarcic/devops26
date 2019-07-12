@@ -70,14 +70,14 @@ echo "canary:
   enable: true
   service:
     hosts:
-    - go-demo-6.istio.example.com
+    - go-demo-6.$ISTIO_IP.nip.io
     gateways:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
     interval: 10s
     threshold: 5
-    maxWeight: 50
-    stepWeight: 10
+    maxWeight: 70
+    stepWeight: 20
     metrics:
     - name: istio_requests_total
       threshold: 99
@@ -147,9 +147,15 @@ jx promote go-demo-6 \
 
 # deploy a new app
 
-sed "s/hello, PR/hello canary, PR/" main.go > main.go.bak
-mv main.go.bak main.go
-git commit -am "Canary"
+cat main.go | sed -e \
+    "s@hello, PR@hello, progressive@g" \
+    | tee main.go
+cat main_test.go | sed -e \
+    "s@hello, PR@hello, progressive@g" \
+    | tee main_test.go
+git add .
+git commit \
+    -m "Added progressive deployment"
 git push
 
 # promote to production
