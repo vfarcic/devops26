@@ -101,6 +101,23 @@ tekton             jenkins-x/tekton
 vault-operator     jenkins-x/vault-operator
 ```
 
+TODO this is my output 
+
+```
+NAME    CHART            ENABLED STATUS   VERSION
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+tekton  jenkins-x/tekton         DEPLOYED 0.0.38
+tekton  jenkins-x/tekton         DEPLOYED 0.0.38
+jx-prow jenkins-x/prow           DEPLOYED 0.0.620
+```
+
 As you can see, there are quite a few available addons. By the time you're reading this, the list will likely be bigger than those you can observe from my output. That should not matter much since our goal is not to go through all of them, but rather a only a few. We'll explore how to create (install) an addon that can be useful in our pipelines as well as to prepare for the objectives we'll define in the next chapter. Creating addons follows the same pattern, so knowing how to deal with a few should provide enough information to work with any.
 
 The first addon we'll create is Prometheus.
