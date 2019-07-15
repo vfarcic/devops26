@@ -564,7 +564,7 @@ Now you need to decide whether to continue using the cluster or to destroy it. I
 
 If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
 
-W> Please replace the first `[...]` with your GitHub  user and the second `[...]` with the name of your environment (`jx-rocks` if static, `tekton` if serverless) before executing the commands that follow.
+W> Please replace the first `[...]` with your GitHub user and the second `[...]` with the name of your environment (`jx-rocks` if static, `tekton` if serverless) before executing the commands that follow.
 
 ```bash
 cd ..

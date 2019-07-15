@@ -15,8 +15,9 @@
 - [X] 13-pipeline-extension-model.md
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
-- [ ] 16-progressive-delivery.md
-- [ ] 99-serverless-apps.md
+- [ ] 16-serverless-apps.md
+- [ ] 17-progressive-delivery.md
+- [ ] 99-codified-infrastructure.md
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
@@ -27,6 +28,7 @@
 - [ ] Remove *Do not upgrade addons just yet! ...* warning
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
+- [ ] Rewrite *At the time of this writing (July 2019)...*
 - [ ] 99-storage.md
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md

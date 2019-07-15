@@ -152,7 +152,9 @@ We can easily install Istio and Flagger with `jx`
 NOTE: Addons are probably going to be merged into apps
 
 ```bash
-jx create addon istio --version 1.1.7
+jx create addon istio \
+    --version 1.1.7 \
+    --grafana-version 1.3.0
 ```
 
 NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
@@ -294,7 +296,7 @@ canary:
     gateways:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
-    interval: 10s
+    interval: 20s
     threshold: 5
     maxWeight: 70
     stepWeight: 20
