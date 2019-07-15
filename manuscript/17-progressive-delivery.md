@@ -417,7 +417,7 @@ kubectl --namespace istio-system logs \
 
 NOTE: Stop with *ctrl+c*
 
-And once the new version is built we can promote to production the new version.
+And once the new version is built we can promote it to production.
 
 ```bash
 cat main.go | sed -e \
