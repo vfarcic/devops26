@@ -86,7 +86,7 @@ So, Jenkins X is an excellent example of both a set of serverless applications t
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [17-progressive-delivery.sh](https://gist.github.com/eb273f77c8fdf0ef7652be21fc66547c) Gist.
+I> All the commands from this chapter are available in the [16-serverless-apps.sh](https://gist.github.com/0052bb2c765509474c3c1e5671230804) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
