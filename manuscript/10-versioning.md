@@ -382,7 +382,7 @@ If you are using Maven, everything we explored so far is applicable with a diffe
 
 In the case of NodeJS, `jx-release-version` is not used at all. Instead, pipelines rely on the [semantic-release plugin](https://www.npmjs.com/package/semantic-release) to determine the next version number by fetching information from commit messages.
 
-What about other build tools? You can still add Makefile that would serve only for versioning, or you can control major and minor version increments by creating dummy Git tags. We explored both, so you should have no problem adopting one of those. Or you might choose to adopt versioning through a plugin in your favorite build tool (e.g., Gradle) or to roll out your own. Finally, you might want to contribute to [jx-release-version](https://github.com/jenkins-x/jx-release-version) by adding support for your favorite build tool. That would be the best option. After all, it is open source, and it relies on the community of volunteers.
+What about other build tools? You can still add Makefile that would serve only for versioning, or you can control major and minor version increments by creating dummy Git tags. We explored both, so you should have no problem adopting one of those. Or you might choose to adopt versioning through a plugin in your favorite build tool (e.g., Gradle) or to roll out your own. Finally, you might want to contribute to [jx-release-version](https://github.com/jenkins-x/jx-release-version) by adding support for your favorite build tool. That would be the best option. After all, it is open-source, and it relies on the community of volunteers.
 
 ## What Now?
 

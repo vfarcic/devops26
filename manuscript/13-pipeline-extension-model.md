@@ -30,7 +30,7 @@ Saying that Jenkins is gone is not entirely correct. Jenkins lives in Jenkins X.
 
 The first generation of Jenkins X (static flavor) reduced the "traditional" Jenkins to a bare minimum. That allowed the community to focus on building all the new tools needed to bring Jenkins to the next level. It reduced Jenkins' surface and added a lot of new code around it. At the same time, static Jenkins X maintains compatibility with the "traditional" Jenkins. Teams can move to Jenkins X without having to rewrite everything they had before while, at the same time, keeping some level of familiarity.
 
-Serverless Jenkins X is the next stage in the evolution. While static flavor reduced the role of the "traditional" Jenkins, serverless eradicated it. The end result is a combination of Prow, Jenkins Pipeline Operator, Tekton, and quite a few other tools and processes. Some of them (e.g., Prow, Tekton) are open source projects bundled into Jenkins X while others (e.g., Jenkins Pipeline Operator) are written from scratch. On top of those, we got `jx` as the CLI that allows us to control any aspect of Jenkins X.
+Serverless Jenkins X is the next stage in the evolution. While static flavor reduced the role of the "traditional" Jenkins, serverless eradicated it. The end result is a combination of Prow, Jenkins Pipeline Operator, Tekton, and quite a few other tools and processes. Some of them (e.g., Prow, Tekton) are open-source projects bundled into Jenkins X while others (e.g., Jenkins Pipeline Operator) are written from scratch. On top of those, we got `jx` as the CLI that allows us to control any aspect of Jenkins X.
 
 Given that there is no "traditional" Jenkins in the serverless flavor of Jenkins X, there is no need to stick with the old formats to define pipelines. Those that do need to continue using `Jenkinsfile` can do so by using static Jenkins X. Those who want to get the most benefit from the new platform will appreciate the benefits of the new YAML-based format defined in `jenkins-x.yml`. More often than not, organizations will combine both. There are use cases when static Jenkins with the support for Jenkinsfile is a good choice, especially in cases when projects already have pipelines running in the "traditional" Jenkins. On the other hand, new projects can be created directly in serverless Jenkins X and use `jenkins-x.yml` to define pipelines.
 
@@ -84,9 +84,9 @@ I> All the commands from this chapter are available in the [13-pipeline-extensio
 
 For your convenience, the Gists that will create a new serverless Jenkins X cluster or install it inside an existing one are as follows.
 
-* Create new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
 We will not need the `jx-prow` project we created in the previous chapter. If you are reusing the cluster and Jenkins X installation, you might want to remove it and save a bit of resources.

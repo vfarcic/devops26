@@ -62,12 +62,12 @@ I> All the commands from this chapter are available in the [14-upgrade.sh](https
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new static **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create new static **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create new static **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Create new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Create a new static **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create a new static **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create a new static **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
 * Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
@@ -115,7 +115,7 @@ Before we jump into different upgrade options, I must make an important statemen
 
 I> Do NOT trust anyone or anything. Validate upgrades of all applications, no matter whether you wrote them or they come from third-parties.
 
-But, testing your applications and validating system-level third-party applications is not equally easy. You are not in full control of third-party applications, especially when they are not fully open source.
+But, testing your applications and validating system-level third-party applications is not equally easy. You are not in full control of third-party applications, especially when they are not fully open-source.
 
 Excluding the option of upgrading Jenkins X blindly, two most commonly used strategies are to run a test instance in parallel with production (e.g., in separate Namespaces) or to have a test cluster. I prefer the latter option when we do have the ability to create and destroy clusters on demand. In such a case, we can create a new cluster, install the same Jenkins X version we're running in production, upgrade it, test it, and, if everything works as expected, upgrade production as well. If we do not have a test cluster, our best bet is to install Jenkins X in different namespaces and follow the same validation process we'd follow if it would be running in the separate cluster. The major problem with using different namespaces is in the probability that a mistake would affect production. It should work well if we're careful and experienced with Kubernetes, but there's no denying that there is a higher chance of messing with production.
 

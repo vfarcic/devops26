@@ -30,12 +30,12 @@ TODO
 
 TODO: Make GKE cluster zonal instead of regional
 
-* Create new static **GKE** cluster: [gke-jx-gitops.sh](TODO:)
-* Create new serverless **GKE** cluster: [gke-jx-serverless-gitops.sh](TODO:)
-* Create new static **EKS** cluster: [eks-jx-gitops.sh](TODO:)
-* Create new serverless **EKS** cluster: [eks-jx-serverless-gitops.sh](TODO:)
-* Create new static **AKS** cluster: [aks-jx-gitops.sh](TODO:)
-* Create new serverless **AKS** cluster: [aks-jx-serverless-gitops.sh](TODO:)
+* Create a new static **GKE** cluster: [gke-jx-gitops.sh](TODO:)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless-gitops.sh](TODO:)
+* Create a new static **EKS** cluster: [eks-jx-gitops.sh](TODO:)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless-gitops.sh](TODO:)
+* Create a new static **AKS** cluster: [aks-jx-gitops.sh](TODO:)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless-gitops.sh](TODO:)
 * Use an **existing** static cluster: [install-gitops.sh](TODO:)
 * Use an **existing** serverless cluster: [install-serverless-gitops.sh](TODO:)
 
