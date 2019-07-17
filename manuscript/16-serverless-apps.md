@@ -1324,3 +1324,5 @@ rm -rf jx-knative
 
 rm -rf $STAGING_ENV
 ```
+
+Finally, you might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just keep reading.

@@ -98,14 +98,16 @@ I> All the commands from this chapter are available in the [TODO: Viktor](TODO: 
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create a new static **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create a new static **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create a new static **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
-* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+TODO: Add a note that the Gists are different.
+
+* Create a new static **GKE** cluster: [gke-jx-gloo.sh](TODO:)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless-gloo.sh](TODO:)
+* Create a new static **EKS** cluster: [eks-jx-gloo.sh](TODO:)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless-gloo.sh](TODO:)
+* Create a new static **AKS** cluster: [aks-jx-gloo.sh](TODO:)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless-gloo.sh](TODO:)
+* Use an **existing** static cluster: [install-gloo.sh](TODO:)
+* Use an **existing** serverless cluster: [install-serverless-gloo.sh](TODO:)
 
 TODO: Viktor: Check whether `extension-model` or some other branch should be restored
 
@@ -122,13 +124,13 @@ cd go-demo-6
 
 git pull
 
-git checkout extension-model-$NAMESPACE
+git checkout knative-$NAMESPACE
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-$NAMESPACE
+git merge knative-$NAMESPACE
 
 git push
 
@@ -152,9 +154,7 @@ We can easily install Istio and Flagger with `jx`
 NOTE: Addons are probably going to be merged into apps
 
 ```bash
-jx create addon istio \
-    --version 1.1.7 \
-    --grafana-version 1.3.0
+jx create addon istio
 ```
 
 NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
@@ -246,6 +246,10 @@ cd go-demo-6
 
 git checkout master
 
+jx edit deploy \
+    --kind default \
+    --batch-mode
+
 echo "{{- if eq .Release.Namespace \"$NAMESPACE-production\" }}
 {{- if .Values.canary.enable }}
 apiVersion: flagger.app/v1alpha2
@@ -285,8 +289,6 @@ spec:
 And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.$ISTIO_IP.nip.io`.
 
 ```bash
-# TODO: Carlos: If canary can be enabled on any environment, than we should probably have `canary.enable` and `canary.service.hosts` set in the values.yaml inside the env. repo. That would also remove the need for `{{- if eq .Release.Namespace "jx-production" }}` in `canary.yaml`.
-
 echo "
 canary:
   enable: true
@@ -296,17 +298,17 @@ canary:
     gateways:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
-    interval: 20s
+    interval: 30s
     threshold: 5
     maxWeight: 70
     stepWeight: 20
     metrics:
     - name: istio_requests_total
       threshold: 99
-      interval: 60s
+      interval: 120s
     - name: istio_request_duration_seconds_bucket
       threshold: 500
-      interval: 60s
+      interval: 120s
 " | tee -a charts/go-demo-6/values.yaml
 ```
 
@@ -369,10 +371,20 @@ NOTE: Nothing happens since it is automatically promoted to staging and `{{- if 
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash
-# Only if serverless
 jx get activities \
     --filter environment-tekton-staging/master \
     --watch
+
+# Press *ctrl+c* when the activity is finished
+
+ISTIO_IP=$(kubectl \
+    --namespace istio-system \
+    get service istio-ingressgateway \
+    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+echo $ISTIO_IP
+
+curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
 
 # Only if serverless
 # Press *ctrl+c* when the activity is finished
@@ -455,6 +467,8 @@ VERSION=[...]
 
 # Open a second terminal
 
+# Switch to siege
+
 # In a second terminal
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
@@ -489,7 +503,8 @@ Flagger will detect this deployment change update the Istio `VirtualService` to 
 ```bash
 kubectl \
     --namespace $NAMESPACE-production \
-    get virtualservice jx-go-demo-6 \
+    get virtualservice.networking.istio.io \
+    jx-go-demo-6 \
     --output yaml
 ```
 
@@ -562,24 +577,51 @@ Flagger will automatically rollback if any of the metrics we set fail the number
 Let's show what would happen if we promote to production the previous version with no traffic.
 
 ```bash
-# In the second terminal
-for i in {1..1000}
-do
-    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
-    sleep 0.5
-done
+# TODO: Roll forward
 
-# Go back to the first terminal
+cat main.go | sed -e \
+    "s@hello, progressive@hello, no one@g" \
+    | tee main.go
 
-jx get applications -e production
+cat main_test.go | sed -e \
+    "s@hello, progressive@hello, no one@g" \
+    | tee main_test.go
 
-# use the previous version to the one deployed
+git add .
+
+git commit \
+    -m "Added progressive deployment"
+
+git push
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
+
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+jx get applications -e staging
+
 VERSION=[...]
 
 jx promote go-demo-6 \
     --version $VERSION \
     --env production \
     --batch-mode
+
+jx get activities \
+    --filter environment-tekton-production/master \
+    --watch
+
+for i in {1..20}
+do
+    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    sleep 0.5
+done
 
 # After a few minutes
 
@@ -604,7 +646,35 @@ NOTE: as the time of writing `jx get applications` will show versions that are o
 
 
 ```bash
-# NOTE: Close the new terminal
+cat main.go | sed -e \
+    "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
+    | tee main.go
+
+cat main_test.go | sed -e \
+    "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
+    | tee main_test.go
+
+git add .
+
+git commit \
+    -m "Added progressive deployment"
+
+git push
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
+
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+jx get applications -e staging
+
+kubectl -n $NAMESPACE-production \
+    get deploy -o wide
 
 # use a different version than the one in the previous failed deployment
 VERSION=[...]
@@ -614,15 +684,19 @@ jx promote go-demo-6 \
     --env production \
     --batch-mode
 
+jx get activities \
+    --filter environment-tekton-production/master \
+    --watch
+
 # Lets generate some http 500 errors (10% of the requests)
 
-# NOTE: leave this running while you continue reading
+# NOTE: Go to the second terminal
 for i in {1..1000}
 do
     curl "go-demo-6.$ISTIO_IP.nip.io/demo/random-error"
 done
 
-kubectl -n jx-production \
+kubectl -n $NAMESPACE-production \
   describe canary jx-go-demo-6
 
 Events:
