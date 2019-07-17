@@ -15,7 +15,7 @@
 - [X] 13-pipeline-extension-model.md
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
-- [ ] 16-serverless-apps.md
+- [X] 16-serverless-apps.md
 - [ ] 17-progressive-delivery.md
 - [ ] 99-codified-infrastructure.md
 - [ ] 99-monitoring-with-prometheus.md
