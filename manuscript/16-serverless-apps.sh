@@ -107,7 +107,8 @@ kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
      -it --rm \
-     -- -c 300 -t 20S "http://$ADDR/" \
+     -- --concurrent 300 --time 20S \
+     "http://$ADDR/" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
@@ -142,7 +143,8 @@ kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
      -it --rm \
-     -- -c 400 -t 60S "http://$ADDR/" \
+     -- --concurrent 400 --time 60S \
+     "http://$ADDR/" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \

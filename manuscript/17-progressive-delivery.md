@@ -52,8 +52,6 @@ Blue-green deployments temporarily create a parallel duplicate set of your appli
 
 With Canary deployments new versions are deployed and a subset of users are directed to it using traffic rules in a load balancer or more advanced solutions like service mesh. Users of the new version can be chosen randomly as a percentage of the total users or using other criteria such as geographic location, headers, employees vs general users, etc. The new version is evaluated in terms of correctness and performance and, if successful, more users are gradually directed to the new version. If there are issues with the new version or if it doesn't match the expected metrics the traffic rules are updated to send all traffic back to the previous version.
 
-
-
 **Progressive Delivery makes it easier to adopt Continuous Delivery**, reducing the risk of new deployments limiting the blast radius of any possible issues, known or unknown, and providing automated ways to rollback to an existing working version.
 Testing the 100% of an application is impossible, so we can use these techniques to provide a safety net for our deployments.
 
@@ -98,7 +96,7 @@ I> All the commands from this chapter are available in the [TODO: Viktor](TODO: 
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-TODO: Add a note that the Gists are different.
+TODO: Add a note that the Gists are different (added `gloo`, GKE VM size increased)
 
 * Create a new static **GKE** cluster: [gke-jx-gloo.sh](TODO:)
 * Create a new serverless **GKE** cluster: [gke-jx-serverless-gloo.sh](TODO:)
@@ -154,10 +152,13 @@ We can easily install Istio and Flagger with `jx`
 NOTE: Addons are probably going to be merged into apps
 
 ```bash
-jx create addon istio
+jx create addon istio \
+    --version 1.1.7
 ```
 
 NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
+
+NOTE: Istio is resource heavy and the cluster is likely going to scale up. That might slow down some activities.
 
 When installing Istio a new ingress gateway service is created that can send all the incoming traffic to services based on Istio rules or `VirtualServices`. This achieves a similar functionality than that of the ingress controller, but using Istio configuration instead of ingresses, that allows us to create more advanced rules for incoming traffic.
 
@@ -194,46 +195,6 @@ jx create addon flagger
 
 The Flagger addon will enable Istio for all pods in the `jx-production` namespace so they send traffic metrics to Prometheus.
 It will also configure an Istio ingress gateway to accept incoming external traffic through the ingress gateway service, but for it to reach the final service we must create Istio `VirtualServices`, the rules that manage the Istio routing. Flagger will do that for us.
-
-### Manual Requirement Installation
-
-TODO: Explanations how to accomplish the same without `jx create addon` (with custom-installed apps)ss
-TODO: vfarcic is this what you mean?
-
-Istio and Flagger can also be installed manually using Helm.
-
-```bash
-helm repo add gcsweb.istio.io https://gcsweb.istio.io/gcs/istio-release/releases/1.1.5/charts/
-helm install --name istio-init istio-init
-helm install --name istio istio
-helm repo add flagger https://flagger.app
-helm install --name flagger flagger/flagger
-helm install --name flagger-grafana flagger/grafana
-```
-
-After installation, we need to enable Istio in our production namespace, typically `jx-production` and create the Istio gateway that will connect the Istio ingress to the virtual service created by Flagger on deployment.
-
-```bash
-kubectl label namespace $NAMESPACE-production istio-injection=enabled
-
-cat < EOF | kubectl create -f -
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: jx-gateway
-  namespace: istio-system
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
-EOF
-```
 
 ## Flagger App Configuration
 
@@ -362,6 +323,12 @@ jx get activities \
     --watch
 
 # Press *ctrl+c* when the activity is finished
+
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
 ```
 
 NOTE: Nothing happens since it is automatically promoted to staging and `{{- if eq .Release.Namespace "jx-production" }}` applies only to production.
@@ -371,11 +338,14 @@ NOTE: Nothing happens since it is automatically promoted to staging and `{{- if 
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash
-jx get activities \
-    --filter environment-tekton-staging/master \
-    --watch
+jx get applications --env staging
 
-# Press *ctrl+c* when the activity is finished
+VERSION=[...]
+
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
 
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
@@ -386,17 +356,7 @@ echo $ISTIO_IP
 
 curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
 
-# Only if serverless
-# Press *ctrl+c* when the activity is finished
-    
-jx get applications --env staging
-
-VERSION=[...]
-
-jx promote go-demo-6 \
-    --version $VERSION \
-    --env production \
-    --batch-mode
+# Repeat if `no healthy upstream`
 
 kubectl \
     --namespace $NAMESPACE-production \
@@ -453,12 +413,10 @@ jx get activities \
 
 # Press *ctrl+c* when the activity is finished
 
-# Only if serverless
 jx get activities \
     --filter environment-tekton-staging/master \
     --watch
 
-# Only if serverless
 # Press *ctrl+c* when the activity is finished
 
 jx get applications --env staging
@@ -466,8 +424,6 @@ jx get applications --env staging
 VERSION=[...]
 
 # Open a second terminal
-
-# Switch to siege
 
 # In a second terminal
 ISTIO_IP=$(kubectl \
@@ -617,11 +573,7 @@ jx get activities \
     --filter environment-tekton-production/master \
     --watch
 
-for i in {1..20}
-do
-    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
-    sleep 0.5
-done
+# Not sending any requests
 
 # After a few minutes
 
@@ -646,6 +598,10 @@ NOTE: as the time of writing `jx get applications` will show versions that are o
 
 
 ```bash
+# Wait until it rolls back
+
+curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+
 cat main.go | sed -e \
     "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
     | tee main.go

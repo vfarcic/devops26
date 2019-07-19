@@ -530,7 +530,8 @@ kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
      -it --rm \
-     -- -c 300 -t 20S "http://$ADDR/" \
+     -- --concurrent 300 --time 20S \
+     "http://$ADDR/" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
@@ -625,7 +626,8 @@ kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
      -it --rm \
-     -- -c 400 -t 60S "http://$ADDR/" \
+     -- --concurrent 400 --time 60S \
+     "http://$ADDR/" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
@@ -785,11 +787,11 @@ ls -1 charts/go-demo-6/templates
 
 Now, the output will vary depending on the date when we imported our application to Jenkins X for the first time.
 
-You should see four or five files. The additional file is `ksvc.yaml`. If you see it, you imported *go-demo-6* after the support for Knative was added to Jenkins X (somewhere around May 2019). If that's the case, you're in luck, and you should skip to the [Turning On Knative Support](#serverless-turning-on) section, or you can continue reading but without executing the commands listed in [Adding Knative Support Manually](#serverless-manual). Even if you already have Knative support in all your Knative projects, it might be a good idea to refresh your memory about the parts of the chart that are related to it.
+You should see four or five files. The additional file is `ksvc.yaml`. If you see it, you imported *go-demo-6* after the support for Knative was added to Jenkins X (somewhere around May 2019). If that's the case and if you did not restore any of my branches, you're in luck, and you should skip to the [Turning On Knative Support](#serverless-turning-on) section, or you can continue reading but without executing the commands listed in [Adding Knative Support Manually](#serverless-manual). Even if you already have Knative support in all your Knative projects, it might be a good idea to refresh your memory about the parts of the chart that are related to it.
 
 ### Adding Knative Support Manually {#serverless-manual}
 
-W> Follow the instructions in this section only if you imported the project for the first time before May 2019. You'll know whether you did if you do not have `ksvc.yaml` file in the `charts/go-demo-6/templates` directory.
+W> Follow the instructions in this section only if you imported the project for the first time before May 2019 and if you did not restore any of my branches. You'll know whether you did if you do not have `ksvc.yaml` file in the `charts/go-demo-6/templates` directory.
 
 If we created a Jenkins X project a while ago and it does not include the `ksvc.yaml` file and a few other things required for Knative deployments, we have to make a choice between two strategies that might remedy the issue. We could delete the Jenkins x project, delete the `charts` directory, and import the repository again. That would solve the problem by creating the new chart based on a newer build pack version. As a result, we would have a Knative-ready chart. But, that might cause other problems.
 
