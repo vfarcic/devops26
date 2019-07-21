@@ -16,7 +16,7 @@ At the time of this writing, jx only supports creating terraform clusters for GK
 
 Let’s set up a Kubernetes cluster using `jx create terraform`.
 
-It is possible to specify flags such as `--prow` and `--tekton` like we have previously, but I'll leave that to your descretion, as the focus of this chapter is on the infrastructure running Jenkins X, and not so much Jenkins X itself.
+It is possible to specify flags such as `--prow` and `--tekton` like we have previously, but I'll leave that to your discretion, as the focus of this chapter is on the infrastructure running Jenkins X, and not so much Jenkins X itself.
 
 The environments work as before as well, so we will be skipping the environment creation this time around as well.
 

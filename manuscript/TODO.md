@@ -143,7 +143,7 @@
 - [ ] Run containers (Docker, containerD, rkt, cri-o)
 - [ ] [cert-manager](https://github.com/jetstack/cert-manager)
 - [ ] [Google Cloud Build](https://cloud.google.com/cloud-build/docs/)
-- [ ] [KNative](https://github.com/knative/)
+- [ ] [Knative](https://github.com/knative/)
 - [ ] Serverless
 - [ ] Operator pattern
 - [ ] https://www.keycloak.org/

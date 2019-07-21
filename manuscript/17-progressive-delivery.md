@@ -22,13 +22,13 @@
 
 # Progressive Delivery
 
-The necesity to test new releases before deploying them to production is as old as our industry. Over time, we developed elaborate processes aimed at ensuring that our software is ready for production. We test it locally and deploy it to a testing environment and test some more. When we're comfortable with the quality we'd deploy it to the integration or pre-production environment for the final round of validations. You probably see the pattern. The closer we get to releasing something to production, the more our environments would be similar to production. That was a lenghty process that would last for months, sometimes even years.
+The necessity to test new releases before deploying them to production is as old as our industry. Over time, we developed elaborate processes aimed at ensuring that our software is ready for production. We test it locally and deploy it to a testing environment and test some more. When we're comfortable with the quality we'd deploy it to the integration or pre-production environment for the final round of validations. You probably see the pattern. The closer we get to releasing something to production, the more our environments would be similar to production. That was a lengthy process that would last for months, sometimes even years.
 
 Why did we move our releases through different environments (e.g., servers or clusters)? The answer lies in the difficulties in maintaining production-like environments. It took a lot of effort to manage environments and the more they looked like production, the more work they required. Later on we adopted configuration management tools like CFEngine, Chef, Puppet, Ansible, and quite a few others. They simplified management of our environments, but we kept the practice of moving our software from one to another as if it was an abandoned child moving from one foster family to another. The main reason why configuration management tools did not solve much lies in misunderstanding the root-cause of the problem. What made management of environments difficult is not that we had many of them, nor that production-like clusters are complicated. Rather, the issue was in mutability. No matter how much effort we put in maintaining the state of our clusters, differences would pile up over time and we could not say that one environment is truly the same as the other. Without that guarantee, we could not claim that what was tested in one environment would work in another. The risk of experiencing failure after deploying to production was still too high.
 
-Over time, we adopted immutability. We learned that things shouldn't be modified at runtime, but rather created anew whenever we need to update something. We started creating VM images that contained new releases and applying rolling updates that would gradially replace the old. But that was slow. It takes time to create a new VM image, and it takes time to instantiate them. There were many other problems with them, but this is neither time nor place to explore them both. Still, immutability applied to the VM level brought quite a few improvements. Our environments became stable and it was easy to have as many production-like environments as we needed.
+Over time, we adopted immutability. We learned that things shouldn't be modified at runtime, but rather created anew whenever we need to update something. We started creating VM images that contained new releases and applying rolling updates that would gradually replace the old. But that was slow. It takes time to create a new VM image, and it takes time to instantiate them. There were many other problems with them, but this is neither time nor place to explore them both. Still, immutability applied to the VM level brought quite a few improvements. Our environments became stable and it was easy to have as many production-like environments as we needed.
 
-Then came containers that took immutability to the next level. They allowed us the ability to say that something running in my laptop is the same as something running in a test environment that happens to behave in the same way as in production. Simply put, creating a container based on an image produces the same result no matter where it runs. to be honest, that's not 100% true, but when compared to what we had in the past, containers bring us as close to repetability as we can get today.
+Then came containers that took immutability to the next level. They allowed us the ability to say that something running in my laptop is the same as something running in a test environment that happens to behave in the same way as in production. Simply put, creating a container based on an image produces the same result no matter where it runs. to be honest, that's not 100% true, but when compared to what we had in the past, containers bring us as close to repeatability as we can get today.
 
 So, if containers provide a reasonable guarantee that a release will behave the same no matter the environment it runs in, we can safely say that if it works in staging, it should work in production. That is especially true if both environments are in the same cluster. In such a case, hardware, networking, storage, and other infrastructure components are the same and the only difference is the Namespace something runs in. That should provide a reasonable guarantee that a release tested in staging should work correctly when promoted to production. Don't you agree?
 
@@ -46,7 +46,7 @@ Progressive Delivery is a term that includes deployment strategies that try to a
 
 Progressive Delivery encompasses methodologies such as rolling updates, blue-green or canary deployments. What is common to all of them is that monitoring and metrics are used to evaluate whether the new version is "safe" or needs to be rolled back.
 
-Using rolling updates not all the instances of our application are updated at the same time, but they are incrementally. If you have several instances (containers, virtual machines,...) of your application you would update one at a time and check the metrics of that one before updating the next and so on. In case of issues you would remove them from the pool and increase the number of instances runnintg the previous version.
+Using rolling updates not all the instances of our application are updated at the same time, but they are incrementally. If you have several instances (containers, virtual machines,...) of your application you would update one at a time and check the metrics of that one before updating the next and so on. In case of issues you would remove them from the pool and increase the number of instances running the previous version.
 
 Blue-green deployments temporarily create a parallel duplicate set of your application with both the old and new version running at the same time, and using a load balancer or DNS all traffic is sent to the new application. Both versions coexist until the new version is validated in production. If there are problems with the new version, the load balancer or DNS is just pointed back to the previous version.
 
@@ -58,13 +58,13 @@ Testing the 100% of an application is impossible, so we can use these techniques
 
 We saw how easy it is with Jenkins X to promote applications from development to staging to production, using the concept of environments. But it is an all-or-nothing deployment process with manual intervention if a rollback is needed.
 
-We will explore how Jenkins X integrates Flagger, Istio and Prometheus, projects that work together to create Canary deployments, where each deployment starts by getting a small percentage of the traffic and analysing metrics such as response errors and duration. If these metrics fit a predefined requirement the new deployment continues getting more and more traffic until 100% of it goes through the new service. If these metrics are not successful for any reason our deployment is rolled back and is marked as failure.
+We will explore how Jenkins X integrates Flagger, Istio, and Prometheus, projects that work together to create Canary deployments, where each deployment starts by getting a small percentage of the traffic and analyzing metrics such as response errors and duration. If these metrics fit a predefined requirement the new deployment continues getting more and more traffic until 100% of it goes through the new service. If these metrics are not successful for any reason our deployment is rolled back and is marked as failure.
 
 ## Istio
 
 Istio is a service mesh that can run on top of Kubernetes. It has become very popular and allows traffic management, for example sending a percentage of the traffic to a different service and other advanced networking such as point to point security, policy enforcement or automated tracing, monitoring and logging.
 
-Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our aplication. We will focus on the response times and status codes.
+Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our application. We will focus on the response times and status codes.
 
 We could write a full book about Istio, so we will focus on the traffic shifting and metric gathering capabilities of Istio and how we use those to enable Canary deployments.
 
@@ -73,7 +73,7 @@ We could write a full book about Istio, so we will focus on the traffic shifting
 Prometheus is the monitoring and alerting system of choice for Kubernetes clusters. It stores time series data that can be queried using PromQL, its query language. Time series collection happens via pull over HTTP.
 Many systems integrate with Prometheus as data store for their metrics.
 
-Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our aplication. We will focus on the response times and status codes.
+Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our application. We will focus on the response times and status codes.
 
 ## Flagger
 
@@ -594,7 +594,7 @@ Events:
 
 Now let's try again and show what happens when the application returns http errors.
 
-NOTE: as the time of writing `jx get applications` will show versions that are out of sync from the ones actually deployed after a promoton failure. You can see the versions actually deployed with `kubectl -n jx-production get deploy -o wide`. For that same reason you can't try to immediately promote again a version that was rolled back by Flagger, as that version is already the one in the GitOps environment repo and will not trigger any deployment because there are no changes to the git files.
+NOTE: as the time of writing `jx get applications` will show versions that are out of sync from the ones actually deployed after a promotion failure. You can see the versions actually deployed with `kubectl -n jx-production get deploy -o wide`. For that same reason you can't try to immediately promote again a version that was rolled back by Flagger, as that version is already the one in the GitOps environment repo and will not trigger any deployment because there are no changes to the git files.
 
 
 ```bash
@@ -675,7 +675,7 @@ Events:
 
 ## Visualizing the Rollout
 
-Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accesible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
+Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accessible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
 
 TODO: vfarcic is $PROD_IP the correct ip ? Do we want to delete the ingress later?
 
