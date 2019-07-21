@@ -121,7 +121,7 @@ Excluding the option of upgrading Jenkins X blindly, two most commonly used stra
 
 No matter whether you test upgrades and, if you do, how well you do it, one thing is sure. You should have a backup of your cluster. If you do, you should be able to manage the worst case scenario. You will be able to restore your cluster to the last known working state.
 
-Given that Kuberentes backups are not directly related to Jenkins X and that there are myriad of options at our disposal, I will not go into the depth of evaluating backup solutions nor will I provide detailed instructions. The only thing I will state is that my favorite tool is [Velero](https://velero.io/). If you do not have periodic and on-demand backups in place, feel free to check it out and decide whether it is an option that fits your use-case.
+Given that Kubernetes backups are not directly related to Jenkins X and that there are myriad of options at our disposal, I will not go into the depth of evaluating backup solutions nor will I provide detailed instructions. The only thing I will state is that my favorite tool is [Velero](https://velero.io/). If you do not have periodic and on-demand backups in place, feel free to check it out and decide whether it is an option that fits your use-case.
 
 All in all, I will assume that you are testing upgrades before you apply them to production, that you are backing up your cluster, and that you can restore the last known good version if everything else fails.
 
