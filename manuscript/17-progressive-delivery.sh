@@ -148,10 +148,10 @@ jx promote go-demo-6 \
 # deploy a new app
 
 cat main.go | sed -e \
-    "s@hello, PR@hello, progressive@g" \
+    "s@hello, no one xxx@hello, progressive@g" \
     | tee main.go
 cat main_test.go | sed -e \
-    "s@hello, PR@hello, progressive@g" \
+    "s@hello, no one xxx@hello, progressive@g" \
     | tee main_test.go
 git add .
 git commit \
