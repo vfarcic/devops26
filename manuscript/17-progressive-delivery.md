@@ -264,10 +264,10 @@ canary:
     maxWeight: 70
     stepWeight: 20
     metrics:
-    - name: istio_requests_total
+    - name: request-success-rate
       threshold: 99
       interval: 120s
-    - name: istio_request_duration_seconds_bucket
+    - name: request-duration
       threshold: 500
       interval: 120s
 " | tee -a charts/go-demo-6/values.yaml
@@ -281,8 +281,8 @@ Explanation of the values in the configuration:
 * `canary.canaryAnalysis.maxWeight` max percentage sent to the canary deployment, when reached all traffic is sent to the new new version.
 * `canary.canaryAnalysis.stepWeight` increase the percentage this much in each interval (20%, 40%, 60%, etc).
 * `canary.canaryAnalysis.metrics` metrics from Prometheus, some are automatically populated by Istio and you can add your own from your application.
-  * `istio_requests_total` minimum request success rate (non 5xx responses) percentage (0-100).
-  * `istio_request_duration_seconds_bucket` maximum request duration in milliseconds, in the 99th percentile.
+  * `request-success-rate` minimum request success rate (non 5xx responses) percentage (0-100).
+  * `request-duration` maximum request duration in milliseconds, in the 99th percentile.
 
 TODO: Carlos: Shouldn't we change `service.annotations.fabric8.io/expose` to `false` in `charts/go-demo-6/values.yaml`?
 
@@ -516,7 +516,7 @@ Events:
   Normal   Synced  60s                flagger  New revision detected! Scaling up jx-go-demo-6.cd-production
   Normal   Synced  50s                flagger  Starting canary analysis for jx-go-demo-6.cd-production
   Normal   Synced  50s                flagger  Advance jx-go-demo-6.cd-production canary weight 20
-  Warning  Synced  40s                flagger  Halt advancement no values found for metric istio_requests_total probably jx-go-demo-6.cd-production is not receiving traffic
+  Warning  Synced  40s                flagger  Halt advancement no values found for metric request-success-rate probably jx-go-demo-6.cd-production is not receiving traffic
   Normal   Synced  30s                flagger  Advance jx-go-demo-6.cd-production canary weight 40
   Normal   Synced  20s                flagger  Advance jx-go-demo-6.cd-production canary weight 60
   Normal   Synced  10s                flagger  Advance jx-go-demo-6.cd-production canary weight 80
@@ -583,11 +583,10 @@ kubectl -n $NAMESPACE-production \
 Events:
   Type     Reason  Age                From     Message
   ----     ------  ----               ----     -------
-  Warning  Synced  19m                flagger  Halt advancement jx-go-demo-6-primary.jx-production waiting for rollout to finish: 0 out of 1 new replicas have been updated
   Normal   Synced  18m                flagger  New revision detected! Scaling up jx-go-demo-6.jx-production
   Normal   Synced  17m                flagger  Starting canary analysis for jx-go-demo-6.jx-production
   Normal   Synced  17m                flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Warning  Synced  12m (x5 over 16m)  flagger  Halt advancement no values found for metric istio_requests_total probably jx-go-demo-6.jx-production is not receiving traffic
+  Warning  Synced  12m (x5 over 16m)  flagger  Halt advancement no values found for metric request-success-rate probably jx-go-demo-6.jx-production is not receiving traffic
   Warning  Synced  11m                flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 5
   Warning  Synced  11m                flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
 ```
