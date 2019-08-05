@@ -163,8 +163,6 @@ Since we created the DevPod while inside our local copy of the *go-demo-6* repos
 Next, we should check whether our development environment indeed contains everything we need. Was Jenkins X intelligent enough to figure out needs just by knowing the repository we're using to develop our application? We can (partly) check that by trying to compile it.
 
 ```bash
-go mod init
-
 make linux
 ```
 
@@ -264,7 +262,9 @@ Is> We are using `tiller` only to simplify the development. For a more secure cl
 Now we're ready to build and deploy our application in the personal development environment. As Skaffold does not generate the `DIGEST_HEX` nor our replacement `UUID`, we will have to create one before we run the dev profile. So we will prefix our skaffold run with `export UUID=$(uuidgen)`.
 
 ```bash
-export UUID=$(uuidgen) && skaffold run --profile dev
+export UUID=$(uuidgen)
+
+skaffold run --profile dev
 ```
 
 We run skaffold using the `dev` profile.

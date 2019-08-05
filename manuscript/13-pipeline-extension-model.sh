@@ -26,6 +26,30 @@ git push
 
 cd ..
 
+# Only if GKE and a branch was restored
+cd go-demo-6
+
+# Only if GKE and a branch was restored
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+# Only if GKE and a branch was restored
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+# Only if GKE and a branch was restored
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
+
+# Only if GKE and a branch was restored
+cd ..
+
 cd go-demo-6
 
 git checkout master
