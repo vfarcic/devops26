@@ -13,9 +13,9 @@ jx create cluster gke \
     --skip-installation \
     --batch-mode
 
-kubectl get ns
+kubectl get nodes
 
-jx profile cloudbees
+# jx profile cloudbees
 
 open "https://github.com/cloudbees/cloudbees-jenkins-x-boot-config"
 
@@ -30,5 +30,23 @@ git clone \
 
 cd environment-tekton-dev
 
+# https://github.com/jenkins-x/jx/issues/4836
+
+gsutil mb -l us-east1 -p devops26 gs://jx-rocks-logs
+
+gsutil mb -l us-east1 -p devops26 gs://jx-rocks-reports
+
+gsutil mb -l us-east1 -p devops26 gs://jx-rocks-charts
+
+gsutil mb -l us-east1 -p devops26 gs://jx-vault-jx-rocks-bucket
+
 jx boot
+```
+
+## What Now?
+
+```bash
+# jx profile oss
+
+# Delete storage
 ```

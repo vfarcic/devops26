@@ -228,7 +228,7 @@ jx-postgresql-slave-0    1/1     Running   0          46s
 cd ..
 
 jx create quickstart \
-    --language go \
+    --filter golang-http \
     --project-name prometheus \
     --batch-mode
 

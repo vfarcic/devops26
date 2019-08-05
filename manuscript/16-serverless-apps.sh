@@ -39,7 +39,7 @@ jx edit deploy \
     --batch-mode
 
 jx create quickstart \
-    --language go \
+    --filter golang-http \
     --project-name jx-knative \
     --batch-mode
 

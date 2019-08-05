@@ -199,7 +199,7 @@ Jenkins X does its best to be easy for everyone and not to introduce unnecessary
 
 ```bash
 jx create quickstart \
-    --language go \
+    --filter golang-http \
     --project-name jx-knative \
     --batch-mode
 ```

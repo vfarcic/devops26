@@ -60,7 +60,7 @@
 
 ```bash
 jx create quickstart \
-  --language go \
+  --filter golang-http \
   --project-name jx-kaniko \
   --batch-mode
 

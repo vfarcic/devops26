@@ -42,7 +42,7 @@ jx team jx
 jx team cd
 
 jx create quickstart \
-  --language go \
+  --filter golang-http \
   --project-name jx-serverless \
   --batch-mode
 
