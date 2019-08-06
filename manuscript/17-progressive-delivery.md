@@ -37,7 +37,7 @@ TODO: Add a note that the Gists are different (added `gloo`, GKE VM size increas
 * Create a new static **GKE** cluster: [gke-jx-gloo.sh](TODO:)
 * Create a new serverless **GKE** cluster: [gke-jx-serverless-gloo.sh](TODO:)
 * Create a new static **EKS** cluster: [eks-jx-gloo.sh](TODO:)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless-gloo.sh](TODO:)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](TODO:)
 * Create a new static **AKS** cluster: [aks-jx-gloo.sh](TODO:)
 * Create a new serverless **AKS** cluster: [aks-jx-serverless-gloo.sh](TODO:)
 * Use an **existing** static cluster: [install-gloo.sh](TODO:)
@@ -58,13 +58,19 @@ cd go-demo-6
 
 git pull
 
-git checkout knative-$NAMESPACE
+# If GKE
+BRANCH=knative-$NAMESPACE
+
+# If NOT GKE
+BRANCH=extension-model-$NAMESPACE
+
+git checkout $BRANCH
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge knative-$NAMESPACE
+git merge $BRANCH
 
 git push
 
@@ -81,7 +87,9 @@ jx import --pack go --batch-mode
 cd ..
 ```
 
-## Serverless
+## Serverless (GKE only)
+
+W> At the time of this writing (August 2019), the examples in this section work only in a **GKE** cluster. Feel free to monitor [the issue 4668](https://github.com/jenkins-x/jx/issues/4668) for more info.
 
 ```bash
 cd go-demo-6
@@ -118,25 +126,31 @@ curl "http://$STAGING_ADDR/demo/hello"
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+
+# If GKE
+jx edit deploy \
+    --kind default \
+    --batch-mode
+
+# If GKE
+cat charts/go-demo-6/values.yaml \
+    | grep knative
 ```
 
 ## Recreate
 
 ```bash
-jx edit deploy \
-    --kind default \
-    --batch-mode
-
-cat charts/go-demo-6/values.yaml \
-    | grep knative
-
+# If NOT GKE
+cd go-demo-6
 
 cat charts/go-demo-6/templates/deployment.yaml \
     | sed -e \
-    's@      containers:@      strategy:\
-        type: Recreate\
-      containers:@g' \
+    's@  replicas:@  strategy:\
+    type: Recreate\
+  replicas:@g' \
     | tee charts/go-demo-6/templates/deployment.yaml
+
+cat charts/go-demo-6/templates/deployment.yaml
 
 git add .
 
@@ -180,30 +194,38 @@ git commit -m "Recreate strategy"
 
 git push
 
-jx get activities \
-    --filter go-demo-6 \
-    --watch
+# Open a second terminal
 
-# Press *ctrl+c* when the activity is finished
+# If EKS
+export AWS_ACCESS_KEY_ID=[...] # Replace [...] with the AWS Access Key ID
 
-jx get activities \
-    --filter environment-tekton-staging/master \
-    --watch
+# If EKS
+export AWS_SECRET_ACCESS_KEY=[...] # Replace [...] with the AWS Secret Access Key
 
-# Press *ctrl+c* when the activity is finished
+# If EKS
+export AWS_DEFAULT_REGION=us-west-2
 
-STAGING_ADDR=$(kubectl \
-    --namespace $NAMESPACE-staging \
-    get ing go-demo-6 \
-    --output jsonpath="{.spec.rules[0].host}")
+jx get applications --env staging
 
-echo $STAGING_ADDR
+STAGING_ADDR=[...]
 
-curl "http://$STAGING_ADDR/demo/hello"
+for i in {1..1000}
+do
+    curl "$STAGING_ADDR/demo/hello"
+    sleep 0.2
+done
+
+# Back to the first terminal
 
 kubectl \
     --namespace $NAMESPACE-staging \
     describe deployment jx-go-demo-6
+
+jx get activities \
+    --filter go-demo-6
+
+jx get activities \
+    --filter environment-tekton-staging/master
 ```
 
 ## Rolling Updates
@@ -228,17 +250,21 @@ git commit -m "Recreate strategy"
 
 git push
 
+# Go to the second terminal
+
+for i in {1..1000}
+do
+    curl "$STAGING_ADDR/demo/hello"
+    sleep 0.2
+done
+
+# Back to the first terminal
+
 jx get activities \
-    --filter go-demo-6 \
-    --watch
-
-# Press *ctrl+c* when the activity is finished
+    --filter go-demo-6
 
 jx get activities \
-    --filter environment-tekton-staging/master \
-    --watch
-
-# Press *ctrl+c* when the activity is finished
+    --filter environment-tekton-staging/master
 
 kubectl \
     --namespace $NAMESPACE-staging \
@@ -471,9 +497,22 @@ git clone \
 
 cd environment-tekton-staging
 
-# TODO: Continue
+echo "go-demo-6:
+  canary:
+    enable: true
+    service:
+      hosts:
+      - staging.go-demo-6.$ISTIO_IP.nip.io" \
+    | tee -a env/values.yaml
 
-# TODO: Assign the staging-specific address
+git add .
+
+git commit \
+    -m "Added progressive deployment"
+
+git push
+
+cd ../go-demo-6
 
 git add .
 
@@ -483,7 +522,7 @@ git commit \
 git push
 
 jx get activities \
-    --filter go-demo-6 \
+    --filter go-demo-6/master \
     --watch
 
 # Press *ctrl+c* when the activity is finished
@@ -502,36 +541,16 @@ NOTE: Nothing happens since it is automatically promoted to staging and `{{- if 
 On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
 
 ```bash
-jx get applications --env staging
-
-VERSION=[...]
-
-jx promote go-demo-6 \
-    --version $VERSION \
-    --env production \
-    --batch-mode
-
-jx get activities \
-    --filter environment-tekton-production/master \
-    --watch
-
-ISTIO_IP=$(kubectl \
-    --namespace istio-system \
-    get service istio-ingressgateway \
-    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
-
-echo $ISTIO_IP
-
-curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+curl "staging.go-demo-6.$ISTIO_IP.nip.io/demo/hello"
 
 # Repeat if `no healthy upstream`
 
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get all
 
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get virtualservice.networking.istio.io
 ```
 
@@ -561,11 +580,11 @@ And once the new version is built we can promote it to production.
 
 ```bash
 cat main.go | sed -e \
-    "s@hello, PR@hello, progressive@g" \
+    "s@hello, rolling update@hello, progressive@g" \
     | tee main.go
 
 cat main_test.go | sed -e \
-    "s@hello, PR@hello, progressive@g" \
+    "s@hello, rolling update@hello, progressive@g" \
     | tee main_test.go
 
 git add .
@@ -575,48 +594,36 @@ git commit \
 
 git push
 
-jx get activities \
-    --filter go-demo-6 \
-    --watch
+# Go to the second terminal
 
-# Press *ctrl+c* when the activity is finished
-
-jx get activities \
-    --filter environment-tekton-staging/master \
-    --watch
-
-# Press *ctrl+c* when the activity is finished
-
-jx get applications --env staging
-
-VERSION=[...]
-
-# Open a second terminal
-
-# In a second terminal
+# If not EKS
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
     get service istio-ingressgateway \
     --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-# In the second terminal
+# If EKS
+ISTIO_HOST=$(kubectl \
+    --namespace istio-system \
+    get service istio-ingressgateway \
+    --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+# If EKS
+export ISTIO_IP="$(dig +short $ISTIO_HOST \
+    | tail -n 1)"
+
 echo $ISTIO_IP
 
-# In the second terminal
 for i in {1..1000}
 do
-    curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
-    sleep 0.5
+    curl "staging.go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    sleep 0.1
 done
 
 # Go back to the first terminal
-jx promote go-demo-6 \
-    --version $VERSION \
-    --env production \
-    --batch-mode
 
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get pods
 ```
 
@@ -626,7 +633,7 @@ Flagger will detect this deployment change update the Istio `VirtualService` to 
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get virtualservice.networking.istio.io \
     jx-go-demo-6 \
     --output yaml
@@ -926,6 +933,8 @@ rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
 # If serverless
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+
+rm -rf environment-tekton-staging
 ```
 
 Finally, you might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just keep reading.

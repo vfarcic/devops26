@@ -78,6 +78,8 @@ helm fetch stable/cluster-autoscaler \
     -d charts \
     --untar
 
+rm -rf k8s-specs/aws/*
+
 mkdir -p k8s-specs/aws
 
 helm template charts/cluster-autoscaler \

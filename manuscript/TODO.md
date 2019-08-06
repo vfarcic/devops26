@@ -32,6 +32,7 @@
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
+- [ ] Rewrite *At the time of this writing (August 2019)...* 
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-storage.md
 - [ ] 99-3rd-party-apps.md

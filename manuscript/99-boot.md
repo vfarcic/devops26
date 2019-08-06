@@ -46,6 +46,24 @@ jx boot
 ## What Now?
 
 ```bash
+cd ..
+
+GH_USER=[...]
+
+hub delete -y \
+    $GH_USER/environment-tekton-dev
+
+hub delete -y \
+    $GH_USER/environment-jx-rocks-dev
+
+hub delete -y \
+    $GH_USER/environment-jx-rocks-staging
+
+hub delete -y \
+    $GH_USER/environment-jx-rocks-production
+
+rm -rf environment-tekton-dev
+
 # jx profile oss
 
 # Delete storage
