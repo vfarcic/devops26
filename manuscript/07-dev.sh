@@ -36,6 +36,10 @@ make linux
 
 cat skaffold.yaml
 
+cat skaffold.yaml \
+  | sed -e 's@DIGEST_HEX@UUID@g' \
+  | tee skaffold.yaml
+
 echo $DOCKER_REGISTRY
 
 env
@@ -46,6 +50,8 @@ kubectl create \
 
 helm init --service-account tiller
 
+export UUID=$(uuidgen)
+
 skaffold run --profile dev
 
 echo $SKAFFOLD_DEPLOY_NAMESPACE
@@ -54,6 +60,10 @@ kubectl -n $SKAFFOLD_DEPLOY_NAMESPACE \
     get pods
 
 cat watch.sh
+
+cat watch.sh | sed -e \
+  's@skaffold@UUID=$(uuidgen) skaffold@g' \
+  | tee watch.sh
 
 chmod +x watch.sh
 
