@@ -319,9 +319,8 @@ We can see that the first two lines (excluding misplaced comments) are the same 
 As you can see, it is missing the `UUID` variable, so let's add that to the `watch.sh`
 
 ```bash
-cat watch.sh | sed -e 's@make linux@\
-export UUID=$(uuidgen) \
-make linux@g' \
+cat watch.sh | sed -e \
+  's@skaffold@UUID=$(uuidgen) skaffold@g' \
   | tee watch.sh
 ```
 
