@@ -54,7 +54,7 @@ Now we can explore TODO:.
 
 ```bash
 jx create quickstart \
-    --language go \
+    --filter golang-http \
     --project-name jx-git \
     --batch-mode
 

@@ -94,7 +94,7 @@ W> Make sure that you are not inside an existing repository before executing the
 
 ```bash
 jx create quickstart \
-  --language go \
+  --filter golang-http \
   --project-name jx-prow \
   --batch-mode
 

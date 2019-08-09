@@ -16,6 +16,24 @@ git merge dev
 
 git push
 
+# Only if GKE and a branch was restored
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+# Only if GKE and a branch was restored
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+# Only if GKE and a branch was restored
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
+
 jx import --batch-mode
 
 jx get activities \

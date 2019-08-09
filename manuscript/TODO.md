@@ -16,8 +16,11 @@
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
+- [ ] 99-boot.md
+- [ ] 99-aws-lambda-pipeline.md
 - [ ] 17-progressive-delivery.md
-- [ ] 99-codified-infrastructure.md
+- [ ] 99-distribution.md
+- [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
@@ -29,12 +32,12 @@
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
+- [ ] Rewrite *At the time of this writing (August 2019)...* 
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-storage.md
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
 - [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-knative.md
 - [ ] 99-nexus-integration.md
 - [ ] 99-share-jx-access.md
 - [ ] 99-advanced-pipelines-2.md
@@ -54,6 +57,7 @@
 - [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
 - [ ] 99-running-multiple-pipelines.md (https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646)
 - [ ] 99-integration-with-uptimerobot.md
+- [ ] 99-codified-infrastructure.md
 - [ ] 99-the-end.md
 - [ ] Packt
 - [ ] Amazon.com

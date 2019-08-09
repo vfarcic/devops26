@@ -10,7 +10,7 @@ jx console
 jx create quickstart
 
 jx create quickstart \
-    --language go \
+    --filter golang-http \
     --project-name jx-go \
     --batch-mode
 

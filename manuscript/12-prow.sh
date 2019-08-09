@@ -11,7 +11,7 @@ jx delete application \
     --batch-mode
 
 jx create quickstart \
-  --language go \
+  --filter golang-http \
   --project-name jx-prow \
   --batch-mode
 
