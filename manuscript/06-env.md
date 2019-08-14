@@ -42,7 +42,7 @@ Let's imagine that you are in a restaurant and you tell a waiter "I'd like a bur
 
 So, the third rule is that **communication between processes must be asynchronous** if operations are to be executed in parallel. If we already agreed that the only source of truth is Git (that's where all the information is), then the logical choice for asynchronous communication is webhooks. Whenever we push a change to any of the repositories, a webhook can be triggered to the system. As a result, the new desire expressed through code (or config files), can be propagated to the system which, in turn, should delegate tasks to different processes.
 
-We are yet to design such a system. For now, think of it a one or more entities inside our cluster. If we apply the principle of having everything defined as code and stored in Git, there is no reason why those webhooks wouldn't be the only operational entry point to the system. There is no excuse to allow SSH access to anyone (any human). If you define everything in Git, what additional value can you add if you're inside one of the nodes of the cluster?
+We are yet to design such a system. For now, think of it as one or more entities inside our cluster. If we apply the principle of having everything defined as code and stored in Git, there is no reason why those webhooks wouldn't be the only operational entry point to the system. There is no excuse to allow SSH access to anyone (any human). If you define everything in Git, what additional value can you add if you're inside one of the nodes of the cluster?
 
 ![Figure 6-2: Asynchronous communication through webhooks from Git to the system](images/ch06/gitops-webhooks.png)
 

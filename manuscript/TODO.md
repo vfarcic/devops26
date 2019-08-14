@@ -17,8 +17,11 @@
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
 - [ ] 99-boot.md
-- [ ] 99-aws-lambda-pipeline.md
+- [ ] 99-storage-and-vault.md
+- [ ] Switch from `jx create addon` to `jx create app`
 - [ ] 17-progressive-delivery.md
+- [ ] Update the personal cluster
+- [ ] 99-aws-lambda-pipeline.md
 - [ ] 99-distribution.md
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
@@ -34,7 +37,6 @@
 - [ ] Rewrite *At the time of this writing (July 2019)...*
 - [ ] Rewrite *At the time of this writing (August 2019)...* 
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
-- [ ] 99-storage.md
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
 - [ ] 99-other-quickstart-buildpacks.md

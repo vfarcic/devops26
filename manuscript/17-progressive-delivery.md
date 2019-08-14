@@ -858,7 +858,7 @@ Events:
 Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accessible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
 
 TODO: vfarcic is $PROD_IP the correct ip ? Do we want to delete the ingress later?
-zzz
+
 ```bash
 LB_IP=$(kubectl \
     --namespace kube-system \
