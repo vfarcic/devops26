@@ -237,7 +237,7 @@ I already stated that DevPods contain everything we need to develop applications
 echo $DOCKER_REGISTRY
 ```
 
-The output will vary depending on the type of the Kubernetes cluster you're running and whether Docker registry is inside it or you're using a service. In GKE with the default setup it should be an IP and a port (e.g., `10.31.253.125:5000`), in AKS it should be the name of the cluster followed with `azurecr.io` (e.g., `jxrocks.azurecr.io`), and in EKS it is a combination of a unique ID ending with `amazonws.com` (e.g., `036548781187.dkr.ecr.us-west-2.amazonaws.com`). The exact address does not matter since all we need to know is that it is stored in the environment variable `DOCKER_REGISTRY`.
+The output will vary depending on the type of the Kubernetes cluster you're running and whether Docker registry is inside it or you're using a service. In GKE with the default setup it should be an IP and a port (e.g., `10.31.253.125:5000`), in AKS it should be the name of the cluster followed with `azurecr.io` (e.g., `THE_NAME_OF_YOUR_CLUSTER.azurecr.io`), and in EKS it is a combination of a unique ID ending with `amazonws.com` (e.g., `036548781187.dkr.ecr.us-west-2.amazonaws.com`). The exact address does not matter since all we need to know is that it is stored in the environment variable `DOCKER_REGISTRY`.
 
 Speaking of variables, it might be useful to know that many others were created for us.
 

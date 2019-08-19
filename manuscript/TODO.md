@@ -16,6 +16,7 @@
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
+- [ ] https://github.com/jenkins-x/jx/issues/5000
 - [ ] 99-boot.md
 - [ ] 99-storage-and-vault.md
 - [ ] Switch from `jx create addon` to `jx create app`

@@ -1,9 +1,9 @@
 ## TODO
 
-- [ ] Code
+- [X] Code
 - [ ] Write
-- [ ] Code review static GKE
-- [ ] Code review serverless GKE
+- [X] Code review static GKE
+- [X] Code review serverless GKE
 - [ ] Code review static EKS
 - [ ] Code review serverless EKS
 - [ ] Code review static AKS
@@ -36,12 +36,12 @@ TODO: Add a note that the Gists are different (added `gloo`, GKE VM size increas
 
 * Create a new static **GKE** cluster: [gke-jx-gloo.sh](TODO:)
 * Create a new serverless **GKE** cluster: [gke-jx-serverless-gloo.sh](TODO:)
-* Create a new static **EKS** cluster: [eks-jx-gloo.sh](TODO:)
+* Create a new static **EKS** cluster: [eks-jx.sh](TODO:)
 * Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](TODO:)
-* Create a new static **AKS** cluster: [aks-jx-gloo.sh](TODO:)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless-gloo.sh](TODO:)
-* Use an **existing** static cluster: [install-gloo.sh](TODO:)
-* Use an **existing** serverless cluster: [install-serverless-gloo.sh](TODO:)
+* Create a new static **AKS** cluster: [aks-jx.sh](TODO:)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](TODO:)
+* Use an **existing** static cluster: [install.sh](TODO:)
+* Use an **existing** serverless cluster: [install-serverless.sh](TODO:)
 
 TODO: Viktor: Check whether `extension-model` or some other branch should be restored
 
@@ -77,6 +77,37 @@ git push
 cd ..
 ```
 
+W> Please execute the commands that follow only if you are using **GKE** and if you restored the branch using the commands above.
+
+```bash
+cd go-demo-6
+
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
+
+git add .
+
+git commit -m "Fixed the project"
+
+git push
+
+cd ..
+```
+
+There isn't much mystery in the commands we executed. They replaced `vfarcic` with the name of your Google project in two Makefile files and in `skaffold.yaml`.
+
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
 ```bash
@@ -94,23 +125,79 @@ W> At the time of this writing (August 2019), the examples in this section work 
 ```bash
 cd go-demo-6
 
-cat charts/go-demo-6/templates/deployment.yaml
-
 cat charts/go-demo-6/templates/ksvc.yaml
+```
 
+```yaml
+{{- if .Values.knativeDeploy }}
+apiVersion: serving.knative.dev/v1alpha1
+kind: Service
+metadata:
+{{- if .Values.service.name }}
+  name: {{ .Values.service.name }}
+{{- else }}
+  name: {{ template "fullname" . }}
+{{- end }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  runLatest:
+    configuration:
+      revisionTemplate:
+        spec:
+          container:
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            env:
+            - name: DB
+              value: {{ template "fullname" . }}-db
+            livenessProbe:
+              httpGet:
+                path: {{ .Values.probePath }}
+              initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+              periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+              successThreshold: {{ .Values.livenessProbe.successThreshold }}
+              timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            readinessProbe:
+              httpGet:
+                path: {{ .Values.probePath }}
+              periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+              successThreshold: {{ .Values.readinessProbe.successThreshold }}
+              timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            resources:
+{{ toYaml .Values.resources | indent 14 }}
+{{- end }}
+```
+
+```bash
 jx get activities \
     --filter go-demo-6 \
     --watch
 
-# Press *ctrl+c* when the activity is finished
+# Press *ctrl+c* when the activity is finished.
 
+# If serverless
 jx get activities \
-    --filter environment-tekton-staging/master \
+    --filter environment-$ENVIRONMENT-staging/master \
     --watch
+
+# Press *ctrl+c* when the activity is finished
 
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
+
+```
+NAME                                          READY   STATUS              RESTARTS   AGE
+go-demo-6-lbxwr-deployment-6688f7c956-xzjk5   2/2     Running             0          26s
+jx-go-demo-6-db-arbiter-0                     1/1     Running             0          27s
+jx-go-demo-6-db-primary-0                     1/1     Running             0          27s
+jx-go-demo-6-db-secondary-0                   1/1     Running             0          27s
+```
+
+```bash
+# NOTE: Wait until all the containers are running
 
 STAGING_ADDR=$(kubectl \
     --namespace $NAMESPACE-staging \
@@ -118,31 +205,85 @@ STAGING_ADDR=$(kubectl \
     --output jsonpath="{.status.domain}")
 
 echo $STAGING_ADDR
+```
 
+```
+go-demo-6.cd-staging.35.231.84.74.nip.io
+```
+
+```bash
 curl "http://$STAGING_ADDR/demo/hello"
+```
 
-# Wait for a while
+```
+hello, PR!
+```
+
+```bash
+# Wait for a while (5-10 min.)
 
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
 
-# If GKE
-jx edit deploy \
-    --kind default \
-    --batch-mode
+```
+NAME                          READY   STATUS    RESTARTS   AGE
+jx-go-demo-6-db-arbiter-0     1/1     Running   0          6m21s
+jx-go-demo-6-db-primary-0     1/1     Running   0          6m21s
+jx-go-demo-6-db-secondary-0   1/1     Running   0          6m21s
+```
 
-# If GKE
-cat charts/go-demo-6/values.yaml \
-    | grep knative
+```bash
+kubectl run siege \
+    --image yokogawa/siege \
+    --generator "run-pod/v1" \
+     -it --rm \
+     -- --concurrent 300 --time 20S \
+     "http://$STAGING_ADDR/demo/hello" \
+     && kubectl \
+     --namespace $NAMESPACE-staging \
+    get pods
+```
+
+```
+NAME                                          READY   STATUS    RESTARTS   AGE
+go-demo-6-lbxwr-deployment-6688f7c956-j9r8h   2/2     Running   0          20s
+go-demo-6-lbxwr-deployment-6688f7c956-js29z   2/2     Running   0          14s
+go-demo-6-lbxwr-deployment-6688f7c956-kt9ns   2/2     Running   0          14s
+jx-go-demo-6-db-arbiter-0                     1/1     Running   0          6m59s
+jx-go-demo-6-db-primary-0                     1/1     Running   0          6m59s
+jx-go-demo-6-db-secondary-0                   1/1     Running   0          6m59s
+```
+
+```bash
+cd ..
 ```
 
 ## Recreate
 
 ```bash
-# If NOT GKE
 cd go-demo-6
 
+jx edit deploy \
+    --kind default \
+    --batch-mode
+```
+
+```
+modified the helm file: /Users/vfarcic/code/go-demo-6/charts/go-demo-6/values.yaml
+```
+
+```bash
+cat charts/go-demo-6/values.yaml \
+    | grep knative
+```
+
+```
+knativeDeploy: false
+```
+
+```bash
 cat charts/go-demo-6/templates/deployment.yaml \
     | sed -e \
     's@  replicas:@  strategy:\
@@ -151,6 +292,166 @@ cat charts/go-demo-6/templates/deployment.yaml \
     | tee charts/go-demo-6/templates/deployment.yaml
 
 cat charts/go-demo-6/templates/deployment.yaml
+```
+
+```yaml
+{{- if .Values.knativeDeploy }}
+{{- else }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    draft: {{ default "draft-app" .Values.draft }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  strategy:
+    type: Recreate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        draft: {{ default "draft-app" .Values.draft }}
+        app: {{ template "fullname" . }}
+{{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DB
+          value: {{ template "fullname" . }}-db
+        ports:
+        - containerPort: {{ .Values.service.internalPort }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probePath }}
+            port: {{ .Values.service.internalPort }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probePath }}
+            port: {{ .Values.service.internalPort }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+{{- end }}
+```
+
+```bash
+git add .
+
+git commit -m "Recreate strategy"
+
+git push
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
+
+# If not serverless
+jx get activities \
+    --filter environment-tekton-staging/master \
+    --watch
+
+# Press *ctrl+c* when the activity is finished
+
+kubectl \
+    --namespace $NAMESPACE-staging \
+    get pods
+```
+
+```
+NAME                                          READY   STATUS        RESTARTS   AGE
+jx-go-demo-6-94b4bb9b6-bs2bc                  1/1     Running       0          36s
+jx-go-demo-6-94b4bb9b6-c5pg7                  1/1     Running       0          36s
+jx-go-demo-6-94b4bb9b6-czd56                  1/1     Running       0          36s
+jx-go-demo-6-db-arbiter-0                     1/1     Running       0          15m
+jx-go-demo-6-db-primary-0                     1/1     Running       0          15m
+jx-go-demo-6-db-secondary-0                   1/1     Running       0          15m
+```
+
+```bash
+kubectl \
+    --namespace $NAMESPACE-staging \
+    describe deployment jx-go-demo-6
+```
+
+```yaml
+Name:               jx-go-demo-6
+Namespace:          cd-staging
+CreationTimestamp:  Fri, 16 Aug 2019 14:35:19 -0700
+Labels:             chart=go-demo-6-9.0.29
+                    draft=draft-app
+                    jenkins.io/chart-release=jx
+                    jenkins.io/namespace=cd-staging
+                    jenkins.io/version=2
+Annotations:        deployment.kubernetes.io/revision: 1
+                    jenkins.io/chart: env
+                    kubectl.kubernetes.io/last-applied-configuration:
+                      {"apiVersion":"extensions/v1beta1","kind":"Deployment","metadata":{"annotations":{"jenkins.io/chart":"env"},"labels":{"chart":"go-demo-6-9...
+Selector:           app=jx-go-demo-6,draft=draft-app
+Replicas:           3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:       Recreate
+MinReadySeconds:    0
+Pod Template:
+  Labels:  app=jx-go-demo-6
+           draft=draft-app
+  Containers:
+   go-demo-6:
+    Image:      gcr.io/devops-26/go-demo-6:9.0.29
+    Port:       8080/TCP
+    Host Port:  0/TCP
+    Limits:
+      cpu:     100m
+      memory:  256Mi
+    Requests:
+      cpu:      80m
+      memory:   128Mi
+    Liveness:   http-get http://:8080/demo/hello%3Fhealth=true delay=60s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:8080/demo/hello%3Fhealth=true delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      DB:    jx-go-demo-6-db
+    Mounts:  <none>
+  Volumes:   <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   jx-go-demo-6-94b4bb9b6 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  56s   deployment-controller  Scaled up replica set jx-go-demo-6-94b4bb9b6 to 3
+```
+
+```bash
+kubectl \
+    --namespace $NAMESPACE-staging \
+    get ing
+```
+
+```
+No resources found.
+```
+
+```bash
+# The first deployment after switching away from knative does not create a Ingress resources
+
+echo "something" | tee README.md
 
 git add .
 
@@ -164,6 +465,7 @@ jx get activities \
 
 # Press *ctrl+c* when the activity is finished
 
+# If serverless
 jx get activities \
     --filter environment-tekton-staging/master \
     --watch
@@ -173,13 +475,30 @@ jx get activities \
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
 
+```
+NAME                                          READY   STATUS        RESTARTS   AGE
+jx-go-demo-6-8b5698864-hhvqh                  1/1     Running       0          12s
+jx-go-demo-6-8b5698864-jw6sp                  1/1     Running       0          12s
+jx-go-demo-6-8b5698864-kv6w7                  1/1     Running       0          12s
+jx-go-demo-6-db-arbiter-0                     1/1     Running       0          20m
+jx-go-demo-6-db-primary-0                     1/1     Running       0          20m
+jx-go-demo-6-db-secondary-0                   1/1     Running       0          20m
+```
+
+```bash
 kubectl \
     --namespace $NAMESPACE-staging \
     get ing
+```
 
-# The first deployment after switching away from knative does not create a Ingress resources
+```
+NAME        HOSTS                                        ADDRESS          PORTS   AGE
+go-demo-6   go-demo-6.cd-staging.35.237.194.237.nip.io   35.237.194.237   80      61s
+```
 
+```bash
 cat main.go | sed -e \
     "s@hello, PR@hello, recreate@g" \
     | tee main.go
@@ -206,26 +525,59 @@ export AWS_SECRET_ACCESS_KEY=[...] # Replace [...] with the AWS Secret Access Ke
 export AWS_DEFAULT_REGION=us-west-2
 
 jx get applications --env staging
+```
 
+```
+APPLICATION STAGING PODS URL
+go-demo-6   9.0.30  3/3  http://go-demo-6.cd-staging.35.237.194.237.nip.io
+```
+
+```bash
 STAGING_ADDR=[...]
 
-for i in {1..1000}
+while true
 do
     curl "$STAGING_ADDR/demo/hello"
     sleep 0.2
 done
+```
+
+```
+...
+hello, PR!
+hello, PR!
+...
+<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>openresty/1.15.8.1</center>
+</body>
+</html>
+<html>
+<head><title>503 Service Temporarily Unavailable</title></head>
+<body>
+<center><h1>503 Service Temporarily Unavailable</h1></center>
+<hr><center>openresty/1.15.8.1</center>
+</body>
+</html>
+<html>
+<head><title>503 Service Temporarily Unavailable</title></head>
+<body>
+<center><h1>503 Service Temporarily Unavailable</h1></center>
+<hr><center>openresty/1.15.8.1</center>
+</body>
+</html>
+...
+hello, recreate!
+hello, recreate!
+...
+```
+
+```bash
+# Press *ctrl+c* to stop the loop
 
 # Back to the first terminal
-
-kubectl \
-    --namespace $NAMESPACE-staging \
-    describe deployment jx-go-demo-6
-
-jx get activities \
-    --filter go-demo-6
-
-jx get activities \
-    --filter environment-tekton-staging/master
 ```
 
 ## Rolling Updates
@@ -235,7 +587,63 @@ cat charts/go-demo-6/templates/deployment.yaml \
     | sed -e \
     's@type: Recreate@type: RollingUpdate@g' \
     | tee charts/go-demo-6/templates/deployment.yaml
+```
 
+```yaml
+{{- if .Values.knativeDeploy }}
+{{- else }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    draft: {{ default "draft-app" .Values.draft }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        draft: {{ default "draft-app" .Values.draft }}
+        app: {{ template "fullname" . }}
+{{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DB
+          value: {{ template "fullname" . }}-db
+        ports:
+        - containerPort: {{ .Values.service.internalPort }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probePath }}
+            port: {{ .Values.service.internalPort }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probePath }}
+            port: {{ .Values.service.internalPort }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+{{- end }}
+```
+
+```bash
 cat main.go | sed -e \
     "s@hello, recreate@hello, rolling update@g" \
     | tee main.go
@@ -252,23 +660,126 @@ git push
 
 # Go to the second terminal
 
-for i in {1..1000}
+while true
 do
     curl "$STAGING_ADDR/demo/hello"
     sleep 0.2
 done
+```
+
+```
+...
+hello, recreate!
+hello, recreate!
+hello, rolling update!
+hello, rolling update!
+...
+```
+
+```bash
+# Press *ctrl+c* to stop the loop
+
+# NOTE: It could result in mixed responses from two releases
 
 # Back to the first terminal
-
-jx get activities \
-    --filter go-demo-6
-
-jx get activities \
-    --filter environment-tekton-staging/master
 
 kubectl \
     --namespace $NAMESPACE-staging \
     describe deployment jx-go-demo-6
+```
+
+```
+Name:                   jx-go-demo-6
+Namespace:              cd-staging
+CreationTimestamp:      Fri, 16 Aug 2019 14:35:19 -0700
+Labels:                 chart=go-demo-6-9.0.32
+                        draft=draft-app
+                        jenkins.io/chart-release=jx
+                        jenkins.io/namespace=cd-staging
+                        jenkins.io/version=5
+Annotations:            deployment.kubernetes.io/revision: 4
+                        jenkins.io/chart: env
+                        kubectl.kubernetes.io/last-applied-configuration:
+                          {"apiVersion":"extensions/v1beta1","kind":"Deployment","metadata":{"annotations":{"jenkins.io/chart":"env"},"labels":{"chart":"go-demo-6-9...
+Selector:               app=jx-go-demo-6,draft=draft-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  1 max unavailable, 1 max surge
+Pod Template:
+  Labels:  app=jx-go-demo-6
+           draft=draft-app
+  Containers:
+   go-demo-6:
+    Image:      gcr.io/devops-26/go-demo-6:9.0.32
+    Port:       8080/TCP
+    Host Port:  0/TCP
+    Limits:
+      cpu:     100m
+      memory:  256Mi
+    Requests:
+      cpu:      80m
+      memory:   128Mi
+    Liveness:   http-get http://:8080/demo/hello%3Fhealth=true delay=60s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:8080/demo/hello%3Fhealth=true delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      DB:    jx-go-demo-6-db
+    Mounts:  <none>
+  Volumes:   <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   jx-go-demo-6-658f88478b (3/3 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  15m                deployment-controller  Scaled up replica set jx-go-demo-6-94b4bb9b6 to 3
+  Normal  ScalingReplicaSet  10m                deployment-controller  Scaled down replica set jx-go-demo-6-94b4bb9b6 to 0
+  Normal  ScalingReplicaSet  10m                deployment-controller  Scaled up replica set jx-go-demo-6-8b5698864 to 3
+  Normal  ScalingReplicaSet  6m24s              deployment-controller  Scaled down replica set jx-go-demo-6-8b5698864 to 0
+  Normal  ScalingReplicaSet  6m17s              deployment-controller  Scaled up replica set jx-go-demo-6-77b6455c87 to 3
+  Normal  ScalingReplicaSet  80s                deployment-controller  Scaled up replica set jx-go-demo-6-658f88478b to 1
+  Normal  ScalingReplicaSet  80s                deployment-controller  Scaled down replica set jx-go-demo-6-77b6455c87 to 2
+  Normal  ScalingReplicaSet  80s                deployment-controller  Scaled up replica set jx-go-demo-6-658f88478b to 2
+  Normal  ScalingReplicaSet  72s                deployment-controller  Scaled down replica set jx-go-demo-6-77b6455c87 to 1
+  Normal  ScalingReplicaSet  71s (x2 over 72s)  deployment-controller  (combined from similar events): Scaled down replica set jx-go-demo-6-77b6455c87 to 0
+```
+
+## Blue-Green Deployments
+
+```bash
+jx get applications --env staging
+```
+
+```
+APPLICATION STAGING PODS URL
+go-demo-6   1.0.339 3/3  http://go-demo-6.jx-staging.35.237.112.210.nip.io
+```
+
+```bash
+VERSION=[...]
+
+jx promote go-demo-6 \
+    --version $VERSION \
+    --env production \
+    --batch-mode
+```
+
+```
+Promoting app go-demo-6 version 1.0.339 to namespace jx-production
+pipeline vfarcic/go-demo-6/master
+Created Pull Request: https://github.com/vfarcic/environment-tekton-production/pull/1
+Added label  to Pull Request https://github.com/vfarcic/environment-tekton-production/pull/1
+pipeline vfarcic/go-demo-6/master
+WARNING: Failed to query the Pull Request last commit status for https://github.com/vfarcic/environment-tekton-production/pull/1 ref eca68ffd65f2341e44ae0084a123fe03e50b35d8 Could not find a status for repository vfarcic/environment-tekton-production with ref eca68ffd65f2341e44ae0084a123fe03e50b35d8
+WARNING: Failed to query the Pull Request last commit status for https://github.com/vfarcic/environment-tekton-production/pull/1 ref eca68ffd65f2341e44ae0084a123fe03e50b35d8 Could not find a status for repository vfarcic/environment-tekton-production with ref eca68ffd65f2341e44ae0084a123fe03e50b35d8
+Pull Request https://github.com/vfarcic/environment-tekton-production/pull/1 is merged at sha b36fd6f4644e6b5986ae32b37a349be33c281537
+Merge commit has not yet any statuses on repo vfarcic/environment-tekton-production merge sha b36fd6f4644e6b5986ae32b37a349be33c281537
+merge status: pending for URL https://api.github.com/repos/vfarcic/environment-tekton-production/statuses/b36fd6f4644e6b5986ae32b37a349be33c281537 with target: http://jenkins.jx.35.237.112.210.nip.io/job/vfarcic/job/environment-tekton-production/job/master/2/display/redirect description: This commit is being built
+merge status: success for URL https://api.github.com/repos/vfarcic/environment-tekton-production/statuses/b36fd6f4644e6b5986ae32b37a349be33c281537 with target: http://jenkins.jx.35.237.112.210.nip.io/job/vfarcic/job/environment-tekton-production/job/master/2/display/redirect description: This commit looks good
+Merge status checks all passed so the promotion worked!
 ```
 
 ## Progressive Delivery
@@ -348,7 +859,7 @@ jx create addon istio \
     --version 1.1.7
 ```
 
-NOTE: the command may fail due to the order Helm applies CRD resources. Rerunning the command again should fix it.
+NOTE: the command may fail due to the order Helm applies CRD resources. Re-running the command again should fix it.
 
 NOTE: Istio is resource heavy and the cluster is likely going to scale up. That might slow down some activities.
 
@@ -385,6 +896,125 @@ NOTE: Prometheus is already installed with Istio
 jx create addon flagger
 ```
 
+```bash
+kubectl --namespace istio-system \
+    get pods
+```
+
+```
+NAME                                      READY   STATUS      RESTARTS   AGE
+flagger-5bdbccc7f4-qx5wt                  1/1     Running     0          110s
+flagger-grafana-5c88686d56-tr9l5          1/1     Running     0          78s
+istio-citadel-7f447d4d4b-4t6zj            1/1     Running     0          3m22s
+istio-galley-84749d54b7-2pjql             1/1     Running     0          4m46s
+istio-ingressgateway-6b79f895d6-wfvtr     1/1     Running     0          4m40s
+istio-init-crd-10-62c64                   0/1     Completed   0          5m8s
+istio-init-crd-11-27xq5                   0/1     Completed   0          5m7s
+istio-pilot-76899788b6-ws6lq              2/2     Running     0          3m35s
+istio-policy-578bcb878f-pp7ql             2/2     Running     6          4m38s
+istio-sidecar-injector-6895997989-gn85h   1/1     Running     0          3m14s
+istio-telemetry-5448cbd995-bp7ms          2/2     Running     6          4m38s
+prometheus-5977597c75-p5dn6               1/1     Running     0          3m28s
+```
+
+```bash
+kubectl --namespace gloo-system \
+    get pods
+```
+
+```
+NAME                                    READY   STATUS    RESTARTS   AGE
+clusteringress-proxy-6994c99f59-qf6sq   1/1     Running   0          115m
+discovery-9457bb7c9-kqst9               1/1     Running   0          115m
+gloo-b67c595d5-d8w5c                    1/1     Running   0          115m
+ingress-5b46f8fcbb-nznl4                1/1     Running   0          115m
+```
+
+```bash
+kubectl describe namespace \
+    $NAMESPACE-production
+```
+
+```yaml
+Name:         cd-production
+Labels:       env=production
+              istio-injection=enabled
+              team=cd
+Annotations:  <none>
+Status:       Active
+
+Resource Quotas
+ Name:                       gke-resource-quotas
+ Resource                    Used  Hard
+ --------                    ---   ---
+ count/ingresses.extensions  0     100
+ count/jobs.batch            0     5k
+ pods                        0     1500
+ services                    0     500
+
+No resource limits.
+```
+
+```bash
+kubectl describe namespace \
+    $NAMESPACE-staging
+```
+
+```yaml
+Name:         cd-staging
+Labels:       env=staging
+              team=cd
+Annotations:  jenkins-x.io/created-by: Jenkins X
+Status:       Active
+
+Resource Quotas
+ Name:                       gke-resource-quotas
+ Resource                    Used  Hard
+ --------                    ---   ---
+ count/ingresses.extensions  1     100
+ count/jobs.batch            0     5k
+ pods                        6     1500
+ services                    3     500
+
+No resource limits.
+```
+
+```bash
+kubectl label namespace \
+    $NAMESPACE-staging \
+    istio-injection=enabled \
+    --overwrite
+```
+
+```
+namespace/cd-staging labeled
+```
+
+```bash
+kubectl describe namespace \
+    $NAMESPACE-staging
+```
+
+```yaml
+Name:         cd-staging
+Labels:       env=staging
+              istio-injection=enabled
+              team=cd
+Annotations:  jenkins-x.io/created-by: Jenkins X
+Status:       Active
+
+Resource Quotas
+ Name:                       gke-resource-quotas
+ Resource                    Used  Hard
+ --------                    ---   ---
+ count/ingresses.extensions  1     100
+ count/jobs.batch            0     5k
+ pods                        6     1500
+ services                    3     500
+
+No resource limits.
+```
+
 The Flagger addon will enable Istio for all pods in the `jx-production` namespace so they send traffic metrics to Prometheus.
 It will also configure an Istio ingress gateway to accept incoming external traffic through the ingress gateway service, but for it to reach the final service we must create Istio `VirtualServices`, the rules that manage the Istio routing. Flagger will do that for us.
 
@@ -401,6 +1031,7 @@ kind: Canary
 metadata:
   name: {{ template \"fullname\" . }}
 spec:
+  provider: {{.Values.canary.provider}}
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
@@ -429,12 +1060,48 @@ spec:
 " | tee charts/go-demo-6/templates/canary.yaml
 ```
 
+```yaml
+{{- if .Values.canary.enable }}
+apiVersion: flagger.app/v1alpha2
+kind: Canary
+metadata:
+  name: {{ template "fullname" . }}
+spec:
+  provider: {{.Values.canary.provider}}
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "fullname" . }}
+  progressDeadlineSeconds: 60
+  service:
+    port: {{.Values.service.internalPort}}
+{{- if .Values.canary.service.gateways }}
+    gateways:
+{{ toYaml .Values.canary.service.gateways | indent 4 }}
+{{- end }}
+{{- if .Values.canary.service.hosts }}
+    hosts:
+{{ toYaml .Values.canary.service.hosts | indent 4 }}
+{{- end }}
+  canaryAnalysis:
+    interval: {{ .Values.canary.canaryAnalysis.interval }}
+    threshold: {{ .Values.canary.canaryAnalysis.threshold }}
+    maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
+    stepWeight: {{ .Values.canary.canaryAnalysis.stepWeight }}
+{{- if .Values.canary.canaryAnalysis.metrics }}
+    metrics:
+{{ toYaml .Values.canary.canaryAnalysis.metrics | indent 4 }}
+{{- end }}
+{{- end }}
+```
+
 And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.$ISTIO_IP.nip.io`.
 
 ```bash
 echo "
 canary:
   enable: false
+  provider: istio
   service:
     hosts:
     - go-demo-6.$ISTIO_IP.nip.io
@@ -453,6 +1120,29 @@ canary:
       threshold: 500
       interval: 120s
 " | tee -a charts/go-demo-6/values.yaml
+```
+
+```yaml
+canary:
+  enable: false
+  provider: istio
+  service:
+    hosts:
+    - go-demo-6.34.73.8.113.nip.io
+    gateways:
+    - jx-gateway.istio-system.svc.cluster.local
+  canaryAnalysis:
+    interval: 30s
+    threshold: 5
+    maxWeight: 70
+    stepWeight: 20
+    metrics:
+    - name: request-success-rate
+      threshold: 99
+      interval: 120s
+    - name: request-duration
+      threshold: 500
+      interval: 120s
 ```
 
 Explanation of the values in the configuration:
@@ -485,26 +1175,117 @@ cat charts/go-demo-6/values.yaml \
   podAnnotations:\
     sidecar.istio.io/inject: "false"@g' \
     | tee charts/go-demo-6/values.yaml
+```
 
+```yaml
+# Default values for Go projects.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 3
+image:
+  repository: draft
+  tag: dev
+  pullPolicy: IfNotPresent
+service:
+  name: go-demo-6
+  type: ClusterIP
+  externalPort: 80
+  internalPort: 8080
+  annotations:
+    fabric8.io/expose: "true"
+    fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"
+resources:
+  limits:
+    cpu: 100m
+    memory: 256Mi
+  requests:
+    cpu: 80m
+    memory: 128Mi
+probePath: /demo/hello?health=true
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+readinessProbe:
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+terminationGracePeriodSeconds: 10
+go-demo-6-db:
+  podAnnotations:
+    sidecar.istio.io/inject: "false"
+  replicaSet:
+    enabled: true
+
+
+  usePassword: false
+knativeDeploy: false
+
+
+
+
+canary:
+  enable: false
+  provider: istio
+  service:
+    hosts:
+    - go-demo-6.34.73.8.113.nip.io
+    gateways:
+    - jx-gateway.istio-system.svc.cluster.local
+  canaryAnalysis:
+    interval: 30s
+    threshold: 5
+    maxWeight: 70
+    stepWeight: 20
+    metrics:
+    - name: request-success-rate
+      threshold: 99
+      interval: 120s
+    - name: request-duration
+      threshold: 500
+      interval: 120s
+```
+
+```bash
 cd ..
 
-rm -rf environment-tekton-staging
+# If serverless
+ENVIRONMENT=tekton
+
+# If static
+ENVIRONMENT=jx-rocks
+
+rm -rf environment-$ENVIRONMENT-staging
 
 GH_USER=[...]
 
 git clone \
-    https://github.com/$GH_USER/environment-tekton-staging.git
+    https://github.com/$GH_USER/environment-$ENVIRONMENT-staging.git
 
-cd environment-tekton-staging
+cd environment-$ENVIRONMENT-staging
+
+STAGING_ADDR=staging.go-demo-6.$ISTIO_IP.nip.io
 
 echo "go-demo-6:
   canary:
     enable: true
     service:
       hosts:
-      - staging.go-demo-6.$ISTIO_IP.nip.io" \
+      - $STAGING_ADDR" \
     | tee -a env/values.yaml
+```
 
+```yaml
+go-demo-6:
+  canary:
+    enable: true
+    service:
+      hosts:
+      - staging.go-demo-6.34.73.8.113.nip.io
+```
+
+```bash
 git add .
 
 git commit \
@@ -527,6 +1308,7 @@ jx get activities \
 
 # Press *ctrl+c* when the activity is finished
 
+# If serverless
 jx get activities \
     --filter environment-tekton-staging/master \
     --watch
@@ -534,24 +1316,68 @@ jx get activities \
 # Press *ctrl+c* when the activity is finished
 ```
 
-NOTE: Nothing happens since it is automatically promoted to staging and `{{- if eq .Release.Namespace "jx-production" }}` applies only to production.
-
 ## Canary Deployments
 
-On the first build of our app, Jenkins X will build and deploy the application Helm chart to the staging environment. We need to promotion it to production one first time before we can do canarying.
+```bash
+curl $STAGING_ADDR/demo/hello
+```
+
+```
+hello, rolling update!
+```
 
 ```bash
-curl "staging.go-demo-6.$ISTIO_IP.nip.io/demo/hello"
-
-# Repeat if `no healthy upstream`
+# Repeat if `no healthy upstream` (DB is not yet up and running)
 
 kubectl \
     --namespace $NAMESPACE-staging \
     get all
+```
 
+```
+NAME                                        READY   STATUS    RESTARTS   AGE
+pod/jx-go-demo-6-db-arbiter-0               1/1     Running   0          69s
+pod/jx-go-demo-6-db-primary-0               1/1     Running   0          65s
+pod/jx-go-demo-6-db-secondary-0             1/1     Running   0          65s
+pod/jx-go-demo-6-primary-7d5755576c-6kjjv   2/2     Running   0          65s
+pod/jx-go-demo-6-primary-7d5755576c-9wsqw   2/2     Running   1          65s
+pod/jx-go-demo-6-primary-7d5755576c-c7xv6   2/2     Running   1          65s
+NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)     AGE
+service/go-demo-6                  ClusterIP   10.31.250.55    <none>        80/TCP      97m
+service/jx-go-demo-6               ClusterIP   10.31.253.52    <none>        8080/TCP    67s
+service/jx-go-demo-6-canary        ClusterIP   10.31.243.175   <none>        8080/TCP    67s
+service/jx-go-demo-6-db            ClusterIP   10.31.244.152   <none>        27017/TCP   117m
+service/jx-go-demo-6-db-headless   ClusterIP   None            <none>        27017/TCP   117m
+service/jx-go-demo-6-primary       ClusterIP   10.31.250.21    <none>        8080/TCP    67s
+NAME                                   DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/jx-go-demo-6           0         0         0            0           102m
+deployment.apps/jx-go-demo-6-primary   3         3         3            3           68s
+NAME                                              DESIRED   CURRENT   READY   AGE
+replicaset.apps/jx-go-demo-6-55f699d857           0         0         0       75s
+replicaset.apps/jx-go-demo-6-658f88478b           0         0         0       88m
+replicaset.apps/jx-go-demo-6-77b6455c87           0         0         0       93m
+replicaset.apps/jx-go-demo-6-8b5698864            0         0         0       97m
+replicaset.apps/jx-go-demo-6-94b4bb9b6            0         0         0       102m
+replicaset.apps/jx-go-demo-6-primary-7d5755576c   3         3         3       68s
+NAME                                         DESIRED   CURRENT   AGE
+statefulset.apps/jx-go-demo-6-db-arbiter     1         1         117m
+statefulset.apps/jx-go-demo-6-db-primary     1         1         117m
+statefulset.apps/jx-go-demo-6-db-secondary   1         1         117m
+NAME                                  NAME        VERSION   GIT URL
+release.jenkins.io/go-demo-6-9.0.33   go-demo-6   v9.0.33   https://github.com/vfarcic/go-demo-6
+NAME                              STATUS        WEIGHT   LASTTRANSITIONTIME
+canary.flagger.app/jx-go-demo-6   Initialized   0        2019-08-16T23:17:03Z
+```
+
+```bash
 kubectl \
     --namespace $NAMESPACE-staging \
     get virtualservice.networking.istio.io
+```
+
+```
+NAME           GATEWAYS                                      HOSTS                                                 AGE
+jx-go-demo-6   [jx-gateway.istio-system.svc.cluster.local]   [staging.go-demo-6.34.73.8.113.nip.io jx-go-demo-6]   1m
 ```
 
 After detecting a new `Canary` object Flagger will automatically create some other objects to manage the canary deployment:
@@ -569,9 +1395,23 @@ We are going to create a trivial change in the demo application, replacing `hell
 Let's tail Flagger logs so we can get insights in the deployment process.
 
 ```bash
-kubectl --namespace istio-system logs \
+kubectl \
+    --namespace istio-system logs \
     --selector app.kubernetes.io/name=flagger \
     --follow
+```
+
+```
+{"level":"info","ts":"2019-08-16T23:16:33.564Z","caller":"canary/deployer.go:48","msg":"Scaling down jx-go-demo-6.cd-staging","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:33.829Z","caller":"router/kubernetes.go:122","msg":"Service jx-go-demo-6.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:33.913Z","caller":"router/kubernetes.go:122","msg":"Service jx-go-demo-6-canary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:33.990Z","caller":"router/kubernetes.go:122","msg":"Service jx-go-demo-6-primary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:34.052Z","caller":"router/istio.go:77","msg":"DestinationRule jx-go-demo-6-canary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:34.170Z","caller":"router/istio.go:77","msg":"DestinationRule jx-go-demo-6-primary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:34.295Z","caller":"router/istio.go:205","msg":"VirtualService jx-go-demo-6.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:16:34.302Z","caller":"controller/controller.go:271","msg":"Halt advancement jx-go-demo-6-primary.cd-staging waiting for rollout to finish: 0 of 3 updated replicas are available","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:17:03.415Z","caller":"canary/deployer.go:48","msg":"Scaling down jx-go-demo-6.cd-staging","canary":"jx-go-demo-6.cd-staging"}
+{"level":"info","ts":"2019-08-16T23:17:03.524Z","caller":"controller/controller.go:261","msg":"Initialization done! jx-go-demo-6.cd-staging","canary":"jx-go-demo-6.cd-staging"}
 ```
 
 NOTE: Stop with *ctrl+c*
@@ -614,17 +1454,59 @@ export ISTIO_IP="$(dig +short $ISTIO_HOST \
 
 echo $ISTIO_IP
 
-for i in {1..1000}
+STAGING_ADDR=staging.go-demo-6.$ISTIO_IP.nip.io
+
+while true
 do
-    curl "staging.go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+    curl "$STAGING_ADDR/demo/hello"
     sleep 0.1
 done
+```
 
-# Go back to the first terminal
+```
+...
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, rolling update!
+hello, progressive!
+hello, rolling updat
+...
+hello, rolling update!
+hello, progressive!
+hello, progressive!
+hello, progressive!
+hello, rolling update!
+hello, progressive!
+hello, rolling update!
+hello, rolling update!
+...
+```
+
+```bash
+# Stop with *ctrl+c*
+
+# Go back to the first terminal when approx 50% of requests are from the new release
 
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
+```
+
+```
+NAME                                    READY   STATUS    RESTARTS   AGE
+jx-go-demo-6-68f6ff77cb-rqkk8           2/2     Running   0          116s
+jx-go-demo-6-db-arbiter-0               1/1     Running   0          6m58s
+jx-go-demo-6-db-primary-0               1/1     Running   0          6m54s
+jx-go-demo-6-db-secondary-0             1/1     Running   0          6m54s
+jx-go-demo-6-primary-7d5755576c-6kjjv   2/2     Running   0          6m54s
+jx-go-demo-6-primary-7d5755576c-9wsqw   2/2     Running   1          6m54s
+jx-go-demo-6-primary-7d5755576c-c7xv6   2/2     Running   1          6m54s
 ```
 
 Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
@@ -640,26 +1522,37 @@ kubectl \
 ```
 
 ```yaml
-...
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  creationTimestamp: "2019-08-16T23:16:34Z"
+  generation: 1
+  name: jx-go-demo-6
+  namespace: cd-staging
+  ownerReferences:
+  - apiVersion: flagger.app/v1alpha3
+    blockOwnerDeletion: true
+    controller: true
+    kind: Canary
+    name: jx-go-demo-6
+    uid: dee033ef-c07b-11e9-9aa4-42010a8e00b0
+  resourceVersion: "39679"
+  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/cd-staging/virtualservices/jx-go-demo-6
+  uid: e38d47b2-c07b-11e9-9aa4-42010a8e00b0
 spec:
   gateways:
   - jx-gateway.istio-system.svc.cluster.local
-  - mesh
   hosts:
-  - go-demo-6.$ISTIO_IP.nip.io
+  - staging.go-demo-6.34.73.8.113.nip.io
   - jx-go-demo-6
   http:
   - route:
     - destination:
         host: jx-go-demo-6-primary
-        port:
-          number: 8080
-      weight: 90
+      weight: 20
     - destination:
-        host: jx-go-demo-6
-        port:
-          number: 8080
-      weight: 10
+        host: jx-go-demo-6-canary
+      weight: 80
 ```
 
 We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
@@ -668,34 +1561,105 @@ Describing the canary object will also give us information about the deployment 
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get ing
+```
 
+```
+NAME        HOSTS                                        ADDRESS          PORTS   AGE
+go-demo-6   go-demo-6.cd-staging.35.237.194.237.nip.io   35.237.194.237   80      103m
+```
+
+```bash
 # TODO: We should probably remove the Ingress. Is there a reason for its existence?
 
+kubectl -n $NAMESPACE-staging \
+    get canary
+```
+
+```
+NAME           STATUS       WEIGHT   LASTTRANSITIONTIME
+jx-go-demo-6   Succeeded    0        2019-08-16T23:24:03Z
+```
+
+```bash
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     describe canary jx-go-demo-6
 ```
 
-```
-  Last Transition Time:  2019-06-30T05:50:57Z
-  Phase:                 Progressing
+```yaml
+Name:         jx-go-demo-6
+Namespace:    cd-staging
+Labels:       jenkins.io/chart-release=jx
+              jenkins.io/namespace=cd-staging
+              jenkins.io/version=8
+Annotations:  jenkins.io/chart: env
+              kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"flagger.app/v1alpha2","kind":"Canary","metadata":{"annotations":{"jenkins.io/chart":"env"},"labels":{"jenkins.io/chart-rele...
+API Version:  flagger.app/v1alpha3
+Kind:         Canary
+Metadata:
+  Creation Timestamp:  2019-08-16T23:16:26Z
+  Generation:          1
+  Resource Version:    40026
+  Self Link:           /apis/flagger.app/v1alpha3/namespaces/cd-staging/canaries/jx-go-demo-6
+  UID:                 dee033ef-c07b-11e9-9aa4-42010a8e00b0
+Spec:
+  Canary Analysis:
+    Interval:    30s
+    Max Weight:  70
+    Metrics:
+      Interval:               120s
+      Name:                   request-success-rate
+      Threshold:              99
+      Interval:               120s
+      Name:                   request-duration
+      Threshold:              500
+    Step Weight:              20
+    Threshold:                5
+  Progress Deadline Seconds:  60
+  Provider:                   istio
+  Service:
+    Gateways:
+      jx-gateway.istio-system.svc.cluster.local
+    Hosts:
+      staging.go-demo-6.34.73.8.113.nip.io
+    Port:  8080
+  Target Ref:
+    API Version:  apps/v1
+    Kind:         Deployment
+    Name:         jx-go-demo-6
+Status:
+  Canary Weight:  0
+  Conditions:
+    Last Transition Time:  2019-08-16T23:24:33Z
+    Last Update Time:      2019-08-16T23:24:33Z
+    Message:               Canary analysis completed successfully, promotion finished.
+    Reason:                Succeeded
+    Status:                True
+    Type:                  Promoted
+  Failed Checks:           0
+  Iterations:              0
+  Last Applied Spec:       1289860333710986770
+  Last Promoted Spec:      1289860333710986770
+  Last Transition Time:    2019-08-16T23:24:33Z
+  Phase:                   Succeeded
   Tracked Configs:
 Events:
-  Type     Reason  Age                From     Message
-  ----     ------  ----               ----     -------
-  Warning  Synced  11m (x6 over 12m)  flagger  Halt advancement jx-go-demo-6-primary.cd-production waiting for rollout to finish: 0 of 3 updated replicas are available
-  Warning  Synced  11m                flagger  Halt advancement jx-go-demo-6-primary.cd-production waiting for rollout to finish: 1 of 3 updated replicas are available
-  Normal   Synced  11m                flagger  Initialization done! jx-go-demo-6.cd-production
-  Normal   Synced  60s                flagger  New revision detected! Scaling up jx-go-demo-6.cd-production
-  Normal   Synced  50s                flagger  Starting canary analysis for jx-go-demo-6.cd-production
-  Normal   Synced  50s                flagger  Advance jx-go-demo-6.cd-production canary weight 20
-  Warning  Synced  40s                flagger  Halt advancement no values found for metric request-success-rate probably jx-go-demo-6.cd-production is not receiving traffic
-  Normal   Synced  30s                flagger  Advance jx-go-demo-6.cd-production canary weight 40
-  Normal   Synced  20s                flagger  Advance jx-go-demo-6.cd-production canary weight 60
-  Normal   Synced  10s                flagger  Advance jx-go-demo-6.cd-production canary weight 80
-  Normal   Synced  0s                 flagger  Promotion completed! Scaling down jx-go-demo-6.cd-production
+  Type     Reason  Age    From     Message
+  ----     ------  ----   ----     -------
+  Warning  Synced  8m31s  flagger  Halt advancement jx-go-demo-6-primary.cd-staging waiting for rollout to finish: 0 of 3 updated replicas are available
+  Normal   Synced  8m2s   flagger  Initialization done! jx-go-demo-6.cd-staging
+  Normal   Synced  3m32s  flagger  New revision detected! Scaling up jx-go-demo-6.cd-staging
+  Normal   Synced  3m2s   flagger  Starting canary analysis for jx-go-demo-6.cd-staging
+  Normal   Synced  3m2s   flagger  Advance jx-go-demo-6.cd-staging canary weight 20
+  Normal   Synced  2m32s  flagger  Advance jx-go-demo-6.cd-staging canary weight 40
+  Normal   Synced  2m2s   flagger  Advance jx-go-demo-6.cd-staging canary weight 60
+  Normal   Synced  92s    flagger  Advance jx-go-demo-6.cd-staging canary weight 80
+  Normal   Synced  92s    flagger  Copying jx-go-demo-6.cd-staging template spec to jx-go-demo-6-primary.cd-staging
+  Normal   Synced  62s    flagger  Routing all traffic to primary
+  Normal   Synced  32s    flagger  (combined from similar events): Promotion completed! Scaling down jx-go-demo-6.cd-staging
 ```
 
 Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
@@ -708,62 +1672,41 @@ Flagger will automatically rollback if any of the metrics we set fail the number
 Let's show what would happen if we promote to production the previous version with no traffic.
 
 ```bash
-# TODO: Roll forward
+# # NOTE: Make sure that some time passed (e.g., 15 min), otherwise it will get the old metrics and think that the requests are coming in
 
-cat main.go | sed -e \
-    "s@hello, progressive@hello, no one@g" \
-    | tee main.go
+# cat main.go | sed -e \
+#     "s@hello, progressive@hello, no one@g" \
+#     | tee main.go
 
-cat main_test.go | sed -e \
-    "s@hello, progressive@hello, no one@g" \
-    | tee main_test.go
+# cat main_test.go | sed -e \
+#     "s@hello, progressive@hello, no one@g" \
+#     | tee main_test.go
 
-git add .
+# git add .
 
-git commit \
-    -m "Added progressive deployment"
+# git commit \
+#     -m "Added progressive deployment"
 
-git push
+# git push
 
-jx get activities \
-    --filter go-demo-6 \
-    --watch
+# jx get activities \
+#     --filter go-demo-6 \
+#     --watch
 
-# Press *ctrl+c* when the activity is finished
+# # Press *ctrl+c* when the activity is finished
 
-jx get activities \
-    --filter environment-tekton-staging/master \
-    --watch
+# jx get activities \
+#     --filter environment-tekton-staging/master \
+#     --watch
 
-jx get applications -e staging
+# # Press *ctrl+c* when the activity is finished
 
-VERSION=[...]
+# # Not sending any requests
 
-jx promote go-demo-6 \
-    --version $VERSION \
-    --env production \
-    --batch-mode
+# # After a few minutes
 
-jx get activities \
-    --filter environment-tekton-production/master \
-    --watch
-
-# Not sending any requests
-
-# After a few minutes
-
-kubectl -n $NAMESPACE-production \
-  describe canary jx-go-demo-6
-
-Events:
-  Type     Reason  Age                From     Message
-  ----     ------  ----               ----     -------
-  Normal   Synced  18m                flagger  New revision detected! Scaling up jx-go-demo-6.jx-production
-  Normal   Synced  17m                flagger  Starting canary analysis for jx-go-demo-6.jx-production
-  Normal   Synced  17m                flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Warning  Synced  12m (x5 over 16m)  flagger  Halt advancement no values found for metric request-success-rate probably jx-go-demo-6.jx-production is not receiving traffic
-  Warning  Synced  11m                flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 5
-  Warning  Synced  11m                flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
+# kubectl -n $NAMESPACE-staging \
+#     get canary
 ```
 
 Now let's try again and show what happens when the application returns http errors.
@@ -772,9 +1715,15 @@ NOTE: as the time of writing `jx get applications` will show versions that are o
 
 
 ```bash
-# Wait until it rolls back
+# kubectl \
+#     --namespace $NAMESPACE-staging \
+#     get pods
 
-curl "go-demo-6.$ISTIO_IP.nip.io/demo/hello"
+# curl "$STAGING_ADDR/demo/hello"
+
+# # Wait until it rolls back
+
+# curl "$STAGING_ADDR/demo/hello"
 
 cat main.go | sed -e \
     "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
@@ -791,73 +1740,144 @@ git commit \
 
 git push
 
-jx get activities \
-    --filter go-demo-6 \
-    --watch
+# jx get activities \
+#     --filter go-demo-6 \
+#     --watch
 
-# Press *ctrl+c* when the activity is finished
-
-jx get activities \
-    --filter environment-tekton-staging/master \
-    --watch
-
-jx get applications -e staging
-
-kubectl -n $NAMESPACE-production \
-    get deploy -o wide
+# jx get activities \
+#     --filter environment-tekton-staging/master \
+#     --watch
 
 # NOTE: Go to the second terminal
-for i in {1..1000}
+
+while true
 do
-    curl "go-demo-6.$ISTIO_IP.nip.io/demo/random-error"
+    curl "$STAGING_ADDR/demo/random-error"
     sleep 0.5
 done
+```
 
-# use a different version than the one in the previous failed deployment
-# NOTE: Go bacck to the first terminal
-VERSION=[...]
+```
+...
+ERROR: Something, somewhere, went wrong!
+Everything is still OK with progressive delivery
+Everything is still OK
+Everything is still OK
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK
+ERROR: Something, somewhere, went wrong!
+Everything is still OK
+Everything is still OK
+Everything is still OK
+Everything is still OK
+Everything is still OK
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK with progressive delivery
+Everything is still OK
+...
+```
 
-jx promote go-demo-6 \
-    --version $VERSION \
-    --env production \
-    --batch-mode
-
-jx get activities \
-    --filter environment-tekton-production/master \
-    --watch
+```bash
+# NOTE: Go to the first terminal
 
 kubectl \
-    --namespace $NAMESPACE-production \
+    --namespace $NAMESPACE-staging \
     get virtualservice.networking.istio.io \
     jx-go-demo-6 \
     --output yaml
+```
 
-kubectl -n $NAMESPACE-production \
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  creationTimestamp: "2019-08-16T23:16:34Z"
+  generation: 1
+  name: jx-go-demo-6
+  namespace: cd-staging
+  ownerReferences:
+  - apiVersion: flagger.app/v1alpha3
+    blockOwnerDeletion: true
+    controller: true
+    kind: Canary
+    name: jx-go-demo-6
+    uid: dee033ef-c07b-11e9-9aa4-42010a8e00b0
+  resourceVersion: "56484"
+  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/cd-staging/virtualservices/jx-go-demo-6
+  uid: e38d47b2-c07b-11e9-9aa4-42010a8e00b0
+spec:
+  gateways:
+  - jx-gateway.istio-system.svc.cluster.local
+  hosts:
+  - staging.go-demo-6.34.73.8.113.nip.io
+  - jx-go-demo-6
+  http:
+  - route:
+    - destination:
+        host: jx-go-demo-6-primary
+      weight: 40
+    - destination:
+        host: jx-go-demo-6-canary
+      weight: 60
+```
+
+```bash
+kubectl -n $NAMESPACE-staging \
+    get canary
+```
+
+```
+NAME           STATUS        WEIGHT   LASTTRANSITIONTIME
+jx-go-demo-6   Progressing   60       2019-08-17T00:21:33Z
+```
+
+```bash
+kubectl -n $NAMESPACE-staging \
   describe canary jx-go-demo-6
+```
 
-Events:
-  Type     Reason  Age    From     Message
-  ----     ------  ----   ----     -------
-  Normal   Synced  5m47s  flagger  New revision detected! Scaling up jx-go-demo-6.jx-production
-  Normal   Synced  5m17s  flagger  Advance jx-go-demo-6.jx-production canary weight 10
-  Normal   Synced  5m17s  flagger  Starting canary analysis for jx-go-demo-6.jx-production
-  Normal   Synced  4m47s  flagger  Advance jx-go-demo-6.jx-production canary weight 20
-  Normal   Synced  4m17s  flagger  Advance jx-go-demo-6.jx-production canary weight 30
-  Normal   Synced  3m47s  flagger  Advance jx-go-demo-6.jx-production canary weight 40
-  Warning  Synced  3m17s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 90.09% < 99%
-  Warning  Synced  2m47s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 88.57% < 99%
-  Warning  Synced  2m17s  flagger  Halt jx-go-demo-6.jx-production advancement success rate 91.49% < 99%
-  Warning  Synced  107s   flagger  Halt jx-go-demo-6.jx-production advancement success rate 96.00% < 99%
-  Warning  Synced  77s    flagger  Halt jx-go-demo-6.jx-production advancement success rate 87.72% < 99%
-  Warning  Synced  47s    flagger  Canary failed! Scaling down jx-go-demo-6.jx-production
-  Warning  Synced  47s    flagger  Rolling back jx-go-demo-6.jx-production failed checks threshold reached 5
+```
+...
+  Warning  Synced  3m17s  flagger  Halt jx-go-demo-6.jx-staging advancement success rate 90.09% < 99%
+  Warning  Synced  2m47s  flagger  Halt jx-go-demo-6.jx-staging advancement success rate 88.57% < 99%
+  Warning  Synced  2m17s  flagger  Halt jx-go-demo-6.jx-staging advancement success rate 91.49% < 99%
+  Warning  Synced  107s   flagger  Halt jx-go-demo-6.jx-staging advancement success rate 96.00% < 99%
+  Warning  Synced  77s    flagger  Halt jx-go-demo-6.jx-staging advancement success rate 87.72% < 99%
+  Warning  Synced  47s    flagger  Canary failed! Scaling down jx-go-demo-6.jx-staging
+  Warning  Synced  47s    flagger  Rolling back jx-go-demo-6.jx-staging failed checks threshold reached 5
+```
+
+```bash
+# NOTE: Go to the second terminal
+```
+
+```
+...
+Everything is still OK
+Everything is still OK
+Everything is still OK
+Everything is still OK
+ERROR: Something, somewhere, went wrong!
+Everything is still OK
+ERROR: Something, somewhere, went wrong!
+...
+```
+
+```bash
+# Stop with *ctrl+c*
 ```
 
 ## Visualizing the Rollout
 
 Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accessible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
-
-TODO: vfarcic is $PROD_IP the correct ip ? Do we want to delete the ingress later?
 
 ```bash
 LB_IP=$(kubectl \
@@ -866,7 +1886,13 @@ LB_IP=$(kubectl \
     -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
 echo $LB_IP
+```
 
+```
+35.237.194.237
+```
+
+```bash
 echo "apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -883,19 +1909,26 @@ spec:
           serviceName: flagger-grafana
           servicePort: 80
 " | kubectl create -f -
+```
 
+```
+ingress.extensions/flagger-grafana created
+```
+
+```bash
 open "http://flagger-grafana.$LB_IP.nip.io"
 ```
 
 Then we can access Grafana at `http://flagger-grafana.jx.$PROD_IP.nip.io/d/flagger-istio/istio-canary?refresh=5s&orgId=1&var-namespace=jx-production&var-primary=jx-go-demo-6-primary&var-canary=jx-go-demo-6` using `admin/admin` credentials.
 If not displayed directly, we should go to the `Istio Canary` dashboard and select
 
-* namespace: `jx-production`
+* namespace: `jx-staging`
 * primary: `jx-go-demo-6-primary`
 * canary: `jx-go-demo-6`
 
 to see metrics side by side of the previous version and the new version, such as request volume, request success rate, request duration, CPU and memory usage,...
 
+NOTE: We should change the production environment as well
 
 ## What Now?
 
@@ -912,29 +1945,21 @@ cd ..
 
 GH_USER=[...]
 
-# If static
-hub delete -y \
-  $GH_USER/environment-jx-rocks-staging
-
-# If static
-hub delete -y \
-  $GH_USER/environment-jx-rocks-production
-
 # If serverless
-hub delete -y \
-  $GH_USER/environment-tekton-staging
-
-# If serverless
-hub delete -y \
-  $GH_USER/environment-tekton-production
+ENVIRONMENT=tekton
 
 # If static
-rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
+ENVIRONMENT=jx-rocks
 
-# If serverless
-rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+hub delete -y \
+    $GH_USER/environment-$ENVIRONMENT-staging
 
-rm -rf environment-tekton-staging
+hub delete -y \
+    $GH_USER/environment-$ENVIRONMENT-production
+
+rm -rf ~/.jx/environments/$GH_USER/environment-$ENVIRONMENT-*
+
+rm -rf environment-$ENVIRONMENT-staging
 ```
 
 Finally, you might be planning to move into the next chapter right away. If that's the case, there are no cleanup actions to do. Just keep reading.

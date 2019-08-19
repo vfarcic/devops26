@@ -120,8 +120,11 @@ kubectl apply \
     -f k8s-specs/aws/cluster-autoscaler/*
 
 # If AKS
+CLUSTER_NAME=[...]
+
+# If AKS
 jx create cluster aks \
-    --cluster-name jxrocks \
+    --cluster-name $CLUSTER_NAME \
     --resource-group-name jxrocks-group \
     --location eastus \
     --node-vm-size Standard_D2s_v3 \
@@ -252,14 +255,14 @@ az group delete \
     --yes
 
 # If AKS
-kubectl config delete-cluster jxrocks
+kubectl config delete-cluster $CLUSTER_NAME
 
 # If AKS
-kubectl config delete-context jxrocks
+kubectl config delete-context $CLUSTER_NAME
 
 # If AKS
 kubectl config unset \
-    users.clusterUser_jxrocks-group_jxrocks
+    users.clusterUser_jxrocks-group_$CLUSTER_NAME
 
 # If existing cluster
 jx uninstall \

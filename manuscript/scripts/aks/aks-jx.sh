@@ -14,8 +14,12 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
+# Please replace [...] with a unique name (e.g., your GitHub user).
+# Otherwise, it might fail to create a registry.
+CLUSTER_NAME=[...]
+
 jx create cluster aks \
-    --cluster-name jxrocks \
+    --cluster-name $CLUSTER_NAME \
     --resource-group-name jxrocks-group \
     --location eastus \
     --node-vm-size Standard_D2s_v3 \
@@ -30,16 +34,16 @@ jx create cluster aks \
 #######################
 
 az aks delete \
-    -n jxrocks \
+    -n $CLUSTER_NAME \
     -g jxrocks-group \
     --yes
 
-kubectl config delete-cluster jxrocks
+kubectl config delete-cluster $CLUSTER_NAME
 
-kubectl config delete-context jxrocks
+kubectl config delete-context $CLUSTER_NAME
 
 kubectl config unset \
-    users.clusterUser_jxrocks-group_jxrocks
+    users.clusterUser_jxrocks-group_$CLUSTER_NAME
 
 az group delete \
     --name jxrocks-group \

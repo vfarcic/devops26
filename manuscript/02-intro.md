@@ -385,15 +385,19 @@ Next up: AKS.
 
 ## Creating An Azure Kubernetes Service (AKS) Cluster With jx {#jx-create-cluster-aks}
 
-We'll create an AKS cluster with all the tools installed and configured. We'll name the cluster `jxrocks` (`--cluster-name`) and let it reside inside its own group `jxrocks-group` (`--resource-group-name`). It'll run inside `eastus` location (`--location`) and on `Standard_D2s_v3` (2 CPUs and 8GB RAM) machines (`--node-vm-size`). The number of nodes will be set to three (`--nodes`).
+We'll create an AKS cluster with all the tools installed and configured. We'll name the cluster with a unique value (`--cluster-name`) and let it reside inside its own group `jxrocks-group` (`--resource-group-name`). It'll run inside `eastus` location (`--location`) and on `Standard_D2s_v3` (2 CPUs and 8GB RAM) machines (`--node-vm-size`). The number of nodes will be set to three (`--nodes`).
 
 We'll also set the default Jenkins X password to `admin` ( `--default-admin-password`). Otherwise, the process will create a random one. Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create a few repositories (one for staging and the other for production), and that prefix will be used to form their names. We won't go into much detail about those environments and repositories just yet. That's reserved for one of the follow-up chapters.
 
 Feel free to change any of the values in the command that follows to suit your needs better. Or, keep them as they are. After all, this is only a practice, and you'll be able to destroy the cluster and recreate it later with different values.
 
 ```bash
+# Please replace [...] with a unique name (e.g., your GitHub user).
+# Otherwise, it might fail to create a registry.
+CLUSTER_NAME=[...]
+
 jx create cluster aks \
-    --cluster-name jxrocks \
+    --cluster-name $CLUSTER_NAME \
     --resource-group-name jxrocks-group \
     --location eastus \
     --node-vm-size Standard_D2s_v3 \
@@ -829,12 +833,12 @@ az group delete \
 Unfortunately, we are still left with entries in our `kubectl` config, so let's delete those as well.
 
 ```bash
-kubectl config delete-cluster jxrocks
+kubectl config delete-cluster $CLUSTER_NAME
 
-kubectl config delete-context jxrocks
+kubectl config delete-context $CLUSTER_NAME
 
 kubectl config unset \
-    users.clusterUser_jxrocks-group_jxrocks
+    users.clusterUser_jxrocks-group_$CLUSTER_NAME
 ```
 
 ## Uninstalling Jenkins X
