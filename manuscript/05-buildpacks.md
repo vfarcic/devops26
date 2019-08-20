@@ -373,10 +373,10 @@ The output is as follows.
 
 ```
 NAME                                READY STATUS  RESTARTS AGE
-jx-staging-go-demo-6-...            0/1   Running 2        2m
-jx-staging-go-demo-6-db-arbiter-0   1/1   Running 0        2m
-jx-staging-go-demo-6-db-primary-0   1/1   Running 0        2m
-jx-staging-go-demo-6-db-secondary-0 1/1   Running 0        2m
+jx-go-demo-6-...            0/1   Running 2        2m
+jx-go-demo-6-db-arbiter-0   1/1   Running 0        2m
+jx-go-demo-6-db-primary-0   1/1   Running 0        2m
+jx-go-demo-6-db-secondary-0 1/1   Running 0        2m
 ```
 
 The database Pods seem to be running correctly, so the new pack was indeed applied. However, the application Pod is restarting. From the past experience, you probably already know what the issue is. If you forgot, please execute the command that follows.
@@ -384,7 +384,7 @@ The database Pods seem to be running correctly, so the new pack was indeed appli
 ```bash
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 ```
 
 We can see from the events that the probes are failing. That was to be expected since we decided that hard-coding `probePath` to `/demo/hello?health=true` is likely not going to be useful to anyone but the *go-demo-6* application. So, we left it as `/` in our `go-mongo` build pack. Owners of the applications that will use our new build pack should change it if needed. Therefore, we'll need to modify the application to accommodate the "special" probe path.

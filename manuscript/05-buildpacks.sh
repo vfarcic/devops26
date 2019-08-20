@@ -104,7 +104,7 @@ kubectl --namespace jx-staging get pods
 
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 
 cat charts/go-demo-6/values.yaml
 
