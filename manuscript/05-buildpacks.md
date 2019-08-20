@@ -152,7 +152,7 @@ The next in line of the files we have to change is the `requirements.yaml` file.
 ```bash
 echo "dependencies:
 - name: mongodb
-  alias: code-db
+  alias: REPLACE_ME_APP_NAME-db
   version: 5.3.0
   repository:  https://kubernetes-charts.storage.googleapis.com
   condition: db.enabled
@@ -164,7 +164,7 @@ Please note the usage of the `code` string. Today (February 2019), that is still
 Now that we created the `mongodb` dependency, we should add the values that will customize MongoDB chart so that the database is deployed as a MongoDB replica set (a Kubernetes StatefulSet with two or more replicas). The place where we change variables used with a chart is `values.yaml`. But, since we want to redefine values of dependency, we need to add it inside the name or, in our case, the alias of that dependency.
 
 ```bash
-echo "code-db:
+echo "REPLACE_ME_APP_NAME-db:
   replicaSet:
     enabled: true
 " | tee -a packs/go-mongo/charts/values.yaml
