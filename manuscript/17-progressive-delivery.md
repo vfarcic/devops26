@@ -6,8 +6,8 @@
 - [X] Code review serverless GKE
 - [ ] Code review static EKS
 - [ ] Code review serverless EKS
-- [ ] Code review static AKS
-- [ ] Code review serverless AKS
+- [X] Code review static AKS
+- [X] Code review serverless AKS
 - [ ] Code review existing static cluster
 - [ ] Code review existing serverless cluster
 - [ ] Text review
@@ -20,7 +20,9 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com
 
-# Deployment Strategies
+# Choosing The Right Deployment Strategy
+
+
 
 ## Creating A Kubernetes Cluster With Jenkins X And Importing The Application
 
@@ -32,14 +34,15 @@ I> All the commands from this chapter are available in the [TODO: Viktor](TODO: 
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-TODO: Add a note that the Gists are different (added `gloo`, GKE VM size increased)
+NOTE: istio-telemetry requires 2 CPUs
+NOTE: Add a note that the Gists are different (added `gloo` to GKE, VM sizes increased in all)
 
 * Create a new static **GKE** cluster: [gke-jx-gloo.sh](TODO:)
 * Create a new serverless **GKE** cluster: [gke-jx-serverless-gloo.sh](TODO:)
-* Create a new static **EKS** cluster: [eks-jx.sh](TODO:)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](TODO:)
-* Create a new static **AKS** cluster: [aks-jx.sh](TODO:)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](TODO:)
+* Create a new static **EKS** cluster: [eks-jx-gloo.sh](TODO:)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless-gloo.sh](TODO:)
+* Create a new static **AKS** cluster: [aks-jx-gloo.sh](TODO:)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless-gloo.sh](TODO:)
 * Use an **existing** static cluster: [install.sh](TODO:)
 * Use an **existing** serverless cluster: [install-serverless.sh](TODO:)
 
@@ -115,6 +118,12 @@ cd go-demo-6
 
 jx import --pack go --batch-mode
 
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+# Wait until it is finished and press *ctrl+c* to exit the watcher
+
 cd ..
 ```
 
@@ -178,7 +187,7 @@ jx get activities \
 
 # If serverless
 jx get activities \
-    --filter environment-$ENVIRONMENT-staging/master \
+    --filter environment-tekton-staging/master \
     --watch
 
 # Press *ctrl+c* when the activity is finished
@@ -284,6 +293,8 @@ knativeDeploy: false
 ```
 
 ```bash
+# If the output is empty, the chart was created before Knative was introduced to build packs.
+
 cat charts/go-demo-6/templates/deployment.yaml \
     | sed -e \
     's@  replicas:@  strategy:\
@@ -361,7 +372,7 @@ jx get activities \
 
 # Press *ctrl+c* when the activity is finished
 
-# If not serverless
+# If serverless
 jx get activities \
     --filter environment-tekton-staging/master \
     --watch
@@ -435,10 +446,13 @@ NewReplicaSet:   jx-go-demo-6-94b4bb9b6 (3/3 replicas created)
 Events:
   Type    Reason             Age   From                   Message
   ----    ------             ----  ----                   -------
-  Normal  ScalingReplicaSet  56s   deployment-controller  Scaled up replica set jx-go-demo-6-94b4bb9b6 to 3
+  Normal  ScalingReplicaSet  13m   deployment-controller  Scaled up replica set jx-go-demo-6-57b5b5bf78 to 3
+  Normal  ScalingReplicaSet  31s   deployment-controller  Scaled down replica set jx-go-demo-6-57b5b5bf78 to 0
+  Normal  ScalingReplicaSet  20s   deployment-controller  Scaled up replica set jx-go-demo-6-589c47878f to 3
 ```
 
 ```bash
+# If Knative before
 kubectl \
     --namespace $NAMESPACE-staging \
     get ing
@@ -449,29 +463,36 @@ No resources found.
 ```
 
 ```bash
-# The first deployment after switching away from knative does not create a Ingress resources
+# If Knative before
+# The first deployment after switching away from knative does not create a Ingress resources.
 
+# If Knative before
 echo "something" | tee README.md
 
+# If Knative before
 git add .
 
+# If Knative before
 git commit -m "Recreate strategy"
 
+# If Knative before
 git push
 
+# If Knative before
 jx get activities \
     --filter go-demo-6 \
     --watch
 
 # Press *ctrl+c* when the activity is finished
 
-# If serverless
+# If Knative before
 jx get activities \
-    --filter environment-tekton-staging/master \
+    --filter environment-$ENVIRONMENT-staging/master \
     --watch
 
 # Press *ctrl+c* when the activity is finished
 
+# If Knative before
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
@@ -488,6 +509,7 @@ jx-go-demo-6-db-secondary-0                   1/1     Running       0          2
 ```
 
 ```bash
+# If Knative before
 kubectl \
     --namespace $NAMESPACE-staging \
     get ing
@@ -782,6 +804,31 @@ merge status: success for URL https://api.github.com/repos/vfarcic/environment-t
 Merge status checks all passed so the promotion worked!
 ```
 
+```bash
+jx get applications --env production
+```
+
+```
+PPLICATION PRODUCTION PODS URL
+go-demo-6   1.0.339    3/3  http://go-demo-6.cd-production.35.237.112.210.nip.io
+```
+
+```bash
+# Repeat if *No applications found in environments production*
+
+PRODUCTION_ADDR=[...]
+
+curl "$PRODUCTION_ADDR/demo/hello"
+```
+
+```
+hello, rolling update!
+```
+
+```bash
+# Repeat if *503 Service Temporarily Unavailable*
+```
+
 ## Progressive Delivery
 
 The necessity to test new releases before deploying them to production is as old as our industry. Over time, we developed elaborate processes aimed at ensuring that our software is ready for production. We test it locally and deploy it to a testing environment and test some more. When we're comfortable with the quality we'd deploy it to the integration or pre-production environment for the final round of validations. You probably see the pattern. The closer we get to releasing something to production, the more our environments would be similar to production. That was a lengthy process that would last for months, sometimes even years.
@@ -896,6 +943,14 @@ NOTE: Prometheus is already installed with Istio
 jx create addon flagger
 ```
 
+```
+WARNING: failed to create system vault in namespace cd due to no "jx-vault-vfarcic" vault found in namespace "cd"
+
+
+Enabling Istio in namespace cd-production
+Creating Istio gateway: jx-gateway
+```
+
 ```bash
 kubectl --namespace istio-system \
     get pods
@@ -915,19 +970,6 @@ istio-policy-578bcb878f-pp7ql             2/2     Running     6          4m38s
 istio-sidecar-injector-6895997989-gn85h   1/1     Running     0          3m14s
 istio-telemetry-5448cbd995-bp7ms          2/2     Running     6          4m38s
 prometheus-5977597c75-p5dn6               1/1     Running     0          3m28s
-```
-
-```bash
-kubectl --namespace gloo-system \
-    get pods
-```
-
-```
-NAME                                    READY   STATUS    RESTARTS   AGE
-clusteringress-proxy-6994c99f59-qf6sq   1/1     Running   0          115m
-discovery-9457bb7c9-kqst9               1/1     Running   0          115m
-gloo-b67c595d5-d8w5c                    1/1     Running   0          115m
-ingress-5b46f8fcbb-nznl4                1/1     Running   0          115m
 ```
 
 ```bash
@@ -1434,32 +1476,18 @@ git commit \
 
 git push
 
+echo $STAGING_ADDR
+
+# Copy the output
+
 # Go to the second terminal
 
-# If not EKS
-ISTIO_IP=$(kubectl \
-    --namespace istio-system \
-    get service istio-ingressgateway \
-    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
-
-# If EKS
-ISTIO_HOST=$(kubectl \
-    --namespace istio-system \
-    get service istio-ingressgateway \
-    --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-
-# If EKS
-export ISTIO_IP="$(dig +short $ISTIO_HOST \
-    | tail -n 1)"
-
-echo $ISTIO_IP
-
-STAGING_ADDR=staging.go-demo-6.$ISTIO_IP.nip.io
+STAGING_ADDR=[...]
 
 while true
 do
     curl "$STAGING_ADDR/demo/hello"
-    sleep 0.1
+    sleep 0.2
 done
 ```
 
@@ -1475,7 +1503,7 @@ hello, rolling update!
 hello, rolling update!
 hello, rolling update!
 hello, progressive!
-hello, rolling updat
+hello, rolling update
 ...
 hello, rolling update!
 hello, progressive!
@@ -1579,10 +1607,12 @@ kubectl -n $NAMESPACE-staging \
 
 ```
 NAME           STATUS       WEIGHT   LASTTRANSITIONTIME
-jx-go-demo-6   Succeeded    0        2019-08-16T23:24:03Z
+jx-go-demo-6   Progressing  80       2019-08-16T23:24:03Z
 ```
 
 ```bash
+# The status will be `Succeeded` when finished
+
 kubectl \
     --namespace $NAMESPACE-staging \
     describe canary jx-go-demo-6
@@ -1753,7 +1783,7 @@ git push
 while true
 do
     curl "$STAGING_ADDR/demo/random-error"
-    sleep 0.5
+    sleep 0.2
 done
 ```
 
@@ -1840,8 +1870,9 @@ jx-go-demo-6   Progressing   60       2019-08-17T00:21:33Z
 ```
 
 ```bash
-kubectl -n $NAMESPACE-staging \
-  describe canary jx-go-demo-6
+kubectl \
+    --namespace $NAMESPACE-staging \
+    describe canary jx-go-demo-6
 ```
 
 ```
@@ -1873,6 +1904,8 @@ ERROR: Something, somewhere, went wrong!
 
 ```bash
 # Stop with *ctrl+c*
+
+# Go back to the first terminal
 ```
 
 ## Visualizing the Rollout

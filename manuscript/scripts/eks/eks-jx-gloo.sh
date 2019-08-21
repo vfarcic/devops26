@@ -27,16 +27,14 @@ CLUSTER_NAME=jx-rocks
 jx create cluster eks \
     --cluster-name $CLUSTER_NAME \
     --region $AWS_DEFAULT_REGION \
-    --node-type t2.large \
+    --node-type t2.xlarge \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 6 \
     --default-admin-password=admin \
-    --default-environment-prefix tekton \
+    --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --namespace cd \
-    --prow \
-    --tekton
+    --static-jenkins true
 
 # When in doubt, use the default answers, except in the cases listed below
 # Answer with `n` to `Would you like to register a wildcard DNS ALIAS to point at this ELB address?`
@@ -79,8 +77,6 @@ mkdir -p charts
 helm fetch stable/cluster-autoscaler \
     -d charts \
     --untar
-
-rm -rf k8s-specs/aws/*
 
 mkdir -p k8s-specs/aws
 

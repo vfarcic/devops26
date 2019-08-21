@@ -16,11 +16,11 @@
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
+- [ ] 17-progressive-delivery.md
 - [ ] https://github.com/jenkins-x/jx/issues/5000
 - [ ] 99-boot.md
 - [ ] 99-storage-and-vault.md
 - [ ] Switch from `jx create addon` to `jx create app`
-- [ ] 17-progressive-delivery.md
 - [ ] Update the personal cluster
 - [ ] 99-aws-lambda-pipeline.md
 - [ ] 99-distribution.md
