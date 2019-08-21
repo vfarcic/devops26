@@ -16,7 +16,7 @@ git merge buildpack
 
 git push
 
-jx import --pack go --batch-modes
+jx import --pack go --batch-mode
 
 jx get activity -f go-demo-6 -w
 
