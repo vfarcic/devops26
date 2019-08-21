@@ -8,17 +8,397 @@ Throughout the book we've been using `jx create cluster` to set up a Kubernetes 
 
 Although simple to create clusters in the manner, we lose a bit of the benefits of codified configurations, which allow for the ability to implement GitOps principals on our infrastructure.
 
-In this chapter I want to share with you another way of accomplishing this using JX using Terraform.
+In this chapter I want to share with you another way of accomplishing this using JX, Terraform or EKSCTL, and JX Boot.
 
-At the time of this writing, jx only supports creating terraform clusters for GKE.
+`jx boot` is becoming the preferred way to initialize a JX installation and that calls for creating the cluster with Terraform or EKSCTL, etc, ahead of time.
+
+I'll show you two ways to set up some codified infrastructure and then in the next section, show how to initialize them using `jx boot`.
+
+We will also use this opportunity to try out the Jenkins X CloudBees Distribution which you can find here: https://www.cloudbees.com/products/cloudbees-jenkins-x-distribution
 
 ## Create a GKE Cluster with Terraform
 
 Let’s set up a Kubernetes cluster using `jx create terraform`.
 
-It is possible to specify flags such as `--prow` and `--tekton` like we have previously, but I'll leave that to your discretion, as the focus of this chapter is on the infrastructure running Jenkins X, and not so much Jenkins X itself.
+We won't want to actually install JX using this command, although it is currently possible. There is an escape hatch in the command via the flag `--skip-terraform-apply` which will just go through the tedious process of configuring GCP with service accounts and the correct permissions to manage storage, container registries, and anything else JX may need.
 
-The environments work as before as well, so we will be skipping the environment creation this time around as well.
+I'll also specify my organization's name in the command which will be used in the generated git repository which contains our new terraform configs.
+
+
+```
+➜  ~ jxc create terraform --organisation-name='patrickleet' --skip-terraform-apply=true
+Your browser has been opened to visit:
+
+    https://accounts.google.com/o/oauth2/auth?redirect_uri=http%3A%2F%2Flocalhost%3A8085%2F&prompt=select_account&response_type=code&client_id=32555940559.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fappengine.admin+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcompute+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faccounts.reauth&access_type=offline
+
+
+Checking Terraform Version...
+Determined terraform version as 0.12.6
+Terraform version appears to be valid
+Git configured for user: Patrick Scott and email pat@patscott.io
+? How many clusters shall we create? 1
+? Cluster 1 name: dev
+? Cluster 1 provider: gke
+? Would you like to install Jenkins X in cluster dev No
+WARNING: WARNING: The current user cannot query secrets in the namespace default: Failed to get the development environment Get https://localhost:6443/api/v1/namespaces/default: dial tcp [::1]:6443: connect: connection refused
+WARNING: failed to find development namespace - Get https://localhost:6443/api/v1/namespaces/default: dial tcp [::1]:6443: connect: connection refused
+Using Git provider GitHub at https://github.com
+? Do you wish to use group1001-ci as the Git user name? No
+? Git user name? patrickleet-deploy
+? GitHub username: patrickleet-deploy
+To be able to create a repository on GitHub we need an API Token
+Please click this URL and generate a token 
+https://github.com/settings/tokens/new?scopes=repo,read:user,read:org,user:email,write:repo_hook,delete_repo
+
+Then COPY the token and enter it below:
+
+? API Token: ****************************************
+? Which organisation do you want to use? patrickleet-org
+? Enter the new repository name:  organisation-patrickleet
+Creating repository patrickleet-org/organisation-patrickleet
+Creating Git repository patrickleet-org/organisation-patrickleet
+Creating config for cluster dev
+? Google Cloud Project: patrickleet-dev
+? Google Cloud Zone: us-central1-a
+? Google Cloud Machine Type: n1-standard-2
+? Would you like use preemptible VMs? Yes
+? Would you like to access Google Cloud Storage / Google Container Registry? Yes
+? Would you like to enable Cloud Build, Container Registry & Container Analysis APIs? Yes
+? Minimum number of Nodes 3
+? Maximum number of Nodes 5
+Created /Users/patrick.scottgroup1001.com/.jx/organisations/organisation-patrickleet/clusters/dev/terraform/terraform.tf
+Pushed Git repository /Users/patrick.scottgroup1001.com/.jx/organisations/organisation-patrickleet
+Creating Clusters...
+Creating/Updating 1 clusters
+Creating/Updating cluster dev
+Applying Terraform changes
+No GCP service account provided, creating patrickleet-dev-tf
+Unable to find service account patrickleet-dev-tf, checking if we have enough permission to create
+Creating service account patrickleet-dev-tf
+Assigning role roles/owner
+Downloading service account key
+Created GCP service account: /Users/patrick.scottgroup1001.com/.jx/organisations/organisation-patrickleet/clusters/dev/patrickleet-dev-tf.key.json
+Created GCS bucket: patrickleet-dev-patrickleet-terraform-state in region us-central1
+Initialising Terraform
+Showing Terraform Plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # google_container_cluster.jx-cluster will be created
+  + resource "google_container_cluster" "jx-cluster" {
+      + additional_zones            = (known after apply)
+      + cluster_autoscaling         = (known after apply)
+      + cluster_ipv4_cidr           = (known after apply)
+      + description                 = "jx k8s cluster"
+      + enable_binary_authorization = (known after apply)
+      + enable_kubernetes_alpha     = false
+      + enable_legacy_abac          = false
+      + enable_tpu                  = (known after apply)
+      + endpoint                    = (known after apply)
+      + id                          = (known after apply)
+      + initial_node_count          = 3
+      + instance_group_urls         = (known after apply)
+      + ip_allocation_policy        = (known after apply)
+      + location                    = (known after apply)
+      + logging_service             = "logging.googleapis.com"
+      + master_version              = (known after apply)
+      + monitoring_service          = "monitoring.googleapis.com"
+      + name                        = "patrickleet-dev"
+      + network                     = "default"
+      + node_locations              = (known after apply)
+      + node_version                = (known after apply)
+      + project                     = (known after apply)
+      + region                      = (known after apply)
+      + remove_default_node_pool    = true
+      + resource_labels             = {
+          + "create-time"  = "20190821142351"
+          + "created-by"   = "patrick-scottgroup1001-com"
+          + "created-with" = "terraform"
+        }
+      + services_ipv4_cidr          = (known after apply)
+      + subnetwork                  = (known after apply)
+      + zone                        = "us-central1-a"
+
+      + addons_config {
+          + horizontal_pod_autoscaling {
+              + disabled = (known after apply)
+            }
+
+          + http_load_balancing {
+              + disabled = (known after apply)
+            }
+
+          + kubernetes_dashboard {
+              + disabled = (known after apply)
+            }
+
+          + network_policy_config {
+              + disabled = (known after apply)
+            }
+        }
+
+      + master_auth {
+          + client_certificate     = (known after apply)
+          + client_key             = (sensitive value)
+          + cluster_ca_certificate = (known after apply)
+          + password               = (sensitive value)
+          + username               = (known after apply)
+
+          + client_certificate_config {
+              + issue_client_certificate = (known after apply)
+            }
+        }
+
+      + network_policy {
+          + enabled  = (known after apply)
+          + provider = (known after apply)
+        }
+
+      + node_config {
+          + disk_size_gb      = (known after apply)
+          + disk_type         = (known after apply)
+          + guest_accelerator = (known after apply)
+          + image_type        = (known after apply)
+          + labels            = (known after apply)
+          + local_ssd_count   = (known after apply)
+          + machine_type      = (known after apply)
+          + metadata          = (known after apply)
+          + min_cpu_platform  = (known after apply)
+          + oauth_scopes      = (known after apply)
+          + preemptible       = (known after apply)
+          + service_account   = (known after apply)
+          + tags              = (known after apply)
+
+          + sandbox_config {
+              + sandbox_type = (known after apply)
+            }
+
+          + taint {
+              + effect = (known after apply)
+              + key    = (known after apply)
+              + value  = (known after apply)
+            }
+
+          + workload_metadata_config {
+              + node_metadata = (known after apply)
+            }
+        }
+
+      + node_pool {
+          + initial_node_count  = (known after apply)
+          + instance_group_urls = (known after apply)
+          + max_pods_per_node   = (known after apply)
+          + name                = (known after apply)
+          + name_prefix         = (known after apply)
+          + node_count          = (known after apply)
+          + version             = (known after apply)
+
+          + autoscaling {
+              + max_node_count = (known after apply)
+              + min_node_count = (known after apply)
+            }
+
+          + management {
+              + auto_repair  = (known after apply)
+              + auto_upgrade = (known after apply)
+            }
+
+          + node_config {
+              + disk_size_gb      = (known after apply)
+              + disk_type         = (known after apply)
+              + guest_accelerator = (known after apply)
+              + image_type        = (known after apply)
+              + labels            = (known after apply)
+              + local_ssd_count   = (known after apply)
+              + machine_type      = (known after apply)
+              + metadata          = (known after apply)
+              + min_cpu_platform  = (known after apply)
+              + oauth_scopes      = (known after apply)
+              + preemptible       = (known after apply)
+              + service_account   = (known after apply)
+              + tags              = (known after apply)
+
+              + sandbox_config {
+                  + sandbox_type = (known after apply)
+                }
+
+              + taint {
+                  + effect = (known after apply)
+                  + key    = (known after apply)
+                  + value  = (known after apply)
+                }
+
+              + workload_metadata_config {
+                  + node_metadata = (known after apply)
+                }
+            }
+        }
+    }
+
+  # google_container_node_pool.jx-node-pool will be created
+  + resource "google_container_node_pool" "jx-node-pool" {
+      + cluster             = "patrickleet-dev"
+      + id                  = (known after apply)
+      + initial_node_count  = (known after apply)
+      + instance_group_urls = (known after apply)
+      + location            = (known after apply)
+      + max_pods_per_node   = (known after apply)
+      + name                = "default-pool"
+      + name_prefix         = (known after apply)
+      + node_count          = 3
+      + project             = (known after apply)
+      + region              = (known after apply)
+      + version             = (known after apply)
+      + zone                = "us-central1-a"
+
+      + autoscaling {
+          + max_node_count = 5
+          + min_node_count = 3
+        }
+
+      + management {
+          + auto_repair  = true
+          + auto_upgrade = false
+        }
+
+      + node_config {
+          + disk_size_gb      = 100
+          + disk_type         = (known after apply)
+          + guest_accelerator = (known after apply)
+          + image_type        = (known after apply)
+          + labels            = (known after apply)
+          + local_ssd_count   = (known after apply)
+          + machine_type      = "n1-standard-2"
+          + metadata          = (known after apply)
+          + oauth_scopes      = [
+              + "https://www.googleapis.com/auth/cloud-platform",
+              + "https://www.googleapis.com/auth/compute",
+              + "https://www.googleapis.com/auth/devstorage.full_control",
+              + "https://www.googleapis.com/auth/logging.write",
+              + "https://www.googleapis.com/auth/monitoring",
+              + "https://www.googleapis.com/auth/service.management",
+              + "https://www.googleapis.com/auth/servicecontrol",
+            ]
+          + preemptible       = true
+          + service_account   = (known after apply)
+        }
+    }
+
+  # google_project_service.cloudbuild-api will be created
+  + resource "google_project_service" "cloudbuild-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "cloudbuild.googleapis.com"
+    }
+
+  # google_project_service.cloudkms-api will be created
+  + resource "google_project_service" "cloudkms-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "cloudkms.googleapis.com"
+    }
+
+  # google_project_service.cloudresourcemanager-api will be created
+  + resource "google_project_service" "cloudresourcemanager-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "cloudresourcemanager.googleapis.com"
+    }
+
+  # google_project_service.compute-api will be created
+  + resource "google_project_service" "compute-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "compute.googleapis.com"
+    }
+
+  # google_project_service.containeranalysis-api will be created
+  + resource "google_project_service" "containeranalysis-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "containeranalysis.googleapis.com"
+    }
+
+  # google_project_service.containerregistry-api will be created
+  + resource "google_project_service" "containerregistry-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "containerregistry.googleapis.com"
+    }
+
+  # google_project_service.iam-api will be created
+  + resource "google_project_service" "iam-api" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "patrickleet-dev"
+      + service            = "iam.googleapis.com"
+    }
+
+  # google_storage_bucket.lts-bucket will be created
+  + resource "google_storage_bucket" "lts-bucket" {
+      + bucket_policy_only = (known after apply)
+      + force_destroy      = false
+      + id                 = (known after apply)
+      + location           = "EU"
+      + name               = "patrickleet-dev-lts"
+      + project            = (known after apply)
+      + self_link          = (known after apply)
+      + storage_class      = "STANDARD"
+      + url                = (known after apply)
+    }
+
+Plan: 10 to add, 0 to change, 0 to destroy.
+
+Warning: "zone": [DEPRECATED] use location instead
+
+  on .jx/organisations/organisation-patrickleet/clusters/dev/terraform/main.tf line 52, in resource "google_container_node_pool" "jx-node-pool":
+  52: resource "google_container_node_pool" "jx-node-pool" {
+
+
+
+Warning: "zone": [DEPRECATED] Use location instead
+
+  on .jx/organisations/organisation-patrickleet/clusters/dev/terraform/main.tf line 86, in resource "google_container_cluster" "jx-cluster":
+  86: resource "google_container_cluster" "jx-cluster" {
+
+
+
+------------------------------------------------------------------------
+
+Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if
+"terraform apply" is subsequently run.
+? Would you like to apply this plan? Yes
+Skipping Terraform apply
+Skipping jx install
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ```
 jx create terraform --no-default-environments=true
