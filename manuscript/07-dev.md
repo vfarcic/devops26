@@ -398,14 +398,14 @@ jenkins-x-monocular-api   http://monocular.jx.34.73.126.76.nip.io
 jenkins-x-monocular-ui    http://monocular.jx.34.73.126.76.nip.io
 vfarcic-go-port-2345      http://vfarcic-go-port-2345.jx.34.73.126.76.nip.io
 vfarcic-go-port-8080      http://vfarcic-go-port-8080.jx.34.73.126.76.nip.io
-vfarcic-go-theia          http://vfarcic-go-theia.jx.34.73.126.76.nip.io
+vfarcic-go-ide            http://vfarcic-go-ide.jx.34.73.126.76.nip.io
 ```
 
-The `open` command lists all the applications managed by Jenkins X and running inside our cluster. We can see that one of them is `theia` prefixed with our username and the programming language we're using. In my case that's `vfarcic-go-theia`.
+The `open` command lists all the applications managed by Jenkins X and running inside our cluster. We can see that one of them is `ide` prefixed with our username and the programming language we're using. In my case that's `vfarcic-go-ide`.
 
 If we add the name of the application as an argument to the `jx open` command, it'll (surprise, surprise) open that application in the default browser. Let's try it out.
 
-Please replace `[...]` with the name of the `*-theia` application before executing the command that follows.
+Please replace `[...]` with the name of the `*-ide` application before executing the command that follows.
 
 ```bash
 jx open [...]
