@@ -117,7 +117,7 @@ Next, Jenkins X installed the `ExposecontrollerService`. It will communicate wit
 
 Further on, it updated the Helm repository in the DevPod so that we can utilize the charts available in ChartMuseum running inside the cluster.
 
-It also run Theia. We'll keep it a mystery for now.
+It also ran Theia. We'll keep it a mystery for now.
 
 Finally, it cloned the *go-demo-6* code inside the Pod.
 
