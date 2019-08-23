@@ -27,16 +27,15 @@
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
+- [ ] Remove *At the time of this writing (August 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
-- [ ] Remove *Do not upgrade addons just yet! ...* warning
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
-- [ ] Rewrite *At the time of this writing (August 2019)...* 
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md

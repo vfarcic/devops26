@@ -1,4 +1,4 @@
-# Using Jenkins X To Define And Run Serverless Deployments
+# Using Jenkins X To Define And Run Serverless Deployments {#knative}
 
 W> At the time of this writing (July 2019), the examples in this chapter work both in **static** and **serverless** Jenkins X but only in a **GKE** cluster. Feel free to monitor [the issue 4668](https://github.com/jenkins-x/jx/issues/4668) for more info.
 
@@ -1310,11 +1310,9 @@ cd ..
 
 GH_USER=[...]
 
-hub delete -y \
-  $GH_USER/$STAGING_ENV
+hub delete -y $GH_USER/$STAGING_ENV
 
-hub delete -y \
-  $GH_USER/jx-knative
+hub delete -y $GH_USER/jx-knative
 
 # If serverless
 rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*

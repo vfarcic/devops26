@@ -394,7 +394,7 @@ We'll also set the default Jenkins X password to `admin` ( `--default-admin-pass
 Feel free to change any of the values in the command that follows to suit your needs better. Or, keep them as they are. After all, this is only a practice, and you'll be able to destroy the cluster and recreate it later with different values.
 
 ```bash
-# Please replace [...] with a unique name (e.g., your GitHub user).
+# Please replace [...] with a unique name (e.g., your GitHub user and a day and month).
 # Otherwise, it might fail to create a registry.
 CLUSTER_NAME=[...]
 

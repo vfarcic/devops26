@@ -14,7 +14,7 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# Please replace [...] with a unique name (e.g., your GitHub user).
+# Please replace [...] with a unique name (e.g., your GitHub user and a day and month).
 # Otherwise, it might fail to create a registry.
 CLUSTER_NAME=[...]
 
