@@ -16,27 +16,26 @@
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
+- [ ] 17-progressive-delivery.md
 - [ ] https://github.com/jenkins-x/jx/issues/5000
 - [ ] 99-boot.md
 - [ ] 99-storage-and-vault.md
 - [ ] Switch from `jx create addon` to `jx create app`
-- [ ] 17-progressive-delivery.md
 - [ ] Update the personal cluster
 - [ ] 99-aws-lambda-pipeline.md
 - [ ] 99-distribution.md
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
+- [ ] Remove *At the time of this writing (August 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
 - [ ] Rewrite the *Due to the current limitation...* warning
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
-- [ ] Remove *Do not upgrade addons just yet! ...* warning
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
-- [ ] Rewrite *At the time of this writing (August 2019)...* 
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md

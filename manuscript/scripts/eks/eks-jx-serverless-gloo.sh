@@ -27,7 +27,7 @@ CLUSTER_NAME=jx-rocks
 jx create cluster eks \
     --cluster-name $CLUSTER_NAME \
     --region $AWS_DEFAULT_REGION \
-    --node-type t2.large \
+    --node-type t2.xlarge \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 6 \

@@ -210,8 +210,6 @@ Let's upgrade the addons.
 
 I> You might not have any addons installed, or those that you do have might be already at the latest version. If that's the case, feel free to skip the command that follows.
 
-W> **Do not upgrade addons just yet!** There is an open issue that is likely going to delete the `oauth-token` secret and prevent Tekton and probably a few other components from working. Please monitor the [issue 3392](https://github.com/jenkins-x/jx/issues/3392). You should be able to run the command that follows if the problem is resolved and the fix is released. Otherwise, please skip it, or get ready to destroy the cluster and start over, or to figure out how to recreate the secret.
-
 ```bash
 jx upgrade addons
 ```
