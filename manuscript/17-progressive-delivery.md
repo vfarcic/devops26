@@ -1,7 +1,7 @@
 ## TODO
 
 - [X] Code
-- [ ] Write
+- [X] Write
 - [X] Code review static GKE
 - [X] Code review serverless GKE
 - [ ] Code review static EKS
@@ -21,6 +21,8 @@
 - [ ] Publish on LeanPub.com
 
 # Choosing The Right Deployment Strategy
+
+I> This chapter is co-authored by Carlos Sanchez.
 
 W> The examples in this chapter work with any Jenkins X flavor (static or serverless) and with any hosting vendor (e.g., AWS, AKS, GKE, on-prem, etc.).
 
@@ -97,7 +99,7 @@ I> All the commands from this chapter are available in the [TODO: Viktor](TODO: 
 
 We've been using the same cluster specifications for a while now. No matter the hosting vendor you choose in the past, if you created the cluster using my instructions if is based on nodes with only 2 available CPUs or even smaller. We'll need more. Even if your cluster is set to autoscale, increasing the number of nodes will not help since one of the Istio components we'll use requires at least 2 CPU available. Remember, even if you do have nodes with 2 CPUs, some computing power is reserved for system-level processes or Kubernetes daemons. So, we'll need to create a cluster with bigger nodes. The gists listed below will do just that. Those related to AKS, EKS, and GKE are now having nodes with 4 CPUs. If you are using your own cluster hosted somewhere else, the Gists are the same and I will assume that the nodes have at least 2 CPUs available.
 
-On top of all that, if you are using GKE, the gists now contain the command that installs Gloo which we explored in the previous chapter.
+On top of all that, if you are using GKE, the gists now contain the command that installs **Gloo** which we explored in the previous chapter.
 
 The new Gists, excluding those installing Jenkins X in an existing cluster, are as follows.
 
@@ -297,9 +299,9 @@ jx-go-demo-6-db-primary-0   1/1   Running 0        6m21s
 jx-go-demo-6-db-secondary-0 1/1   Running 0        6m21s
 ```
 
-The database is there but the application is now gone. If we ignore other resources and focus only on Pods, it seems like the application is wiped out completely. That is true in terms that nothing specific to the application is running. All that's left are a few Knative definitions and the common resources used for all applications (not specific to ours).
+The database is there but the application is now gone. If we ignore other resources and focus only on Pods, it seems like the application is wiped out completely. That is true in terms that nothing application-specific is running. All that's left are a few Knative definitions and the common resources used for all applications (not specific to ours).
 
-I> If you still see that application, all I can say is that you are inpatient and you did not wait long enough. If that's what happened, wait for a while longer and repeat the `get pods` command.
+I> If you still see that application, all I can say is that you are impatient and you did not wait long enough. If that's what happened, wait for a while longer and repeat the `get pods` command.
 
 Using telemetry collected from all the Pods deployed as Knative applications, Gloo detected that no requests were sent to *go-demo-6* for a while and decided that the time has come to scale it down. It sent a notification to Knative that executed a series of actions which resulted in our application being scaled to zero replicas.
 
@@ -439,7 +441,7 @@ git commit -m "Recreate strategy"
 git push
 
 jx get activities \
-    --filter go-demo-6 \
+    --filter go-demo-6/master \
     --watch
 ```
 
@@ -571,7 +573,7 @@ We changed the message. As a result, our current release is outputting `hello, P
 
 Now we need to be **very fast** and start sending requests to our application before the new release is rolled out. If you're unsude why we need to do that, it will become evident in a few moments.
 
-Please open a second terminal window.
+Please open a **second terminal** window.
 
 Given that **EKS** requires access key ID and secret access key as authentication, we'll need to declare a few environment variables in the new terminal session. Those are the same ones we used to create the cluster, so you should not have any trouble recreating them.
 
@@ -651,11 +653,13 @@ hello, recreate!
 
 If all you ever saw was only the loop of `hello, recreate!`, all I can say is that you were too slow and you'll have to trust me that there were some nesty messages in between the old and the new release.
 
-That was enough looping for now. Please press *ctrl+c* to stop it and give your laptop a rest. Leave the second terminal open and back to the first one. We'll need both later on.
+That was enough looping for now. Please press *ctrl+c* to stop it and give your laptop a rest. Leave the second terminal open and **back to the first one**. We'll need both later on.
 
 What happened was not pretty nor desirable. Even if you are not familiar with the `RollingUpdate` strategy (the default one for Kubernetes Deployments), you already experienced it countless times before. You probably did not see those 5xx message in the previous exercises and that might make you wonder why did we switch to `Recreate`. Would anyone want that? Now, the answer to that question is that no one desires such outcomes, but many are having them anyway. I'll explain soon why we want to use the `Recreate` strategy even though it produces outage. To answer why would anyone want something like that, we'll first explore why was the outage produced in the first place.
 
 When we deployed the second release using the `Recreate` strategy, Kubernetes first shut down all the instances of the old release and only when they all ceased to work, it deployed the new release in its place. The downtime we experienced existed between the time the old release was shut down and the time the new one became fully operational. The downtime lasted for only a couple of seconds, but that's because our application (*go-demo-6*) boots up very fast. Some other applications might be much slower and the downtime would be much longer. It's not uncommon for the downtime in such cases to take minutes and sometimes even hours.
+
+Alternativelly, you might not have seen a single 5XX error. If that's the case, you were very lucky because that means that the old release was shut down and the new was up-and-running within 200 milliseconds. If that's what happened to you, reast assured that it is highly unlikely it'll happen again. You just experienced a once in a lifetime event. As you can probably guess, we cannot rely on users being that lucky.
 
 We can think of the `Recreate` strategy as "Big Bang". There is no transition period, there are no rolling updates, nor there is any other of the "modern" deployment practices. The old release is shut down and the new one is put in its place. It's simple and straightforward, but it results in inevitable downtime.
 
@@ -726,61 +730,9 @@ cat charts/go-demo-6/templates/deployment.yaml \
     | tee charts/go-demo-6/templates/deployment.yaml
 ```
 
-TODO: Continue text
+All we did was to change the `strategy` `type` to `RollingUpdate`. You should see the full definition of the Deployment on the screen.
 
-```yaml
-{{- if .Values.knativeDeploy }}
-{{- else }}
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: {{ template "fullname" . }}
-  labels:
-    draft: {{ default "draft-app" .Values.draft }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
-spec:
-  strategy:
-    type: RollingUpdate
-  replicas: {{ .Values.replicaCount }}
-  template:
-    metadata:
-      labels:
-        draft: {{ default "draft-app" .Values.draft }}
-        app: {{ template "fullname" . }}
-{{- if .Values.podAnnotations }}
-      annotations:
-{{ toYaml .Values.podAnnotations | indent 8 }}
-{{- end }}
-    spec:
-      containers:
-      - name: {{ .Chart.Name }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        env:
-        - name: DB
-          value: {{ template "fullname" . }}-db
-        ports:
-        - containerPort: {{ .Values.service.internalPort }}
-        livenessProbe:
-          httpGet:
-            path: {{ .Values.probePath }}
-            port: {{ .Values.service.internalPort }}
-          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-          successThreshold: {{ .Values.livenessProbe.successThreshold }}
-          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
-        readinessProbe:
-          httpGet:
-            path: {{ .Values.probePath }}
-            port: {{ .Values.service.internalPort }}
-          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-          successThreshold: {{ .Values.readinessProbe.successThreshold }}
-          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
-        resources:
-{{ toYaml .Values.resources | indent 12 }}
-      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
-{{- end }}
-```
+Next, we'll change the application return message so that we can track easily the change from one release to the other.
 
 ```bash
 cat main.go | sed -e \
@@ -796,9 +748,13 @@ git add .
 git commit -m "Recreate strategy"
 
 git push
+```
 
-# Go to the second terminal
+We made the changes and pushed them to the GitHub repository. Now, all that's left is to execute another loop that will keep sending requests to the application and display the output.
 
+W> Please go to the **second terminal** before executing the command that follows.
+
+```bash
 while true
 do
     curl "$STAGING_ADDR/demo/hello"
@@ -806,6 +762,8 @@ do
 done
 ```
 
+The output should be a long list of `hello, recreate!` outputs. After a while, when the new release is deployed, it will suddenly switch to `hello, rolling update!`. The relevant part of the output should be as follows.
+
 ```
 ...
 hello, recreate!
@@ -814,88 +772,117 @@ hello, rolling update!
 hello, rolling update!
 ...
 ```
+
+As you can see, this time there was no downtime. The application switched from one release to another, or so it seems. But, if that's what happened, we would have seen some downtime, unless that switch happened exactly in those 0.2 seconds between the two requests. To see better what happened, we'll describe the deployment and explore its events.
+
+W> Please stop the loop with *ctrl+c* and return to the **first terminal**.
 
 ```bash
-# Press *ctrl+c* to stop the loop
-
-# NOTE: It could result in mixed responses from two releases
-
-# Back to the first terminal
-
 kubectl \
     --namespace $NAMESPACE-staging \
     describe deployment jx-go-demo-6
 ```
 
+The output, limited to the events section, is as follows.
+
 ```
-Name:                   jx-go-demo-6
-Namespace:              cd-staging
-CreationTimestamp:      Fri, 16 Aug 2019 14:35:19 -0700
-Labels:                 chart=go-demo-6-9.0.32
-                        draft=draft-app
-                        jenkins.io/chart-release=jx
-                        jenkins.io/namespace=cd-staging
-                        jenkins.io/version=5
-Annotations:            deployment.kubernetes.io/revision: 4
-                        jenkins.io/chart: env
-                        kubectl.kubernetes.io/last-applied-configuration:
-                          {"apiVersion":"extensions/v1beta1","kind":"Deployment","metadata":{"annotations":{"jenkins.io/chart":"env"},"labels":{"chart":"go-demo-6-9...
-Selector:               app=jx-go-demo-6,draft=draft-app
-Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
-StrategyType:           RollingUpdate
-MinReadySeconds:        0
-RollingUpdateStrategy:  1 max unavailable, 1 max surge
-Pod Template:
-  Labels:  app=jx-go-demo-6
-           draft=draft-app
-  Containers:
-   go-demo-6:
-    Image:      gcr.io/devops-26/go-demo-6:9.0.32
-    Port:       8080/TCP
-    Host Port:  0/TCP
-    Limits:
-      cpu:     100m
-      memory:  256Mi
-    Requests:
-      cpu:      80m
-      memory:   128Mi
-    Liveness:   http-get http://:8080/demo/hello%3Fhealth=true delay=60s timeout=1s period=10s #success=1 #failure=3
-    Readiness:  http-get http://:8080/demo/hello%3Fhealth=true delay=0s timeout=1s period=10s #success=1 #failure=3
-    Environment:
-      DB:    jx-go-demo-6-db
-    Mounts:  <none>
-  Volumes:   <none>
-Conditions:
-  Type           Status  Reason
-  ----           ------  ------
-  Available      True    MinimumReplicasAvailable
-OldReplicaSets:  <none>
-NewReplicaSet:   jx-go-demo-6-658f88478b (3/3 replicas created)
+...
 Events:
-  Type    Reason             Age                From                   Message
-  ----    ------             ----               ----                   -------
-  Normal  ScalingReplicaSet  15m                deployment-controller  Scaled up replica set jx-go-demo-6-94b4bb9b6 to 3
-  Normal  ScalingReplicaSet  10m                deployment-controller  Scaled down replica set jx-go-demo-6-94b4bb9b6 to 0
-  Normal  ScalingReplicaSet  10m                deployment-controller  Scaled up replica set jx-go-demo-6-8b5698864 to 3
-  Normal  ScalingReplicaSet  6m24s              deployment-controller  Scaled down replica set jx-go-demo-6-8b5698864 to 0
-  Normal  ScalingReplicaSet  6m17s              deployment-controller  Scaled up replica set jx-go-demo-6-77b6455c87 to 3
-  Normal  ScalingReplicaSet  80s                deployment-controller  Scaled up replica set jx-go-demo-6-658f88478b to 1
-  Normal  ScalingReplicaSet  80s                deployment-controller  Scaled down replica set jx-go-demo-6-77b6455c87 to 2
-  Normal  ScalingReplicaSet  80s                deployment-controller  Scaled up replica set jx-go-demo-6-658f88478b to 2
-  Normal  ScalingReplicaSet  72s                deployment-controller  Scaled down replica set jx-go-demo-6-77b6455c87 to 1
-  Normal  ScalingReplicaSet  71s (x2 over 72s)  deployment-controller  (combined from similar events): Scaled down replica set jx-go-demo-6-77b6455c87 to 0
+  Type    Reason             Age   From                  Message
+  ----    ------             ----  ----                  -------
+...
+  Normal  ScalingReplicaSet  6m24s deployment-controller Scaled down replica set jx-go-demo-6-8b5698864 to 0
+  Normal  ScalingReplicaSet  6m17s deployment-controller Scaled up replica set jx-go-demo-6-77b6455c87 to 3
+  Normal  ScalingReplicaSet  80s   deployment-controller Scaled up replica set jx-go-demo-6-658f88478b to 1
+  Normal  ScalingReplicaSet  80s   deployment-controller Scaled down replica set jx-go-demo-6-77b6455c87 to 2
+  Normal  ScalingReplicaSet  80s   deployment-controller Scaled up replica set jx-go-demo-6-658f88478b to 2
+  Normal  ScalingReplicaSet  72s   deployment-controller Scaled down replica set jx-go-demo-6-77b6455c87 to 1
+  Normal  ScalingReplicaSet  70s   deployment-controller Scaled up replica set jx-go-demo-6-658f88478b to 3
+  Normal  ScalingReplicaSet  69s   deployment-controller Scaled down replica set jx-go-demo-6-77b6455c87 to 0
 ```
 
-## Blue-Green Deployments
+From those events we can see what happened to the Deployment so far. The first entry in my output (the one that happened over 6 minutes ago) we can see that it scaled one replica set to `0` and the other to `3`. That was the rollout of the new release we created when we used the `Recreate` strategy. Everything was shut down before the new release was put in its place. That was the cause of downtime.
+
+Now, with the `RollingUpdate` strategy, we can see that the system was gradually increasing replicas of one ReplicaSet (`jx-go-demo-6-658f88478b`) and decreasing the other (`jx-go-demo-6-77b6455c87`). As a result, instead of having a "big bang" deployment, the system was gradually replacing the old release with the new one, one replica at the time. That means that there was not a single moment without one or the other release running and, during brief period, both were running in parallel.
+
+![Figure 17-TODO: TODO: Two releases of the application running in parallel](images/ch17/TODO:.png)
+
+You saw from the output of the loop that the output switched from the old to the new release. In "real world" scenarios, you are likely going to have mixed outputs from both releases. For that reason, it is paramount that releases are backwards compatible.
+
+Let's take a database as an example. If we updated schema, we can assume that for some time both releases will use the new schema. If the change is not backwards compatible, we can end up in a situation where some requests fail because the old release running in parallel with the new is incapable to operate with the new schema. If that was to happen, the result would be similar as if we used the `Recreate` strategy. Some requests would fail. Or, even worse, evverything might seem to be working correctly from the end-user point of view, but we would end up with inconsistent data. That could be even worse than downtime.
+
+There are quite a few other things that could go wrong with `RollingUpdates`, but most of those boil down to two important questions we need to ask pourselves. Is our application scalable and are our releases backwards compatible. Without scaling (multiple replicas), `RollingUpdate` is impossible and without backwards compatibility we can expect errors caused by serving requests through multiple versions of our software.
+
+So, what did we learn so far? Which requirements did we fullfil with the `RollingUpdate` strategy?
+
+Our application was highly available at all times. By running multiple replicas we are safe from downtime that could be caused by one or more replicas failing. Similarly, by gradually rolling out new releases we are avoiding downtime that we experienced with the `Recreate` strategy.
+
+Even though we did not use HorizontalPodAutoscaler (HPA) in our example, we should add it our solution. With it, we can make our application scale up and down to meet the changes in traffic. The effect would be the same as if we'd use serverless deployments (e.g., with Knative). Still, since HPA does not scale to zero replicas, it would be even more responsive given that there would be no response delay while the system is going from nothing to something (from zero replicas to whatever is needed). On the other hand, this approach comes at a greater cost. We'd have to run at least one replica even if our application is receiving no traffic. Also, some might argue that setting up HPA might be more complex given that Knative comes with some sensible scaling defaults. That might or might not be an issue, depending on the knowledge one has with deployments and Kubernetes in general. While with Knative HPA and quite a few other resources are implied, with Deployments and the `RollingUpdate` strategy we do need to define HPA ourselves. We can say that Knative is more developer-friendly given its simpler syntax and less need to change the defaults.
+
+The only two requirements left to explore are progressive rollout and rollback.
+
+Just as with serverless deployments, `RollingUpdate` kind of works. As you already saw, it does roll out replicas of the new release progressivelly, one or more at the time. However, the best we can do is make it stop the progress based on health checks with are very limiting. We can do much better on this front and later we'll see how.
+
+Rollback feature does not exist with the `RollingUpdate` strategy. It's true that it can stop rolling forward and that, in some cases, we might end up with only one non-funcional replica of the new release. From user's perspective, that might seem like only the old release is running. But there is no guarantee for such behavior given that in many occassions a problem might be detected only after the second, third, or some other replica is rolled out. Automated rollbacks are the only requirement that wasn't fullfilled by any of the deployment strategies we employed. Bear in mind that, just as before, by automated rollback I'm referring to what deployments offer us, and exclude situations in which you would do them inside your deployment pipelines, simply because in such a way anything can be rolled back with a few tests and scripts executed if they fail.
+
+The summary of the fullfillement of our requirements for the `RollingUpdate` deployment strategy is as follows.
+
+|Requirement        |Fullfilled|
+|-------------------|----------|
+|High-availability  |Fully     |
+|Responsiveness     |Fully     |
+|Progressive rollout|Partly    |
+|Rollback           |Not       |
+|Cost effectiveness |Partly    |
+
+The next in line is blue-green deployment.
+
+## Evaluating Whether Blue-Green Deployments Are Useful
+
+Blue-green deployment is probably the most commonly mentioned "modern" deployment strategies. It was made popular by Martin Fowler, even though he is probably not the person who invented the term.
+
+The idea behind blue-green deployments is to run two production releases in parallel. If, for example, the current release is called "blue", the new one would be called "green", and vice versa. Assuming that the load balancer (LB) is currently pointing to the blue release, all we'd need to do to start redirecting users to the new one would be to change the LB to point to green.
+
+Blue-green deployments made a lot of sense before. If each of the replicas of our application would be running in a separate VM, rolling updates would be much harder to accomplish. On top of that, rolling back (manual or automated) is indeed relatively easy if both releases are running in parallel. All we'd have to do is to reconfigure the LB to point to the old release.
+
+![Figure 17-TODO: TODO: Blue-green deployments](images/ch17/TODO:.png)
+
+However, we do not live in the past. We are not deploying to VMs but as containers through Kuberentes. Running any release is easy and fast. Rolling back containers is as easy as reconfiguring the LB.
+
+When compared to the serverless deployments and the `RollingUpdate` strategy, blue-green do not bring anything new to the table. In all the cases, multiple replicas are running in parallel, even though that might not be that obvious with blue-green deployments.
+
+People tend to think that switching from blue to green deployment is instant, but that is far from truth. The moment we change the load balancer to point to the new release, both are running in parallel. The requests initiated before the switch will continue being processed by the old release, and the new ones will be handled by the new. In that aspect, blue-green deployments are no different from the `RollingUpdate` strategy. The major difference is in the cost.
+
+Let's imagine that we have five replicas of our application. If we're using rolling updates, during the deployment process we will have six, unless we configure it differently. A replica of the new release is created so we have six replicas. After that, a replica of the old release is destroyed, so we're back to five. And so on and so forth, the process keeps alternating between five and six replicas, until the whole new release is rolled out and the old one is destroyed. With blue-green deployments, the number of replicas is duplicated. If we keep with five replicas as the example, during the deployment process we'd have ten (five of the old and five of the new). As you can imagine, increase in resource consumption is much lower if we increase the number of replicas by one than if we double them. Now, you can say that increase is not that big given that it lasts only for the duration of the deployment process, but that would not necessarily be true.
+
+One of the ccornerstones of blue-green strategy is the ability of rolling back by reconfiguring the load balancer to point to the old release. For that, we need the old release to be always up-and-running, and thus have the whole infrastructure requirements doubled permanently. Now, I do not believe that's a reason good enough today since replacing a container based on one image with a container based on another is almost instant. Instead of running two releases in parallel, we can just as easily and repidly roll forward to the old release. Today, running two releases in parallel forever and ever is just a waste of resources for no good reason.
+
+Such waste of resources (for no good reason) is even more evident if we're dealing with large scale. Imagine that your application requires hundreds of CPU and hundreds of gigabytes of memory. Do you really want to double that knowing that rolling updates give you all the same benefits without such a high cost associated with it?
+
+Frankly, I think that blue-green was a short blink in the history of deployments and that rolling updates are a much better implementation of the same objectives. Nevertheless, blue-green is so popular that there is a high chance that you will not listen to me and that you want it anyways. I will not show you how to do "strict" blue-green deployments. Instead, I will argue that you were already doing the variation of it through quite a few chapters. I will assume that you want to deploy to production what you already tested so no new builds should be involved. I will also assume that you do understand that there is no need to keep the old release running only so that you can roll back to it. Finally, I will assume that you do not want to have any downtime during the deployment process. With all that in mind, let's do a variation of blue-green deployments without actually employing any new strategy or using any additional tools.
+
+Right now, we might or might not run a release in production. It all depends on whether your reused the cluster from the previous chapter. If you spin up a new cluster, your production environment is empty. If that's the case, please imagine that's not true and that *go-demo-6* is indeed running in production. That will save us some time.
+
+Now, let's take a look at what's running in the staging environment.
 
 ```bash
 jx get applications --env staging
 ```
 
+The output is as follows.
+
 ```
 APPLICATION STAGING PODS URL
-go-demo-6   1.0.339 3/3  http://go-demo-6.jx-staging.35.237.112.210.nip.io
+go-demo-6   1.0.339 3/3  http://go-demo-6.jx-staging...
 ```
+
+For now, we'll assume that whatever is running in production is our blue release and that staging is green. Now, you can say that both releases should be running in production to qualify for blue-green deployments. If that's what's going through your brain, remember that "staging" is just the name. It is running in the same cluster as production unless you choose to run Jenkins X environments in different clusters. The only thing that makes the release in staging different from production (apart from different Namespaces) is that itt might not be using the production database or to be connected with other applications in production, but their equivalents in staging. Even that would be an exageration since you are (and should be) running in staging the same setup as production the only difference being that one has production candidates while the other is the "real" production. If that bothers you, you can easily change the configuration so that an application in staging is using the database in production, be connected with other applications in production, and whatever else you have there.
+
+With the differences between production and staging out of the way, we can say that the application running in staging is the candidate to be deployed in production and we can just as easily call one blue (production) and the other one green (staging).
+
+Now, what comes next will be a slight deviation behind the idea of blue-green deployments. Instead of changing the load balancer (in our case Ingress) to point to the staging release (green), we'll just promote it to production.
+
+I> Please replace `[...]` with the version from the previous output.
 
 ```bash
 VERSION=[...]
@@ -906,243 +893,219 @@ jx promote go-demo-6 \
     --batch-mode
 ```
 
-```
-WARNING: prow based install so skip waiting for the merge of Pull Requests to go green as currently there is an issue with gettingstatuses from the PR, see https://github.com/jenkins-x/jx/issues/2410
-Promoting app go-demo-6 version 1.0.373 to namespace cd-production
-pipeline vfarcic/go-demo-6/master
-WARNING: No $BUILD_NUMBER environment variable found so cannot record promotion activities into the PipelineActivity resources in kubernetes
-Created Pull Request: https://github.com/vfarcic/environment-tekton-production/pull/1
-Added label  to Pull Request https://github.com/vfarcic/environment-tekton-production/pull/1
-pipeline vfarcic/go-demo-6/master
-WARNING: No $BUILD_NUMBER environment variable found so cannot record promotion activities into the PipelineActivity resources in kubernetes
-Pull Request https://github.com/vfarcic/environment-tekton-production/pull/1 is merged at sha 1df4e1ed4a7c1573034aff679f96fd62f7c068c2
-Pull Request merged but we are not waiting for the update pipeline to complete!
-WARNING: Could not find the service URL in namespace cd-production for names go-demo-6, cd-production-go-demo-6, cd-production-go-demo-6
-```
+After a while, the promotion will end and the new (green) release will be running in production. All that's left, if you're running serverless Jenkins X, is to confirm that by watching the activities associated with the production repository.
+
+W> Please execute the command that follows only if you are using **serverless Jenkins X**.
 
 ```bash
-# If serverless
 jx get activities \
     --filter environment-tekton-production/master \
     --watch
+```
 
-# Stop with *ctrl+c*
+Please press *ctrl+c* to stop watching the activity once you confirm that the build initiated by the previous command's push of the changes to the master branch.
 
+Now we can take a look at the applications running in production.
+
+```bash
 jx get applications --env production
 ```
 
-```
-PPLICATION PRODUCTION PODS URL
-go-demo-6   1.0.339    3/3  http://go-demo-6.cd-production.35.237.112.210.nip.io
-```
+The output should not be a surprise since you already saw the promotion process quite a few times before. It shows that the release version we has in staging is now running in producction, but accessible through a different address.
+
+Finally, we'll confirm that the release is indeed running correctly by sending a request.
+
+I> Please replace `[...]` with the address of the release in production. You can get it from the output of the previous command.
 
 ```bash
-# Repeat if *No applications found in environments production*
-
 PRODUCTION_ADDR=[...]
 
 curl "$PRODUCTION_ADDR/demo/hello"
 ```
 
-```
-hello, rolling update!
-```
+Surprise, surprise... The output is `hello, rolling update!`. If you got `503 Service Temporarily Unavailable`, the application is not yet full operational. If that's the case, please wait for a few moments and re-run the `curl` command.
 
-```bash
-# Repeat if *503 Service Temporarily Unavailable*
-```
+Was that blue-green deployment? If was, of sorts. We had a release (in staging) running in exactly the same way it'll be seen by users. We has the oportunity to test it. We switched our production load from the old to the new release without downtime. The major difference is that we used `RollingUpdate` for that, but that's not a bad thing. Quite the contrary.
 
-## Progressive Delivery
+What we did had many of the characteristics of blue-green deployments. On the other hand, we did not strictly follow the blue-green deployment processs, mostly because I believe that it is silly to do so having in mind that Kubernetes opened quite a few new posibilities that make blue-green deployments obsolete, ineficient, and wasteful.
 
-The necessity to test new releases before deploying them to production is as old as our industry. Over time, we developed elaborate processes aimed at ensuring that our software is ready for production. We test it locally and deploy it to a testing environment and test some more. When we're comfortable with the quality we'd deploy it to the integration or pre-production environment for the final round of validations. You probably see the pattern. The closer we get to releasing something to production, the more our environments would be similar to production. That was a lengthy process that would last for months, sometimes even years.
+Did that make you mad? Are you dissapointed that I bashed blue-green deployments? Did you hope to see examples of "real" blue-green process? If that's what's going through your mind, the only thing I can say is to stick with me for a while longer. We're about to explore progressive delivery and the tools we'll use can just as well be used to perform blue-green deployments. By the end of this chapter, all you'll have to do is read a bit of documentation and change a few things in a YAML file and you'll have "real" blue-green deployment. However, by the time you finish reading this chapter, especially what's coming next, the chances are that you will discard blue-green as well. 
 
-Why did we move our releases through different environments (e.g., servers or clusters)? The answer lies in the difficulties in maintaining production-like environments. It took a lot of effort to manage environments and the more they looked like production, the more work they required. Later on we adopted configuration management tools like CFEngine, Chef, Puppet, Ansible, and quite a few others. They simplified management of our environments, but we kept the practice of moving our software from one to another as if it was an abandoned child moving from one foster family to another. The main reason why configuration management tools did not solve much lies in misunderstanding the root-cause of the problem. What made management of environments difficult is not that we had many of them, nor that production-like clusters are complicated. Rather, the issue was in mutability. No matter how much effort we put in maintaining the state of our clusters, differences would pile up over time and we could not say that one environment is truly the same as the other. Without that guarantee, we could not claim that what was tested in one environment would work in another. The risk of experiencing failure after deploying to production was still too high.
+Given that we did not execute "strict" blue-green proccess and that what we used is `RollingUpdate` combined with promotion from one environment to another, we will not disucss the pros and cons nor we'll have the table that evalutes which requirements we fullfilled. Instead, we'll jump into progressive delivery as a way to try to address progressive rollout and automated rollbacks, the only two requirements we did not yet obtain fully.
 
-Over time, we adopted immutability. We learned that things shouldn't be modified at runtime, but rather created anew whenever we need to update something. We started creating VM images that contained new releases and applying rolling updates that would gradually replace the old. But that was slow. It takes time to create a new VM image, and it takes time to instantiate them. There were many other problems with them, but this is neither time nor place to explore them both. Still, immutability applied to the VM level brought quite a few improvements. Our environments became stable and it was easy to have as many production-like environments as we needed.
+## Exploring Progressive Delivery
 
-Then came containers that took immutability to the next level. They allowed us the ability to say that something running in my laptop is the same as something running in a test environment that happens to behave in the same way as in production. Simply put, creating a container based on an image produces the same result no matter where it runs. to be honest, that's not 100% true, but when compared to what we had in the past, containers bring us as close to repeatability as we can get today.
+The necessity to test new releases before deploying them to production is as old as our industry. Over time, we developed elaborate processes aimed at ensuring that our software is ready for production. We test it locally and deploy it to a testing environment and we test some more. When we're comfortable with the quality we'd deploy it to the integration or pre-production environment for the final round of validations. You probably see the pattern. The closer we get to releasing something to production, the more our environments would be similar to production. That was a lengthy process that would last for months, sometimes even years.
 
-So, if containers provide a reasonable guarantee that a release will behave the same no matter the environment it runs in, we can safely say that if it works in staging, it should work in production. That is especially true if both environments are in the same cluster. In such a case, hardware, networking, storage, and other infrastructure components are the same and the only difference is the Namespace something runs in. That should provide a reasonable guarantee that a release tested in staging should work correctly when promoted to production. Don't you agree?
+Why are we moving our releases through different environments (e.g., servers or clusters)? The answer lies in the difficulties in maintaining production-like environments. In the past, it took a lot of effort to manage environments and the more they looked like production, the more work they required. Later on we adopted configuration management tools like CFEngine, Chef, Puppet, Ansible, and quite a few others. They simplified management of our environments, but we kept the practice of moving our software from one to another as if it was an abandoned child moving from one foster family to another. The main reason why configuration management tools did not solve much lies in misunderstanding the root-cause of the problem. What made management of environments difficult is not that we had many of them, nor that production-like clusters are complicated. Rather, the issue was in mutability. No matter how much effort we put in maintaining the state of our clusters, differences would pile up over time and we could not say that one environment is truly the same as the other. Without that guarantee, we could not claim that what was tested in one environment would work in another. The risk of experiencing failure after deploying to production was still too high.
 
-Actually, even if environments are just different Namespaces in the same cluster and our releases are immutable container images, there is still a reasonable chance that we will detect issues only after we promote releases to production. No matter how well our performance tests are, production load cannot be reliably replicated. No matter how good we became writing functional tests, real users are unpredictable and that cannot be reflected in test automation. Tests look for errors we already know about, and we just can't test what we don't know about. I can go on and on about the differences between production and non-production environments, but it all boils down to one having real users, and the other running simulations of what we think "real" people would do.
+Over time, we adopted immutability. We learned that things shouldn't be modified at runtime, but rather created anew whenever we need to update something. We started creating VM images that contained new releases and applying rolling updates that would gradually replace the old. But that was slow. It takes time to create a new VM image, and it takes time to instantiate them. There were many other problems with them, but this is neither time nor place to explore them all. What matters is that immutability applied to the VM level brought quite a few improvements. Our environments became stable and it was easy to have as many production-like environments as we needed, even though that approach revealed quite a few other issues.
 
-Considering that production with real users and non-production with I-hope-this-is-what-real-people-do type of simulations are not the same, we can only conclude that the only final and definitive confirmation that a release is successful can come from observing how well received it is by "real" users while running in production. That leads us to the fact that we need to monitor our production systems and observe user behaviors, error rates, response times, and a lot of other metrics. Based on that data we can conclude whether a new release is truly successful or not. We keep it if it is. If it isn't, we might need to roll back or, even better, roll forward with improvements and bug fixes. That's where Progressive Delivery kicks in.
+Then came containers that took immutability to the next level. They allowed us the ability to say that something running in a laptop is the same as something running in a test environment that happens to behave in the same way as in production. Simply put, creating a container based on an image produces the same result no matter where it runs. To be honest, that's not 100% true, but when compared to what we had in the past, containers bring us as close to repeatability as we can get today.
 
-## Progressive Delivery Explained
+So, if containers provide a reasonable guarantee that a release will behave the same no matter the environment it runs in, we can safely say that if it works in staging, it should work in production. That is especially true if both environments are in the same cluster. In such a case, hardware, networking, storage, and other infrastructure components are the same and the only difference is the Kubernetes Namespace something runs in. That should provide a reasonable guarantee that a release tested in staging should work correctly when promoted to production. Don't you agree?
 
-TODO: Continue with text
+Actually, even if environments are just different Namespaces in the same cluster and our releases are immutable container images, there is still a reasonable chance that we will detect issues only after we promote releases to production. No matter how well our performance tests are, production load cannot be reliably replicated. No matter how good we became writing functional tests, real users are unpredictable and that cannot be reflected in test automation. Tests look for errors we already know about, and we can't test what we don't know. I can go on and on about the differences between production and non-production environments, but it all boils down to one having real users, and the other running simulations of what we think "real" people would do.
 
-TODO: Is it progressive delivery or progressive deployment, or both?
+Considering that production with real users and non-production with I-hope-this-is-what-real-people-do type of simulations are not the same, we can only conclude that the only final and definitive confirmation that a release is successful can come from observing how well received it is by "real" users while running in production. That leads us to the fact that we need to monitor our production systems and observe user behavior, error rates, response times, and a lot of other metrics. Based on that data we can conclude whether a new release is truly successful or not. We keep it if it is. If it isn't, we might need to roll back or, even better, roll forward with improvements and bug fixes. That's where Progressive Delivery kicks in.
 
-Progressive Delivery is a term that includes deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. New versions being deployed do not replace existing versions but run in parallel for an amount of time receiving live production traffic, and are evaluated in terms of correctness and performance before the rollout is considered successful.
+Progressive Delivery is a term that includes deployment strategies that try to avoid the pitfalls of all-or-nothing deployment strategies. New versions being deployed do not replace existing versions but run in parallel for an amount of time receiving live production traffic. They are evaluated in terms of correctness and performance before the rollout is considered successful.
 
-Progressive Delivery encompasses methodologies such as rolling updates, blue-green or canary deployments. What is common to all of them is that monitoring and metrics are used to evaluate whether the new version is "safe" or needs to be rolled back.
+Progressive Delivery encompasses methodologies such as rolling updates, blue-green or canary deployments. As a matter of fact, we already used rolling updates for most of our deployments so you should be familiar with at least one flavor of progressive delivery. What is common to all of them is that monitoring and metrics are used to evaluate whether a new version is "safe" or needs to be rolled back. That's the part that our deployments were missing so far. Even though we did add tests that run during and after deployments to staging and production environments, they were not communicating findings to the deployment process. We did manage to have a system that can decide whether the deployment was successful or not, but we need more. We need a system that will run validations during the deployment process and let it decide whether to proceed, or to roll back. We should be able to roll out a release to a fraction of users, evaluate whether it works well and whether the users are finding it useful. If everything goes well, we should be able to ccontinue extending the percentage of users affected by the new release. All in all, we should be able to roll out gradually, lets say ten percent at a time, run some tests and evaludate results, and, depending on the outcome, choose whether to proceed or roll back.
 
-Using rolling updates not all the instances of our application are updated at the same time, but they are incrementally. If you have several instances (containers, virtual machines,...) of your application you would update one at a time and check the metrics of that one before updating the next and so on. In case of issues you would remove them from the pool and increase the number of instances running the previous version.
+To make progressive delivery easier to grasp, we should probably go through the high-level process followed for the three most commonly used falvors.
 
-Blue-green deployments temporarily create a parallel duplicate set of your application with both the old and new version running at the same time, and using a load balancer or DNS all traffic is sent to the new application. Both versions coexist until the new version is validated in production. If there are problems with the new version, the load balancer or DNS is just pointed back to the previous version.
+Using rolling updates not all the instances of our application are updated at the same time, but they are rolled out incrementally. If you have several instances (containers, virtual machines, etc.) of your application you would update one at a time and check the metrics of that one before updating the next and so on. In case of issues you would remove them from the pool and increase the number of instances running the previous version.
 
-With Canary deployments new versions are deployed and a subset of users are directed to it using traffic rules in a load balancer or more advanced solutions like service mesh. Users of the new version can be chosen randomly as a percentage of the total users or using other criteria such as geographic location, headers, employees vs general users, etc. The new version is evaluated in terms of correctness and performance and, if successful, more users are gradually directed to the new version. If there are issues with the new version or if it doesn't match the expected metrics the traffic rules are updated to send all traffic back to the previous version.
+Blue-green deployments temporarily create a parallel duplicate set of your application with both the old and new version running at the same time, and reconfigure a load balancer or a DNS to start routing all traffic to the new release. Both versions coexist until the new version is validated in production. If there are problems with the new version, the load balancer or DNS is just pointed back to the previous version.
 
-**Progressive Delivery makes it easier to adopt Continuous Delivery**, reducing the risk of new deployments limiting the blast radius of any possible issues, known or unknown, and providing automated ways to rollback to an existing working version.
-Testing the 100% of an application is impossible, so we can use these techniques to provide a safety net for our deployments.
+With Canary deployments new versions are deployed and a subset of users are directed to it using traffic rules in a load balancer or more advanced solutions like service mesh. Users of the new version can be chosen randomly as a percentage of the total users or using other criteria such as geographic location, headers, employees instead of general users, etc. The new version is evaluated in terms of correctness and performance and, if successful, more users are gradually directed to the new version. If there are issues with the new version or if it doesn't match the expected metrics the traffic rules are updated to send all traffic back to the previous version.
 
+Canary releases are very similar to rolling updates. In both cases, the new release is gradually rolled out to users. The major difference is that canary deployments allow us more control over the process. It allows us to decide who sees the new release and who is using the old. It allows us to gradually extend the reach based on the outcome of validations and on evaluating metrics. The are quite a few other differences we'll explore in more detail later through practical examples. For now, what matters is that canary releases bring additional levers to continuous delivery.
 
-We saw how easy it is with Jenkins X to promote applications from development to staging to production, using the concept of environments. But it is an all-or-nothing deployment process with manual intervention if a rollback is needed.
+**Progressive delivery makes it easier to adopt continuous delivery**. It reduces risks of new deployments limiting the blast radius of any possible issues, known or unknown, and providing automated ways to rollback to an existing working version. No matter how much we test a release before deploying it to production, we can never be sure that it will actually work. Our tests could never fully simulate "real" users behavior. So, it being 100% certain that a release is valid and will be well received by our users is impossible, the best we can do it to provide a safety net in terms of gradual rollout to production that depend on results of tests, evaluation of metrics, and observation how users receive the new release.
 
-We will explore how Jenkins X integrates Flagger, Istio, and Prometheus, projects that work together to create Canary deployments, where each deployment starts by getting a small percentage of the traffic and analyzing metrics such as response errors and duration. If these metrics fit a predefined requirement the new deployment continues getting more and more traffic until 100% of it goes through the new service. If these metrics are not successful for any reason our deployment is rolled back and is marked as failure.
+There are quite a few ways we can implement canary deployments, ranging from custom scripts to using ready-to-go tools that can facilitate the process. Given that we do not have time or space to evaluate all the tools we could use, we'll have to pick a combination.
 
-## Istio
+We will explore how Jenkins X integrates with Flagger, Istio, and Prometheus which, when combined, can be used to faccilitate canary deployments. Each will start by getting a small percentage of the traffic and analyzing metrics such as response errors and duration. If these metrics fit a predefined requirement the deployment process will continue getting more and more traffic until all of it goes through the new releease. If these metrics are not successful for any reason our deployment is rolled back and is marked as failure. To do all that, we'll start with a very quick overview of those tools. Just remember that what you'll read next is a high-level overview, not an in-depth description. A whole book can be written on Istio alone, and this chapter quite big.
 
-Istio is a service mesh that can run on top of Kubernetes. It has become very popular and allows traffic management, for example sending a percentage of the traffic to a different service and other advanced networking such as point to point security, policy enforcement or automated tracing, monitoring and logging.
+## A Quick Introduction To Istio, Prometheus, Flagger, And Grafana
 
-Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our application. We will focus on the response times and status codes.
+[Istio](https://istio.io) is a service mesh that can run on top of Kubernetes. Quickly after the project was created, it became oone of the most commoonly used in Kubernetes. It allows traffic management, for example sending a percentage of the traffic to a different application or a release and other advanced networking such as point to point security, policy enforcement, automated tracing, monitoring, and logging.
 
 We could write a full book about Istio, so we will focus on the traffic shifting and metric gathering capabilities of Istio and how we use those to enable Canary deployments.
 
-## Prometheus
+We can configure Istio to expose metrics that can be pulled by specialized tools. Given that [Prometheus](https://prometheus.io) is the most commonly used application for pulling, storing, and querying metrics and that its format for defining them can be considered a de-facto standard in Kubernetes, it is an easy choice. It stores time series data that can be queried using PromQL, its query language. We just need to make sure that Istio and Prometheus are integrated.
 
-Prometheus is the monitoring and alerting system of choice for Kubernetes clusters. It stores time series data that can be queried using PromQL, its query language. Time series collection happens via pull over HTTP.
-Many systems integrate with Prometheus as data store for their metrics.
+Finally, [Flagger](https://github.com/stefanprodan/flagger) is a project sponsored by WeaveWorks. It can use service mesh solutions like Istio, Linkerd, Gloo (which we used with Knative), and quite a few others. Together with a service mesh we can use Flagger to automate deployments and rollbacsk using a few different strategies. We're interested in canary deployment and you should be able to adapt the examples that follow to other strategies later on. To make things easier, Flagger even offers a Grafana dashboard to monitor the deployment progress.
 
-Istio already includes its own Prometheus deployment. When Istio is enabled for a service it sends a number of metrics to this Prometheus with no need to adapt our application. We will focus on the response times and status codes.
+[Grafana](https://grafana.com) provides an UI that allows us to visualize metrics through dashboards. Just like the other tools we chose, it is probably the most commonly used among the solutions we can run inside our Kubernetes clusters.
 
-## Flagger
+Please note that we could have used Gloo instead of Istio, just as we did in the [Using Jenkins X To Define And Run Serverless Deployments](#knative) chapter. But, I though that this would be a good oportunity to introduce you to Istio. Also, you should be aware that none of the tools are the focus of the book and that the main goal is to show you one possible implementation of canary deployments. Once you understand the loogic behind it, you should be able to switch to whichever toolset you prefer.
 
-Flagger is a project sponsored by WeaveWorks using Istio to automate canarying and rollbacks using metrics from Prometheus. It goes beyond what Istio provides, automating the promotion of canary deployments using Istio for traffic shifting and Prometheus metrics for canary analysis, allowing progressive rollouts and rollbacks based on metrics.
+I> This book is dedicated to continuous delivery with Jenkins X and all the other tools we use are chosen mostly to demonstrate integrations with Jenkins X. We are not providing an in-depth analysis of those tools beyond their usefulness to continuous delivery.
 
+## Installing Istio, Prometheus, And Flagger
 
-[Flagger](https://github.com/stefanprodan/flagger) is a **Kubernetes** operator that automates the promotion of canary deployments using **Istio** routing for traffic shifting and **Prometheus** metrics for canary analysis.
+We'll install all the tools we need as Jenkins X addons. They are a good way to install and integrate the tools, but might not provide you with all the options you can use to tweak those tools to your specific needs. For now, we'll use addons. Later on, once you adopt Jenkins X in production, you should evaluate whether you want to continue using the addons or you prefer to set up those tools in some other way which might give you more freedom.
 
-Flagger requires Istio, plus the installation of the Flagger controller itself. It also offers a Grafana dashboard to monitor the deployment progress.
-
-The deployment rollout is defined by a Canary object that will generate primary and canary Deployment objects. When the Deployment is edited, for instance to use a new image version, the Flagger controller will shift the loads from 0% to 50% with 10% increases every minute, then it will shift to the new deployment or rollback if response errors and request duration metrics fail.
-
-## Requirement Installation
-
-We can easily install Istio and Flagger with `jx`
-
-NOTE: Addons are probably going to be merged into apps
+Let's start with Istio.
 
 ```bash
 jx create addon istio \
     --version 1.1.7
 ```
 
-NOTE: the command may fail due to the order Helm applies CRD resources. Re-running the command again should fix it.
+W> In some cases, the command may fail due to the order Helm applies CRD resources. If that happens,  re-running the command again should fix the issue.
 
-NOTE: Istio is resource heavy and the cluster is likely going to scale up. That might slow down some activities.
+I> Istio is resource heavy. It is the reason why we increased the size of the VMs that compose our cluster.
 
-When installing Istio a new ingress gateway service is created that can send all the incoming traffic to services based on Istio rules or `VirtualServices`. This achieves a similar functionality than that of the ingress controller, but using Istio configuration instead of ingresses, that allows us to create more advanced rules for incoming traffic.
+When installing Istio a new ingress gateway service is created. It is used for sending all the incoming traffic to services based on Istio rules or `VirtualServices`. This achieves a similar functionality as the one provided by Ingress. However, while Ingress is simple it is also very limited in its capabilities. Istio, on the other hand, allows us to create more advanced rules for incoming traffic.
 
-We can find the external ip address of the ingress gateway service and configure a wildcard DNS for it, so we can use multiple hostnames for different services.
-Note the ip from the output of `jx create addon istio` or find it with this command, we will refer to it as `ISTIO_IP`.
+For now, we need to find the external IP address of the Istio Ingress gateway service. We'll need both to configure canary deployments as well as to be able to access the application from outside the cluster. We can get the address from the the output of the `jx create addon istio` command. But, given that I don't like copying and pasting outputs, we'll use the commands that follow to retrieve the address and store it in environment variable `ISTIO_IP`.
+
+Just as with Ingress, the way to retrieve the IP will different depending on whether you're using EKS or some other Kubernetes flavor.
+
+W> Please run the command that follows only if you are **NOT** using **EKS** (e.g., **GKE**, **AKS**, etc.).
 
 ```bash
-# If not EKS
 ISTIO_IP=$(kubectl \
     --namespace istio-system \
     get service istio-ingressgateway \
     --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
 
-# If EKS
+W> Please run the commands that follow only if you are using **EKS**.
+
+```bash
 ISTIO_HOST=$(kubectl \
     --namespace istio-system \
     get service istio-ingressgateway \
     --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-# If EKS
 export ISTIO_IP="$(dig +short $ISTIO_HOST \
     | tail -n 1)"
+```
 
+To be on the safe side, we'll output the environment variable to confirm that the IP does indeed look correct.
+
+```bash
 echo $ISTIO_IP
 ```
 
-Let's continue with the other addons
-
-NOTE: Prometheus is already installed with Istio
+When we created the `istio` addon, Prometheus was installed alongside it, so the only one left for us to add is Flagger.
 
 ```bash
 jx create addon flagger
 ```
 
-```
-WARNING: failed to create system vault in namespace cd due to no "jx-vault-vfarcic" vault found in namespace "cd"
+You will see from the output that Istio was enabled in the production namespace (`cd-production`, `jx-rocks-production`, or whichever Namespace you're using). As a result, traffic metrics generated by the resources in that Namespace will be pulled by Prometheus. As you will see soon, metrics are the cornerstone of canary deployments. We can also see that it created an `Istio gateway` called `jx-gateway`. It will accept incomming external traffic and we are yet to create Istio `VirtualServices` with the rules where to forward those requests.Flagger will do that for us later on.
 
-
-Enabling Istio in namespace cd-production
-Creating Istio gateway: jx-gateway
-```
+Now, let's take a quick look at the Pods that were created through those two addons.
 
 ```bash
 kubectl --namespace istio-system \
     get pods
 ```
 
+The output is as follows.
+
 ```
-NAME                                      READY   STATUS      RESTARTS   AGE
-flagger-5bdbccc7f4-qx5wt                  1/1     Running     0          110s
-flagger-grafana-5c88686d56-tr9l5          1/1     Running     0          78s
-istio-citadel-7f447d4d4b-4t6zj            1/1     Running     0          3m22s
-istio-galley-84749d54b7-2pjql             1/1     Running     0          4m46s
-istio-ingressgateway-6b79f895d6-wfvtr     1/1     Running     0          4m40s
-istio-init-crd-10-62c64                   0/1     Completed   0          5m8s
-istio-init-crd-11-27xq5                   0/1     Completed   0          5m7s
-istio-pilot-76899788b6-ws6lq              2/2     Running     0          3m35s
-istio-policy-578bcb878f-pp7ql             2/2     Running     6          4m38s
-istio-sidecar-injector-6895997989-gn85h   1/1     Running     0          3m14s
-istio-telemetry-5448cbd995-bp7ms          2/2     Running     6          4m38s
-prometheus-5977597c75-p5dn6               1/1     Running     0          3m28s
+NAME                       READY STATUS    RESTARTS AGE
+flagger-5bdbccc7f4-...     1/1   Running   0        110s
+flagger-grafana-...        1/1   Running   0        78s
+istio-citadel-...          1/1   Running   0        3m22s
+istio-galley-...           1/1   Running   0        4m46s
+istio-ingressgateway-...   1/1   Running   0        4m40s
+istio-init-crd-10-...      0/1   Completed 0        5m8s
+istio-init-crd-11-...      0/1   Completed 0        5m7s
+istio-pilot-...            2/2   Running   0        3m35s
+istio-policy-...           2/2   Running   6        4m38s
+istio-sidecar-injector-... 1/1   Running   0        3m14s
+istio-telemetry-...        2/2   Running   6        4m38s
+prometheus-...             1/1   Running   0        3m28s
 ```
+
+We won't go into details of what each of those Pods do. I expect you to consult the documentation if you are curious. For now, we'll just note that there are Flagger, Istio, and Prometheus running in the `istio-system` Namespace and that, by the look of it, they are all running. If any of those are in the pending state, you either need to increase the number of nodes of your cluster or none of the nodes is big enough to meet the requested resources. The former case should be solved with the Cluster Autoscaler if you have it running in your Kubernetes flavor while the later probably means that you did not follow the instructions to create a cluster with bigger VMs. In any case, the next step would be to describe the pending Pod, see the root cause of the issue, and act accordingly.
+
+As we saw from the output of the `jx create addon flagger` command, the Namespace that holds our production releases is enabled to use Istio. Let's see how that enablement works.
 
 ```bash
 kubectl describe namespace \
     $NAMESPACE-production
 ```
 
+The output, limited to the relevant parts, is as follows.
+
 ```yaml
 Name:         cd-production
 Labels:       env=production
               istio-injection=enabled
               team=cd
-Annotations:  <none>
-Status:       Active
-
-Resource Quotas
- Name:                       gke-resource-quotas
- Resource                    Used  Hard
- --------                    ---   ---
- count/ingresses.extensions  0     100
- count/jobs.batch            0     5k
- pods                        0     1500
- services                    0     500
-
-No resource limits.
+...
 ```
+
+We can see that we got a new label `istio-injection=enabled`. That one tells Istio to inject the sidecar containers into our Pods. Without it, we'd need to perform additional manual steps, and you already know that's not something I like doing.
+
+Whichever deployment strategy we use, it should be the same in all the permanent environments. Otherwise, we do not have parity between applications running in production and those running in environments meant to be used for testing before we release something to production (e.g., staging). The more similar, if not the same, those environments are, the more confident we are to promote something to production. Otherwise, we can end up in a situation where someone could rightfully say that what was tested (e.g., staging) is not the same as what is being deployed to production.
+
+So, let's take a look at the labels in the staging environment.
 
 ```bash
 kubectl describe namespace \
     $NAMESPACE-staging
 ```
 
+The output, limited to the relevant parts, is as follows.
+
 ```yaml
 Name:         cd-staging
 Labels:       env=staging
               team=cd
-Annotations:  jenkins-x.io/created-by: Jenkins X
-Status:       Active
-
-Resource Quotas
- Name:                       gke-resource-quotas
- Resource                    Used  Hard
- --------                    ---   ---
- count/ingresses.extensions  1     100
- count/jobs.batch            0     5k
- pods                        6     1500
- services                    3     500
-
-No resource limits.
+...
 ```
+
+As we can see, staging environment does not have the `istio-injection=enabled` label so Istio will not inject sidecars and, as a result, it will not work there. Given that we already elaborated that staging and production should be as similar as possible, if not the same, we'll add the missing label so that Istio works in both.
 
 ```bash
 kubectl label namespace \
@@ -1151,43 +1114,34 @@ kubectl label namespace \
     --overwrite
 ```
 
-```
-namespace/cd-staging labeled
-```
+Let's have another look at the staging environment to confirm that the label was indeed added correctly.
 
 ```bash
 kubectl describe namespace \
     $NAMESPACE-staging
 ```
 
+The output, limited to the relevant parts, is as follows.
+
 ```yaml
 Name:         cd-staging
 Labels:       env=staging
               istio-injection=enabled
               team=cd
-Annotations:  jenkins-x.io/created-by: Jenkins X
-Status:       Active
-
-Resource Quotas
- Name:                       gke-resource-quotas
- Resource                    Used  Hard
- --------                    ---   ---
- count/ingresses.extensions  1     100
- count/jobs.batch            0     5k
- pods                        6     1500
- services                    3     500
-
-No resource limits.
+...
 ```
 
-The Flagger addon will enable Istio for all pods in the `jx-production` namespace so they send traffic metrics to Prometheus.
-It will also configure an Istio ingress gateway to accept incoming external traffic through the ingress gateway service, but for it to reach the final service we must create Istio `VirtualServices`, the rules that manage the Istio routing. Flagger will do that for us.
+The `istio-injection=enabled` is there and we can continue knowing that whatever Istio will do in the staging environment will be the same as in production.
 
-## Flagger App Configuration
+## Creating Canary Resources With Flagger
 
-Let's say we want to deploy our new version to 10% of the users, and increase it another 10% every 10 seconds until we reach 50% of the users, then deploy to all users. We will examine two key metrics, whether more than 1% of the requests fail (5xx errors) or the request time is over 500ms. If these metrics fail 5 times we want to rollback to the old version.
+Let's say we want to deploy our new release only to 20% of the users and that during 30 seconds we will monitor metrics. Specifically, during that period we'll be validating whether the error rate is within a predefined threshold and whether the time it takes to proccess requests is within some limits. If everything seems right, we'll increase the percentage of users who can use our new release for another 20%, and continue monitoring metrics to decide whether to proceed. The process should repeat until the new release is rolled out to everyone, twenty percent at a time every thirty seconds.
 
-This configuration can be done using Flagger's `Canary` objects, that we can add to our application helm chart under `charts/go-demo-6/templates/canary.yaml` 
+Now that everything is set up, all that's missing is to create Flagger `Canary` definition. We'll create a new file `canary.yaml` in the `charts/go-demo-6/templates` directory.
+
+I> There might already be a canary in the buildpacks if I (or someone else) made a pull request to add canary capabilities out-of-the-box. If that's the case, ignore it bacause I'll provide explanation for the one we are about to create from scratch. Later on, if canaries are indeed available in build packs, you should be able to use the knowledge from creating canary deployment from scratch to fine tune those available in build packs.
+
+Please execute the command that follows to create a new `Canary` resource.
 
 ```bash
 echo "{{- if .Values.canary.enable }}
@@ -1225,42 +1179,23 @@ spec:
 " | tee charts/go-demo-6/templates/canary.yaml
 ```
 
-```yaml
-{{- if .Values.canary.enable }}
-apiVersion: flagger.app/v1alpha2
-kind: Canary
-metadata:
-  name: {{ template "fullname" . }}
-spec:
-  provider: {{.Values.canary.provider}}
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: {{ template "fullname" . }}
-  progressDeadlineSeconds: 60
-  service:
-    port: {{.Values.service.internalPort}}
-{{- if .Values.canary.service.gateways }}
-    gateways:
-{{ toYaml .Values.canary.service.gateways | indent 4 }}
-{{- end }}
-{{- if .Values.canary.service.hosts }}
-    hosts:
-{{ toYaml .Values.canary.service.hosts | indent 4 }}
-{{- end }}
-  canaryAnalysis:
-    interval: {{ .Values.canary.canaryAnalysis.interval }}
-    threshold: {{ .Values.canary.canaryAnalysis.threshold }}
-    maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
-    stepWeight: {{ .Values.canary.canaryAnalysis.stepWeight }}
-{{- if .Values.canary.canaryAnalysis.metrics }}
-    metrics:
-{{ toYaml .Values.canary.canaryAnalysis.metrics | indent 4 }}
-{{- end }}
-{{- end }}
-```
+To begin with, we enveloped the whole definition inside an `if` statement so that the definition is applied only if the value `canary.enable` is set to `true`. That way, by default, we will not use canary deployments at all. Instead, we'll have to specify when and under which circumstances they will be used. That might bef the question why do we go into trouble of making sure that canary deployments are enabled only in certain cases. Why not use them always?
 
-And the `canary` section added to our chart values file in `charts/go-demo-6/values.yaml`. Remember to set the correct domain name for our Istio gateway instead of `go-demo-6.$ISTIO_IP.nip.io`.
+By their nature, it takes much more time to execute a canary deployment than most of strategies since it rolls out progressivelly and it pauses periodically allowing us to validate the result on a subset of users. That increased duration can be anything from seconds to hours or even days or weeks. In some cases we might have an important release that we want to test with our users over a whole week. While such prolonged periods might be well worth the wait in production and staging which should use the same processes, waiting more than necessary to deploy a release in a preview environment is a waste. Those environments are not supposed to provide the "final stamp" before promoting to production, but rather to flash out most of the errors. After all, not using canaries in preview environments might not be the only difference. As we saw in the previous chapter, we might choose to make them serverless without while keeping permanent environments using different deployment strategies. Long story short, the `if` statement allows us to choose when we'll employ canary deployments.
+
+The `apiVersion`, `kind`, and `metadata` should be self-explanatory if you have a minimal experience with Kubernetes and Helm templating.
+
+The interesting entry is `spec.provider`. It allows us to specify which provider we'll use. In our case it'll be Istio but I wanted to make sure that you can easily switch to something else like, for example, Gloo. If you are using GKE, you already have Gloo running. While exploring different solutions is welcome while learning, later on you should probably use one or the other, not necessarily both.
+
+The `spec.targetRef` tells `Canary` which Kuberentes object it should manipulate. Unlike serverless Deployments with Knative which replaced Deployments, `Canary` runs on top of whichever Kubernetes resource we'd use to run our software. For *go-demo-6* that's `Deployment`, but it could just as well be a `StatefulSet` or something else.
+
+The next in line is `spec.progressDeadlineSeconds`. Think of it as a safety net. If the system cannot progress with the deployment for the specified time (expessed in in seconds it will initiate rollback to the previous release.
+
+The `spec.service` entry provide the information how to access the application, both internally (`port`) and externally (`gateways`) as well as the `hosts` through which the end users can communicate with the application.
+
+The `spec.canaryAnalysis` entries are probably the most interesting ones. They define the analysis that should be done to decide whether to progress with the deployment or to roll back. In the interoduction I mentioned that the interval between progress iterations is thirty seconds. That's specified in the `interval` entry. The `threshold` defined how many failed metric checks are allowed before rolling back. The `maxWeight` sets the percentage of requests routed to the canary deployment before it gets converted to the primary. After that percentage is reached, all users will see the new release. More often than not, we do not need to wait until the process reaches 100% through smaller increments. We can say that, for example, when 60% of users are using the new release, there is no need to proceed with validations of the metrics and the system can move forward and make the new release available to everynoe right away. The `stepWeight` entry defines how big roll out increments should be (e.g., 20% at a time). Finally, `metrics` can host an array of entries, one for each metric and threshold that should be constantly evaluated during the process.
+
+As you noticed, many of the values are not hard-coded into the `Canary` definition, but instead defined as Helm values. That way, we can change all those that should be tweaked from `charts/go-demo-6/values.yaml`. So, let's create that file with some sample values.
 
 ```bash
 echo "
@@ -1287,51 +1222,18 @@ canary:
 " | tee -a charts/go-demo-6/values.yaml
 ```
 
-```yaml
-canary:
-  enable: false
-  provider: istio
-  service:
-    hosts:
-    - go-demo-6.34.73.8.113.nip.io
-    gateways:
-    - jx-gateway.istio-system.svc.cluster.local
-  canaryAnalysis:
-    interval: 30s
-    threshold: 5
-    maxWeight: 70
-    stepWeight: 20
-    metrics:
-    - name: request-success-rate
-      threshold: 99
-      interval: 120s
-    - name: request-duration
-      threshold: 500
-      interval: 120s
-```
+We set the provider to `istio` since that is our service mesh technology of choice in this section.
 
-Explanation of the values in the configuration:
+Through the `service` entry, we set the external facing `hosts` to a single address (`go-demo-6.$ISTIO_IP.nip.io`). For what we're about to do, we cannot rely on Jenkins X's ability to auto-generate addresses so they need to be explicit. We'll keep that address as production meaning that we'll have to set the one for staging separately later on. The `gateway` is set to `jx-gateway.istio-system.svc.cluster.local` with represents the `jx-gateway` created by Flagger.
 
-* `canary.service.hosts` list of host names that Istio will send to our application.
-* `canary.service.gateways` list of Istio gateways that will send traffic to our application. `jx-gateway.istio-system.svc.cluster.local` is the gateway created by the Flagger addon on installation.
-* `canary.canaryAnalysis.threshold` number of times a metric must fail before aborting the rollout.
-* `canary.canaryAnalysis.maxWeight` max percentage sent to the canary deployment, when reached all traffic is sent to the new new version.
-* `canary.canaryAnalysis.stepWeight` increase the percentage this much in each interval (20%, 40%, 60%, etc).
-* `canary.canaryAnalysis.metrics` metrics from Prometheus, some are automatically populated by Istio and you can add your own from your application.
-  * `request-success-rate` minimum request success rate (non 5xx responses) percentage (0-100).
-  * `request-duration` maximum request duration in milliseconds, in the 99th percentile.
+The `canaryAnalysis` sets the interval to `30s`. So, it will progress with the rollout every half a minute. Similarly, it will roll back it encounters failures (e.g., reaches metrics thresholds) `5` times. It will finish rollout when it reaches `70` percent of users (`maxWeight`) and it will increment the number of requests forwarded to the new release with increments of `20` percent (`stepWeight`).
 
-TODO: Carlos: Shouldn't we change `service.annotations.fabric8.io/expose` to `false` in `charts/go-demo-6/values.yaml`?
+Finally, it will use two metrics to validate rollouts and decide whether to proceed or to roll back. The first metric is `request-success-rate` calculated over the interval of `120s`. If less than `99` percent of requests are successfull (are not 5xx responses), it will be considered an error. Remember that does not necessarily mean that it will rollback since the `threshold` is set to `5`. There must be five failures for the rollback to initiate. The second metric is `request-duration`. It is also measured over the interval of `120s` with the threshold of half a second (`500` milliseconds). It does not take into account every request but rather 99th percecntile.
 
-Mongodb will not work by default with Istio because it runs under a non root `securityContext`, you would get this error in the `istio-init` init container.
+MongoDB will not work by default with Istio because it runs under a non root `securityContext`. Given that Istio is not the main subject here but rather a helper to explore canary deployments, we will not fix that issue but ratherr disable Istio for the DB. We'll do that mostly to simplify the setup and that is by no means a recommendation to do in the "real world" scenario.
 
-```
-iptables v1.6.0: can't initialize iptables table `nat': Permission denied (you must be root)
-```
+We added the `istio-injection=enabled` label to the staging and the production environment. As a result, everything running in those Namespaces will automatically use Istio for networking. Now we need to disable it only for MongoDB used by *go-demo-6*. We can do that by adding a label to the Pods and, luckily for us, the [MongoDB chart](https://github.com/helm/charts/tree/master/stable/mongodb) already allows that through values. All we have to do is to set the annotation `sidecar.istio.io/inject` to false.
 
-In order to simplify things we will just enable Istio for the main web service, disabling automatic Istio sidecar injection for our mongodb deployment by setting the `sidecar.istio.io/inject: "false"` annotation.
-
-Under `go-demo-6` entry, add the `podAnnotations` section with `sidecar.istio.io/inject` set to `"false"`.
 
 ```bash
 cat charts/go-demo-6/values.yaml \
@@ -1342,85 +1244,35 @@ cat charts/go-demo-6/values.yaml \
     | tee charts/go-demo-6/values.yaml
 ```
 
-```yaml
-# Default values for Go projects.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-replicaCount: 3
-image:
-  repository: draft
-  tag: dev
-  pullPolicy: IfNotPresent
-service:
-  name: go-demo-6
-  type: ClusterIP
-  externalPort: 80
-  internalPort: 8080
-  annotations:
-    fabric8.io/expose: "true"
-    fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"
-resources:
-  limits:
-    cpu: 100m
-    memory: 256Mi
-  requests:
-    cpu: 80m
-    memory: 128Mi
-probePath: /demo/hello?health=true
-livenessProbe:
-  initialDelaySeconds: 60
-  periodSeconds: 10
-  successThreshold: 1
-  timeoutSeconds: 1
-readinessProbe:
-  periodSeconds: 10
-  successThreshold: 1
-  timeoutSeconds: 1
-terminationGracePeriodSeconds: 10
-go-demo-6-db:
-  podAnnotations:
-    sidecar.istio.io/inject: "false"
-  replicaSet:
-    enabled: true
+We used `sed` "magic" to add the `podAnnotations.sidecar.istio.io/inject` value just below `go-demo-6-db`.
 
+There's only one more change missing before we can try `Canary` deployments in action. Do you remember that we set the `hosts` to `go-demo-6.$ISTIO_IP.nip.io`. Assuming that's the address through which our application will be exposed when running in production, we need to define a different address for staging. Otherwise, the releases running in both environments would be accessible through the same address, and that's almost certainly not something we want to do.
 
-  usePassword: false
-knativeDeploy: false
-
-
-
-
-canary:
-  enable: false
-  provider: istio
-  service:
-    hosts:
-    - go-demo-6.34.73.8.113.nip.io
-    gateways:
-    - jx-gateway.istio-system.svc.cluster.local
-  canaryAnalysis:
-    interval: 30s
-    threshold: 5
-    maxWeight: 70
-    stepWeight: 20
-    metrics:
-    - name: request-success-rate
-      threshold: 99
-      interval: 120s
-    - name: request-duration
-      threshold: 500
-      interval: 120s
-```
+The best place to add staging-specific values is the staging repository. We'll have to clone it, so let's get out of the local copy of the *go-demo-6* repo.
 
 ```bash
 cd ..
+```
 
-# If serverless
-ENVIRONMENT=tekton
+Depending on whether you are using static or serverless Jenkins X, the name of the staging repository is `environment-jx-rocks-staging` or `environment-tekton-staging`. To avoid confusion and allow you to run the same commands no matter the name of the repository, we'll store the part of the name that matters into an environment variable.
 
-# If static
+W> Please execute the command that follows only if you are using **static** Jenkins X.
+
+```bash
 ENVIRONMENT=jx-rocks
+```
 
+W> Please execute the command that follows only if you are using **serverless** Jenkins X.
+
+```bash
+ENVIRONMENT=tekton
+```
+
+Now we can clone the staging repository.
+
+W> Please replace `[...]` with your GitHub user before executing the commands that follow.
+
+```bash
 rm -rf environment-$ENVIRONMENT-staging
 
 GH_USER=[...]
@@ -1429,7 +1281,13 @@ git clone \
     https://github.com/$GH_USER/environment-$ENVIRONMENT-staging.git
 
 cd environment-$ENVIRONMENT-staging
+```
 
+We removed the local copy of the environment repo just in case it was left over from the exercises in the previous chapters. After that, we cloned the repository and entered inside the local copy.
+
+Next, we need to enable `Canary` deployments for the staging environment and to define the address through which *go-demo-6* be accessible.
+
+```bash
 STAGING_ADDR=staging.go-demo-6.$ISTIO_IP.nip.io
 
 echo "go-demo-6:
@@ -1441,14 +1299,9 @@ echo "go-demo-6:
     | tee -a env/values.yaml
 ```
 
-```yaml
-go-demo-6:
-  canary:
-    enable: true
-    service:
-      hosts:
-      - staging.go-demo-6.34.73.8.113.nip.io
-```
+All we did was to add a few variables associated with `go-demo-6`.
+
+Now we can push the changes to the staging repository.
 
 ```bash
 git add .
@@ -1457,7 +1310,11 @@ git commit \
     -m "Added progressive deployment"
 
 git push
+```
 
+With the staging-specific values defined, we can go back to the *go-demo-6* repository and push the changes we previously did over there.
+
+```bash
 cd ../go-demo-6
 
 git add .
@@ -1466,73 +1323,80 @@ git commit \
     -m "Added progressive deployment"
 
 git push
+```
 
+We should not see a tangible change to the deployment process with the first release, so all there is to do, for now, is to confirm that the activities initiated by pushing changes to the repository were executed successfully.
+
+```bash
 jx get activities \
     --filter go-demo-6/master \
     --watch
+```
 
-# Press *ctrl+c* when the activity is finished
+Press *ctrl+c* to cancel the watcher once you confirm that the newly started build is finished.
 
-# If serverless
+W> Please execute the command that follows only if yu are using **serverless** Jenkins X
+
+```bash
 jx get activities \
     --filter environment-tekton-staging/master \
     --watch
-
-# Press *ctrl+c* when the activity is finished
 ```
 
-## Canary Deployments
+Press *ctrl+c* to cancel the watcher once you confirm that the newly started build is finished.
+
+Now we're ready with the preparations for `Canary` deployments and we can finally take a closer look at the process itself as well as the benefits it brings.
+
+## Exploring Canary Deployments Through A Happy Path
+
+Before we start exploring `Canary` deployments, lets take a quick look to cconfirm that the first release using the new definition worked. Is our application accessible through the Istio gateway?
 
 ```bash
 curl $STAGING_ADDR/demo/hello
 ```
 
-```
-hello, rolling update!
-```
+The output should say `hello, rolling update!`. If, on the other hand, you received `no healthy upstream`, the database is not yet up and running so wait a few moments and re-run the `curl` command.
+
+Now that we confirmed that the application released with the new defition is accessible through the Istio gateway, we can take a quick look at the Pods running in the staging Namespace.
 
 ```bash
-# Repeat if `no healthy upstream` (DB is not yet up and running)
-
 kubectl \
     --namespace $NAMESPACE-staging \
-    get all
+    get pods
 ```
 
+The output is as follows.
+
 ```
-NAME                                        READY   STATUS    RESTARTS   AGE
-pod/jx-go-demo-6-db-arbiter-0               1/1     Running   0          69s
-pod/jx-go-demo-6-db-primary-0               1/1     Running   0          65s
-pod/jx-go-demo-6-db-secondary-0             1/1     Running   0          65s
-pod/jx-go-demo-6-primary-7d5755576c-6kjjv   2/2     Running   0          65s
-pod/jx-go-demo-6-primary-7d5755576c-9wsqw   2/2     Running   1          65s
-pod/jx-go-demo-6-primary-7d5755576c-c7xv6   2/2     Running   1          65s
-NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)     AGE
-service/go-demo-6                  ClusterIP   10.31.250.55    <none>        80/TCP      97m
-service/jx-go-demo-6               ClusterIP   10.31.253.52    <none>        8080/TCP    67s
-service/jx-go-demo-6-canary        ClusterIP   10.31.243.175   <none>        8080/TCP    67s
-service/jx-go-demo-6-db            ClusterIP   10.31.244.152   <none>        27017/TCP   117m
-service/jx-go-demo-6-db-headless   ClusterIP   None            <none>        27017/TCP   117m
-service/jx-go-demo-6-primary       ClusterIP   10.31.250.21    <none>        8080/TCP    67s
-NAME                                   DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/jx-go-demo-6           0         0         0            0           102m
-deployment.apps/jx-go-demo-6-primary   3         3         3            3           68s
-NAME                                              DESIRED   CURRENT   READY   AGE
-replicaset.apps/jx-go-demo-6-55f699d857           0         0         0       75s
-replicaset.apps/jx-go-demo-6-658f88478b           0         0         0       88m
-replicaset.apps/jx-go-demo-6-77b6455c87           0         0         0       93m
-replicaset.apps/jx-go-demo-6-8b5698864            0         0         0       97m
-replicaset.apps/jx-go-demo-6-94b4bb9b6            0         0         0       102m
-replicaset.apps/jx-go-demo-6-primary-7d5755576c   3         3         3       68s
-NAME                                         DESIRED   CURRENT   AGE
-statefulset.apps/jx-go-demo-6-db-arbiter     1         1         117m
-statefulset.apps/jx-go-demo-6-db-primary     1         1         117m
-statefulset.apps/jx-go-demo-6-db-secondary   1         1         117m
-NAME                                  NAME        VERSION   GIT URL
-release.jenkins.io/go-demo-6-9.0.33   go-demo-6   v9.0.33   https://github.com/vfarcic/go-demo-6
-NAME                              STATUS        WEIGHT   LASTTRANSITIONTIME
-canary.flagger.app/jx-go-demo-6   Initialized   0        2019-08-16T23:17:03Z
+NAME                        READY STATUS  RESTARTS AGE
+jx-go-demo-6-db-arbiter-0   1/1   Running 0        69s
+jx-go-demo-6-db-primary-0   1/1   Running 0        65s
+jx-go-demo-6-db-secondary-0 1/1   Running 0        65s
+jx-go-demo-6-primary-...    2/2   Running 0        65s
+jx-go-demo-6-primary-...    2/2   Running 1        65s
+jx-go-demo-6-primary-...    2/2   Running 1        65s
 ```
+
+While the database Pods are the same as they always were, there is a change at least in the naming of those belonging to *go-demo-6*. The word `primary` is injected. Given that we deployed only one release using `Canary`, those Pods represent the primary or the main release accessible to all the users. As you can imagine, those Pods were created by the corresponding `jx-go-demo-6-primary` ReplicaSet which, in turn, was created by the `jx-go-demo-6-primary` Deployment. As you can probably guess, there is also the `jx-go-demo-6-primary` Service that allows communication to those Pods, even though that is further complicated by sidecar containers injected by Istio. Later on, we'll see why all those are important.
+
+What might matter more is the `canary` resource, so let's take a look at it as well.
+
+```bash
+kubectl \
+    --namespace $NAMESPACE-staging \
+    get canary
+```
+
+The output is as follows.
+
+```
+NAME         STATUS      WEIGHT LASTTRANSITIONTIME
+jx-go-demo-6 Initialized 0      2019-08-16T23:17:03Z
+```
+
+Just as with Pods, there's not much going on since we have only the first `Canary` release running. For now, just note that `canary` can give us additional insight into the process.
+
+Finally, if you paid attention, you saw that we set the `Canary` gateway that to `jx-gateway.istio-system.svc.cluster.local`. As a result, when we deployed the first `Canary` release, it created the gateway for us. We can see it by retrieving `virtualservice.networking.istio.io` resources.
 
 ```bash
 kubectl \
@@ -1540,48 +1404,26 @@ kubectl \
     get virtualservice.networking.istio.io
 ```
 
+The output is as follows.
+
 ```
-NAME           GATEWAYS                                      HOSTS                                                 AGE
-jx-go-demo-6   [jx-gateway.istio-system.svc.cluster.local]   [staging.go-demo-6.34.73.8.113.nip.io jx-go-demo-6]   1m
+NAME         GATEWAYS                                    HOSTS                                                 AGE
+jx-go-demo-6 [jx-gateway.istio-system.svc.cluster.local] [staging.go-demo-6.34.73.8.113.nip.io jx-go-demo-6]   1m
 ```
 
-After detecting a new `Canary` object Flagger will automatically create some other objects to manage the canary deployment:
+We can see from the output that the gateway `jx-gateway.istio-system.svc.cluster.local` is handling external requests coming from `staging.go-demo-6.34.73.8.113.nip.io` as well as `jx-go-demo-6`. We'll focus on the former host and ignore the latter.
 
-* deployment.apps/jx-go-demo-6-primary
-* service/jx-go-demo-6
-* service/jx-go-demo-6-canary
-* service/jx-go-demo-6-primary
-* virtualservice.networking.istio.io/jx-go-demo-6
-
-The primary and canary deployments manage the incumbent and new version of the deploy respectively. Flagger will have both running during the canary process and create the Istio `VirtualService` that sends traffic to one or another. Initially all traffic is sent to the primary deployment. Lets make a new deployment and see how it is being canaried.
-
-We are going to create a trivial change in the demo application, replacing `hello, PR!` in `main.go` to `hello, progressive!`. Then we will commit and merge it to master to get a new version in the staging environment. 
-
-Let's tail Flagger logs so we can get insights in the deployment process.
+Finally, we can output Flagger logs if we want to see more details about the deployment process.
 
 ```bash
 kubectl \
     --namespace istio-system logs \
-    --selector app.kubernetes.io/name=flagger \
-    --follow
+    --selector app.kubernetes.io/name=flagger
 ```
 
-```
-{"level":"info","ts":"2019-08-16T23:16:33.564Z","caller":"canary/deployer.go:48","msg":"Scaling down jx-go-demo-6.cd-staging","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:33.829Z","caller":"router/kubernetes.go:122","msg":"Service jx-go-demo-6.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:33.913Z","caller":"router/kubernetes.go:122","msg":"Service jx-go-demo-6-canary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:33.990Z","caller":"router/kubernetes.go:122","msg":"Service jx-go-demo-6-primary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:34.052Z","caller":"router/istio.go:77","msg":"DestinationRule jx-go-demo-6-canary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:34.170Z","caller":"router/istio.go:77","msg":"DestinationRule jx-go-demo-6-primary.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:34.295Z","caller":"router/istio.go:205","msg":"VirtualService jx-go-demo-6.cd-staging created","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:16:34.302Z","caller":"controller/controller.go:271","msg":"Halt advancement jx-go-demo-6-primary.cd-staging waiting for rollout to finish: 0 of 3 updated replicas are available","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:17:03.415Z","caller":"canary/deployer.go:48","msg":"Scaling down jx-go-demo-6.cd-staging","canary":"jx-go-demo-6.cd-staging"}
-{"level":"info","ts":"2019-08-16T23:17:03.524Z","caller":"controller/controller.go:261","msg":"Initialization done! jx-go-demo-6.cd-staging","canary":"jx-go-demo-6.cd-staging"}
-```
+I'll leave it to you to interpret those logs, just don't get stressed if you don't understand what each event means. We'll explore what's going on in the background as soon as we deploy a new release.
 
-NOTE: Stop with *ctrl+c*
-
-And once the new version is built we can promote it to production.
+To see `Canary` deployments in action, we'll create a trivial change in the demo application byreplacing `hello, rolling update!` in `main.go` to `hello, progressive!`. Then we will commit and merge it to master to get a new version in the staging environment.
 
 ```bash
 cat main.go | sed -e \
@@ -1598,13 +1440,21 @@ git commit \
     -m "Added progressive deployment"
 
 git push
+```
 
+Those were such trivial and commonly used commands that there is no need explaining them.
+
+Just as with previous deployment strategies, now we need to be fast.
+
+```bash
 echo $STAGING_ADDR
+```
 
-# Copy the output
+Please copy the output and go to the **second terminal**.
 
-# Go to the second terminal
+I> Replace `[...]` in the command that follows with the copied address of *go-demo-6* in staging environment.
 
+```bash
 STAGING_ADDR=[...]
 
 while true
@@ -1614,53 +1464,42 @@ do
 done
 ```
 
-```
-...
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, rolling update!
-hello, progressive!
-hello, rolling update
-...
-hello, rolling update!
-hello, progressive!
-hello, progressive!
-hello, progressive!
-hello, rolling update!
-hello, progressive!
-hello, rolling update!
-hello, rolling update!
-...
-```
+As with other deployment types, we initiated a loop that continuously sends requests to the application. That will allow us to see whether there is deployment-caused downtime but also the first insight into how canary deployments work.
+
+Until the pipeline starts the deployment, all we're seeing is the `hello, rolling update!` message coming from the previous release. Once the first iteration of the rollout is finished, we should see both `hello, rolling update!` and `hello, progressive!` messages alternating. Since we specified that `stepWeight` is `20`, approximatelly twenty percent of the requests should go the new release while the rest will continue receiving the requests from the old. Thirty seconds later (the `interval` value), the balance should change because we should have reached the second iteration, with forty percent of requests cmoing from the new release and the rest from the old.
+
+From what we can deduce so far, `Canary` deployments are behaving in a very similar way as `RollingUpdate`. The major difference is that our rolling update examples did not specify any delay. If they did, and if we had five replicas, the output would be almost the same.
+
+As you might have guessed, we would not go into trouble of setting up `Canary` deployments if their behavior is the same as with the `RollingUpdate` strategy. There's much more going on and to better see the other effects, we'll have to go back to the first terminal.
+
+Leave the loop running and go back to the **first terminal** 
+
+Let's see which Pods do we have in the staging Namespace.
 
 ```bash
-# Go back to the first terminal when approx 50% of requests are from the new release
-
 kubectl \
     --namespace $NAMESPACE-staging \
     get pods
 ```
 
+The output is as follows.
+
 ```
-NAME                                    READY   STATUS    RESTARTS   AGE
-jx-go-demo-6-68f6ff77cb-rqkk8           2/2     Running   0          116s
-jx-go-demo-6-db-arbiter-0               1/1     Running   0          6m58s
-jx-go-demo-6-db-primary-0               1/1     Running   0          6m54s
-jx-go-demo-6-db-secondary-0             1/1     Running   0          6m54s
-jx-go-demo-6-primary-7d5755576c-6kjjv   2/2     Running   0          6m54s
-jx-go-demo-6-primary-7d5755576c-9wsqw   2/2     Running   1          6m54s
-jx-go-demo-6-primary-7d5755576c-c7xv6   2/2     Running   1          6m54s
+NAME                        READY STATUS  RESTARTS AGE
+jx-go-demo-6-...            2/2   Running 0        116s
+jx-go-demo-6-db-arbiter-0   1/1   Running 0        6m58s
+jx-go-demo-6-db-primary-0   1/1   Running 0        6m54s
+jx-go-demo-6-db-secondary-0 1/1   Running 0        6m54s
+jx-go-demo-6-primary-...    2/2   Running 0        6m54s
+jx-go-demo-6-primary-...    2/2   Running 1        6m54s
+jx-go-demo-6-primary-...    2/2   Running 1        6m54s
 ```
 
-Now Jenkins X will update the GitOps production environment repository to the new version by creating a pull request to change the version. After a little bit it will deploy the new version Helm chart that will update the `deployment.apps/jx-go-demo-6` object in the `jx-production` environment.
+Assuming that the process did not yet finish, excluding `jx-go-demo-6-db` Pods, we should see that besides the `jx-go-demo-6-primary` we also got `jx-go-demo-6` (without `-primary`). If you take a closer loop at the `AGE` you should notice that all the Pods were created a while ago except `jx-go-demo-6`. That's the new release and we'll call it "canary Pod". Flagger has both running during the deployment process. Initially, all traffic was being sent to the `primary` Pods. But, when the deployment process was initiated, `VirtualService` started sending traffic to one or another, depending on the iteration and the `stepWeight`. To be more precise, the percentage of requests being sent to the new release is equivalent to the iteration multiplied with `stepWeight`. Behind the scenes, Flagger is updating Istio `VirtualService` with the percentage of requests that should be sent to one group of Pods or another. To be more accurate, it is updating `VirtualService` telling it how many requests should go to the Service associated with primary and how many should go to the one associated with "canary" Pods.
 
-Flagger will detect this deployment change update the Istio `VirtualService` to send 10% of the traffic to the new version service `service/jx-go-demo-6` while 90% is sent to the previous version `service/jx-go-demo-6-primary`. We can see this Istio configuration with `kubectl -n jx-production get virtualservice/jx-go-demo-6 -o yaml` under the http route weight parameter.
+Let's take a closer look at the `VirtualService`.
+
+I> Your outputs will probably differ from mine depending on the deployment iteration (stage) you're in right now. Follow my explanations of the output even if they are not the same as what you'll see on the screen.
 
 ```bash
 kubectl \
@@ -1670,24 +1509,10 @@ kubectl \
     --output yaml
 ```
 
+The output, limited to the relevant parts, is as follows.
+
 ```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  creationTimestamp: "2019-08-16T23:16:34Z"
-  generation: 1
-  name: jx-go-demo-6
-  namespace: cd-staging
-  ownerReferences:
-  - apiVersion: flagger.app/v1alpha3
-    blockOwnerDeletion: true
-    controller: true
-    kind: Canary
-    name: jx-go-demo-6
-    uid: dee033ef-c07b-11e9-9aa4-42010a8e00b0
-  resourceVersion: "39679"
-  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/cd-staging/virtualservices/jx-go-demo-6
-  uid: e38d47b2-c07b-11e9-9aa4-42010a8e00b0
+...
 spec:
   gateways:
   - jx-gateway.istio-system.svc.cluster.local
@@ -1704,187 +1529,74 @@ spec:
       weight: 60
 ```
 
-We can test this by accessing our application using the dns we previously created for the Istio gateway. For instance running `curl "http://go-demo-6.${ISTIO_IP}.nip.io/demo/hello"` will give us the response from the previous version around 90% of the times, and the current version the other 10%.
+The interesting part is the `spec`. In it, besides, the `gateways` and the `hosts` is `http` with two `routes`. The first one points to `jx-go-demo-6-primary` which is the old release. Currently, at least in my case, it has the `weight` of `40`. That means that the `primary` (the old) release is currently receiving forty percent of requests. On the other hand, the rest of sixty percent is going to the `jx-go-demo-6-canary` (the new) release. Gradially, Flagger was increasing the `weight` of `canary` and decreasing the `primary` thus gradually shifting more and more requests from the old to the new release. Still, so far all that looks just a "fancy" way to accomplish what rolling updates are already doing. If that's the thought that's passing through your head, soon you'll see that there's so much more.
 
-Describing the canary object will also give us information about the deployment progress.
-
-```bash
-kubectl \
-    --namespace $NAMESPACE-staging \
-    get ing
-```
-
-```
-NAME        HOSTS                                        ADDRESS          PORTS   AGE
-go-demo-6   go-demo-6.cd-staging.35.237.194.237.nip.io   35.237.194.237   80      103m
-```
+An easier and more concise way to see the progress is to retrieve the `canary` resource.
 
 ```bash
-# TODO: We should probably remove the Ingress. Is there a reason for its existence?
-
 kubectl -n $NAMESPACE-staging \
     get canary
 ```
 
+The output is as follows.
+
 ```
-NAME           STATUS       WEIGHT   LASTTRANSITIONTIME
-jx-go-demo-6   Progressing  60       2019-08-16T23:24:03Z
+NAME         STATUS      WEIGHT LASTTRANSITIONTIME
+jx-go-demo-6 Progressing 60     2019-08-16T23:24:03Z
 ```
+
+In my case, the process was still `progressing` and, so far, it reached `60` percent. In your case, the `weight` is likely different or the `status` might be `succeeded`. In the latter case, the process is finished successfully and all the requests are now going to the new release. The deployment rolled out fully.
+
+If we describe that `canary` resource, we can get more insight into the process by observing the events.
 
 ```bash
-# The status will be `Succeeded` when finished
-
 kubectl \
     --namespace $NAMESPACE-staging \
     describe canary jx-go-demo-6
 ```
 
-```yaml
-Name:         jx-go-demo-6
-Namespace:    cd-staging
-Labels:       jenkins.io/chart-release=jx
-              jenkins.io/namespace=cd-staging
-              jenkins.io/version=8
-Annotations:  jenkins.io/chart: env
-              kubectl.kubernetes.io/last-applied-configuration:
-                {"apiVersion":"flagger.app/v1alpha2","kind":"Canary","metadata":{"annotations":{"jenkins.io/chart":"env"},"labels":{"jenkins.io/chart-rele...
-API Version:  flagger.app/v1alpha3
-Kind:         Canary
-Metadata:
-  Creation Timestamp:  2019-08-16T23:16:26Z
-  Generation:          1
-  Resource Version:    40026
-  Self Link:           /apis/flagger.app/v1alpha3/namespaces/cd-staging/canaries/jx-go-demo-6
-  UID:                 dee033ef-c07b-11e9-9aa4-42010a8e00b0
-Spec:
-  Canary Analysis:
-    Interval:    30s
-    Max Weight:  70
-    Metrics:
-      Interval:               120s
-      Name:                   request-success-rate
-      Threshold:              99
-      Interval:               120s
-      Name:                   request-duration
-      Threshold:              500
-    Step Weight:              20
-    Threshold:                5
-  Progress Deadline Seconds:  60
-  Provider:                   istio
-  Service:
-    Gateways:
-      jx-gateway.istio-system.svc.cluster.local
-    Hosts:
-      staging.go-demo-6.34.73.8.113.nip.io
-    Port:  8080
-  Target Ref:
-    API Version:  apps/v1
-    Kind:         Deployment
-    Name:         jx-go-demo-6
-Status:
-  Canary Weight:  0
-  Conditions:
-    Last Transition Time:  2019-08-16T23:24:33Z
-    Last Update Time:      2019-08-16T23:24:33Z
-    Message:               Canary analysis completed successfully, promotion finished.
-    Reason:                Succeeded
-    Status:                True
-    Type:                  Promoted
-  Failed Checks:           0
-  Iterations:              0
-  Last Applied Spec:       1289860333710986770
-  Last Promoted Spec:      1289860333710986770
-  Last Transition Time:    2019-08-16T23:24:33Z
-  Phase:                   Succeeded
-  Tracked Configs:
+The output, limited to the `events` initited by the latest deployment, is as follows.
+
+```
+...
 Events:
-  Type     Reason  Age    From     Message
-  ----     ------  ----   ----     -------
-  Warning  Synced  8m31s  flagger  Halt advancement jx-go-demo-6-primary.cd-staging waiting for rollout to finish: 0 of 3 updated replicas are available
-  Normal   Synced  8m2s   flagger  Initialization done! jx-go-demo-6.cd-staging
-  Normal   Synced  3m32s  flagger  New revision detected! Scaling up jx-go-demo-6.cd-staging
-  Normal   Synced  3m2s   flagger  Starting canary analysis for jx-go-demo-6.cd-staging
-  Normal   Synced  3m2s   flagger  Advance jx-go-demo-6.cd-staging canary weight 20
-  Normal   Synced  2m32s  flagger  Advance jx-go-demo-6.cd-staging canary weight 40
-  Normal   Synced  2m2s   flagger  Advance jx-go-demo-6.cd-staging canary weight 60
-  Normal   Synced  92s    flagger  Advance jx-go-demo-6.cd-staging canary weight 80
-  Normal   Synced  92s    flagger  Copying jx-go-demo-6.cd-staging template spec to jx-go-demo-6-primary.cd-staging
-  Normal   Synced  62s    flagger  Routing all traffic to primary
-  Normal   Synced  32s    flagger  (combined from similar events): Promotion completed! Scaling down jx-go-demo-6.cd-staging
+  Type    Reason Age   From    Message
+  ----    ------ ----  ----    -------
+...
+  Normal  Synced 3m32s flagger New revision detected! Scaling up jx-go-demo-6.cd-staging
+  Normal  Synced 3m2s  flagger Starting canary analysis for jx-go-demo-6.cd-staging
+  Normal  Synced 3m2s  flagger Advance jx-go-demo-6.cd-staging canary weight 20
+  Normal  Synced 2m32s flagger Advance jx-go-demo-6.cd-staging canary weight 40
+  Normal  Synced 2m2s  flagger Advance jx-go-demo-6.cd-staging canary weight 60
+  Normal  Synced 92s   flagger Advance jx-go-demo-6.cd-staging canary weight 80
+  Normal  Synced 92s   flagger Copying jx-go-demo-6.cd-staging template spec to jx-go-demo-6-primary.cd-staging
+  Normal  Synced 62s   flagger Routing all traffic to primary
+  Normal  Synced 32s   flagger Promotion completed! Scaling down jx-go-demo-6.cd-staging
 ```
 
-Every 10 seconds 10% more traffic will be directed to our new version if the metrics are successful. Note that we had to generate some traffic (with the curl loop above) otherwise Flagger will assume something is wrong with our deployment that is preventing traffic and will automatically roll back.
+If the last event is not `Promotion completed`, please wait for a while longer for the process too finish and re-run the `kubectl describe` command.
+
+We can see the it started by Flagger detecting that there is a new `revision` (a new release) and that it started scaling the application. A while later, it started the analysis that coonsists in evaluations of the metrics (`request-success-rate` and `request-duration`) and the thresholds we defined earlier. Further on, we can see that it was increasing the weight every thirty seconds, until it reached `80` percent. That number is important given that it is the first iteration with the `weight` equal to or above the `maxWeight` weight which we set to `70` perccent. After that it did not wait for another thirty seconds. Instead, it replaced the definition of the `primary` template to the one used for `canary`. From that moment on, the `primary` was updated to the new release and all the traffic is being routed to it. Finally, the last event was the message that the `promotion` was `completed` and that the `canary` (`jx-go-demo-6.cd-staging`) was scaled down to zero replicas.
+
+We finally found a big different between `Canary` and `RollingUpdate` deployments. That difference was in evaluation of the metrics as a way too decide whether to proceed or not with the rollout. Given that everything worked correctly. We are yet to see what would happen if one of metrics reached a threshold.
+
+We're finished exploring the happy path and we can just as well stop the loop. There's no need, for now, to continue sending requests. But, before we do that, I should explain that there was a  reason for the loop besides the obvious need to see the progress.
+
+If we were not sending requests to the application, there would be no metrics to collect. In such a case, Flagger would think that there's something fishy with the new release. Maybe it was soo bad that no one could send a request to our application. Or maybe there was some other reason. In any case, lack of metrics used to validate the release is considered a problem. Given that, for now, we wanted to see the happy path with the new release fully rolled out, the stream of requests was there to ensure that there are sufficient metrics for Flagger to say "everything's fine, let's move on."
+
+With that out of the way, please go back to the **second terminal**, stop the loop by pressing *ctrl+c*, and go back again to the **first terminal**.
+
+Next, we'll see how does "unhappy" path look like.
+
+## Automated Rollbacks With Canary Deployments
+
+Here's the good news. Flagger will automatically roll back if any of the metrics we set fails the number of times set as the `threshold` configuration option. Similarly, it will roll back if there are no metrics.
+
+In our case, there are at least three ways we can run an example that would result in a roll back. We could start sending requests that would generate errors until we reach the `threshold` of the `request-success-rate` metric. Or we can create some slow requests so that `request-duration` is messed up (above `500` milliseconds). Finally, we could not send any request and force Flagger to interprete lack of metrics as an issue. There's probably no point in running exercises that would demonstrate all three cases, so we'll pick one. We'll send requests that will produce HTTP errors.
+
+The *go-demo-6* app already has the end-point `/demo/random-error` that will generate errors randomly, one for every ten requests on average. Just as with the happy path, we'll change the message so that we can see easily which release is running.
 
 ```bash
-# Wait until the event `Promotion completed! Scaling down jx-go-demo-6.cd-staging` appears
-
-# Go back to the second terminal
-
-# Stop with *ctrl+c*
-
-# Go back to the first terminal
-```
-
-## Automated Rollbacks
-
-Flagger will automatically rollback if any of the metrics we set fail the number of times set on the threshold configuration option, or if there are no metrics, as Flagger assumes something is very wrong with our application.
-
-Let's show what would happen if we promote to production the previous version with no traffic.
-
-```bash
-# # NOTE: Make sure that some time passed (e.g., 15 min), otherwise it will get the old metrics and think that the requests are coming in
-
-# cat main.go | sed -e \
-#     "s@hello, progressive@hello, no one@g" \
-#     | tee main.go
-
-# cat main_test.go | sed -e \
-#     "s@hello, progressive@hello, no one@g" \
-#     | tee main_test.go
-
-# git add .
-
-# git commit \
-#     -m "Added progressive deployment"
-
-# git push
-
-# jx get activities \
-#     --filter go-demo-6 \
-#     --watch
-
-# # Press *ctrl+c* when the activity is finished
-
-# jx get activities \
-#     --filter environment-tekton-staging/master \
-#     --watch
-
-# # Press *ctrl+c* when the activity is finished
-
-# # Not sending any requests
-
-# # After a few minutes
-
-# kubectl -n $NAMESPACE-staging \
-#     get canary
-```
-
-Now let's try again and show what happens when the application returns http errors.
-
-NOTE: as the time of writing `jx get applications` will show versions that are out of sync from the ones actually deployed after a promotion failure. You can see the versions actually deployed with `kubectl -n jx-production get deploy -o wide`. For that same reason you can't try to immediately promote again a version that was rolled back by Flagger, as that version is already the one in the GitOps environment repo and will not trigger any deployment because there are no changes to the git files.
-
-
-```bash
-# kubectl \
-#     --namespace $NAMESPACE-staging \
-#     get pods
-
-# curl "$STAGING_ADDR/demo/hello"
-
-# # Wait until it rolls back
-
-# curl "$STAGING_ADDR/demo/hello"
-
 cat main.go | sed -e \
     "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
     | tee main.go
@@ -1892,24 +1604,22 @@ cat main.go | sed -e \
 cat main_test.go | sed -e \
     "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
     | tee main_test.go
+```
 
+Now we can push the change so that it is picked by Jenkins X and deployed to staging.
+
+```bash
 git add .
 
 git commit \
     -m "Added progressive deployment"
 
 git push
+```
 
-# jx get activities \
-#     --filter go-demo-6 \
-#     --watch
+Go to the **second terminal** and execute the command that follows.
 
-# jx get activities \
-#     --filter environment-tekton-staging/master \
-#     --watch
-
-# NOTE: Go to the second terminal
-
+```bash
 while true
 do
     curl "$STAGING_ADDR/demo/random-error"
@@ -1917,87 +1627,15 @@ do
 done
 ```
 
-```
-...
-ERROR: Something, somewhere, went wrong!
-Everything is still OK with progressive delivery
-Everything is still OK
-Everything is still OK
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK
-ERROR: Something, somewhere, went wrong!
-Everything is still OK
-Everything is still OK
-Everything is still OK
-Everything is still OK
-Everything is still OK
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK with progressive delivery
-Everything is still OK
-...
-```
+Just as before, we created a never-ending loop that sends requests to the application. The only difference is that now we're targeting the `/demo/random-error` endpoint which, as we already explained, generates on average one faulty response for every ten requests.
 
-```bash
-# NOTE: Go to the first terminal while in progress
+At the beginning, before the deployment of the new release starts, most of the messages will be `Everything is still OK` with occasional `ERROR: Something, somewhere, went wrong!` When the first iteration of canary kicks in, `Everything is still OK` will start alternating with `Everything is still OK with progressive delivery`. There's nothing new there. The system, so far, behaves in the same way as it did before by increasing the reach of the new release by twenty percent every thirty seconds.
 
-kubectl \
-    --namespace $NAMESPACE-staging \
-    get virtualservice.networking.istio.io \
-    jx-go-demo-6 \
-    --output yaml
-```
+We are not sending the requests as a way to see how it rolls out. We already know that. The real reason for the current loop of requests is to see what happens when one of the metrics thresholds is reached. We'll leave the loop running and producing some errored responses.
 
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  creationTimestamp: "2019-08-16T23:16:34Z"
-  generation: 1
-  name: jx-go-demo-6
-  namespace: cd-staging
-  ownerReferences:
-  - apiVersion: flagger.app/v1alpha3
-    blockOwnerDeletion: true
-    controller: true
-    kind: Canary
-    name: jx-go-demo-6
-    uid: dee033ef-c07b-11e9-9aa4-42010a8e00b0
-  resourceVersion: "56484"
-  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/cd-staging/virtualservices/jx-go-demo-6
-  uid: e38d47b2-c07b-11e9-9aa4-42010a8e00b0
-spec:
-  gateways:
-  - jx-gateway.istio-system.svc.cluster.local
-  hosts:
-  - staging.go-demo-6.34.73.8.113.nip.io
-  - jx-go-demo-6
-  http:
-  - route:
-    - destination:
-        host: jx-go-demo-6-primary
-      weight: 40
-    - destination:
-        host: jx-go-demo-6-canary
-      weight: 60
-```
+Please switch back to the **first terminal**.
 
-```bash
-kubectl -n $NAMESPACE-staging \
-    get canary
-```
-
-```
-NAME           STATUS        WEIGHT   LASTTRANSITIONTIME
-jx-go-demo-6   Progressing   60       2019-08-17T00:21:33Z
-```
+I'll skip showing you the Istio `VirtualService` and we'll jump straight into the events of the `canary` resource.
 
 ```bash
 kubectl \
@@ -2005,66 +1643,86 @@ kubectl \
     describe canary jx-go-demo-6
 ```
 
+The output, limited to the relevant parts, is as follows.
+
 ```
+Events:
+  Type    Reason Age   From    Message
+  ----    ------ ----  ----    -------
 ...
-  Warning  Synced  3m17s  flagger  Halt jx-go-demo-6.jx-staging advancement success rate 90.09% < 99%
-  Warning  Synced  2m47s  flagger  Halt jx-go-demo-6.jx-staging advancement success rate 88.57% < 99%
-  Warning  Synced  2m17s  flagger  Halt jx-go-demo-6.jx-staging advancement success rate 91.49% < 99%
-  Warning  Synced  107s   flagger  Halt jx-go-demo-6.jx-staging advancement success rate 96.00% < 99%
-  Warning  Synced  77s    flagger  Halt jx-go-demo-6.jx-staging advancement success rate 87.72% < 99%
-  Warning  Synced  47s    flagger  Canary failed! Scaling down jx-go-demo-6.jx-staging
-  Warning  Synced  47s    flagger  Rolling back jx-go-demo-6.jx-staging failed checks threshold reached 5
+  Warning Synced 3m17s flagger Halt jx-go-demo-6.jx-staging advancement success rate 90.09% < 99%
+  Warning Synced 2m47s flagger Halt jx-go-demo-6.jx-staging advancement success rate 88.57% < 99%
+  Warning Synced 2m17s flagger Halt jx-go-demo-6.jx-staging advancement success rate 91.49% < 99%
+  Warning Synced 107s  flagger Halt jx-go-demo-6.jx-staging advancement success rate 96.00% < 99%
+  Warning Synced 77s   flagger Halt jx-go-demo-6.jx-staging advancement success rate 87.72% < 99%
+  Warning Synced 47s   flagger Canary failed! Scaling down jx-go-demo-6.jx-staging
+  Warning Synced 47s   flagger Rolling back jx-go-demo-6.jx-staging failed checks threshold reached 5
 ```
+
+I> If the last event in your output does not state that it is `rolling back`, please give it a bit more time. Wait for a few moments and release the `kubectl describe` command.
+
+We can see that, at some point, we got a message stating that it halted the `advancement` of `jx-go-demo-6.jx-staging` because the `success rate` is below the predefined threshold of `99%`. Now, you'll notice that the first failure only halted the advancement, nothing else. It took four more such events, separated by the `30s` interval until the `canary` deployment was declared as `failed`. The reason for a total of five halts lies in the `threshold` we set to `5`. If we'd fail on the first sign of trouble, there would be a high chance that we aborted the rollout due to a temporary issue or a glitch. As it is now, the same metric needs to continue being outside the threshold for over two and a half minutes (`5` x `30s`) for the system to consider it a total failure.
+
+The second to last event shows us that it scaled down `jx-go-demo-6.jx-staging` so only the `primary` Pods are left alive. Those are the Pods of the old release.
+
+Finally, the last message tells us that it started `rolling back` because of the `failed checks threshold` that `reached 5`. What that really means is that it reconfigured Istio `VirtualService` to forward all the requests to the `primary` release. In other words, it reverted the `VirtualService` to what we had before the deployment start. As a matter a fact, every time a `Canary` deployment is finished, the `VirtualService` is configured to send all the requests to `primary` Pods. The major difference between a successfull and a failed (rolled back) deployment is whether the primary Pods were changed to use the new release or not. The real magic is in the process happening during the deployment, not afterwards.
+
+Please go back to the **second terminal**.
+
+You'll see that all the messages are now `Everything is still OK` or `ERROR`. There is no trace of `Everything is still OK with progressive delivery`. The application was indeed rolled back to the previous release.
+
+Please stop the loop by pressing *ctrl+c* and go back to the **first terminal**.
+
+Istio can do sooooooo much more than what you just saw. Canary deployments alone can be tweaked to infinity to provide just the process you need. For example, you could send requests only to users in certain region. Or you could use many other options to specify who will see your new release before the others. Similarly, we could use many other metrics and the only "real" limitation is that, at least in our setup, it must exist in Prometheus. If infinite combinations we could employ with canary deployments are not enough, we could just as well tell Flagger that we want it to use the blue-green strategy instead.
+
+The real question is whether you should use Istio service mesh or one of the alternatives like Gloo or Linkerd or something completely different. You're the only one who can answer that question and, for that, you'll need to explore those tools in more depth somewhere else since they are not the focus of this book. All I can do is provide a few quick notes.
+
+Istio is a monster, and that can be both a good and a bad thing. It provides a vast amount of features, but it is also heavy, relatively slow, and it can be complicated to use. On the other hand, today (August 2019) it is the most widely adopted solution and that's a big bonus given that means that it is preinstalled on many Kubernetes distributions and that it has a huge number of contributors. What you should do is evaluate at least the three solutions I already mentioned (Istio, Gloo, and Linkerd) and familiarize with service meshes. Remember, what you just saw is only a fraction of what Istio or other service mesh technologies provide.
+
+Before we move on, there are a few more things worth mentioning.
+
+When Flagger rolls back a deployment, `jx get applications` will still show the latest release, not the one the system rolled back to.
+
+Finally, I will not show you how to implement canary deployments in production given that it follows the same logic as staging. All you'd really need to do is to set the `go-demo-6.canary.enable` variable to `true` inside the `values.yaml` file in the production environment repository.
+
+The last piece of the puzzle is to figure out how to visualize canary deployments.
+
+## Visualizing Rollouts Of Canary Deployments
+
+Jenkins X Flagger addon includes a Grafana dashboard that we can use to see metrics related to canary deployments visually. However, there is a tiny problem. Grafana Ingress was not created so, for now, its UI is not accessible. We'll fix that easily by creating an Ingress pointing to the Grafana service. For that, first we need to find out the IP of the Ingress controller.
+
+Please note that the commands that follow will differ depending on whether you are using EKS or some other Kubernetes provider.
+
+W> Please run the command that follows only if you are **NOT** using **EKS** (e.g., **GKE**, **AKS**, etc.).
 
 ```bash
-# NOTE: Go to the second terminal
-```
-
-```
-...
-Everything is still OK
-Everything is still OK
-Everything is still OK
-Everything is still OK
-ERROR: Something, somewhere, went wrong!
-Everything is still OK
-ERROR: Something, somewhere, went wrong!
-...
-```
-
-```bash
-# Stop with *ctrl+c*
-
-# Go back to the first terminal
-```
-
-## Visualizing the Rollout
-
-Flagger includes a Grafana dashboard where we can visually see metrics in our canary rollout process. By default is not accessible, so we need to create an ingress object pointing to the Grafana service running in the cluster.
-
-```bash
-# If not EKS
 LB_IP=$(kubectl \
     --namespace kube-system \
     get svc jxing-nginx-ingress-controller \
     -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+```
 
-# If EKS
+W> Please run the commands that follow only if you are using **EKS**.
+
+```bash
 LB_HOST=$(kubectl \
-    --namespace istio-system \
-    get service istio-ingressgateway \
+    --namespace kube-system \
+    get svc jxing-nginx-ingress-controller \
     --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-# If EKS
 export LB_IP="$(dig +short $LB_HOST \
     | tail -n 1)"
+```
 
+Finally, you might not be using Ingress controlled installed by Jenkins X. For example, you might be using the "official" nginx Ingress (the one from Jenkins X is a variation of it). If that's the case, you'll have to modify the command(s) to fit your situation.
+
+Now matter how we retrieved the IP of the external load balancer, we'll output it as a way to have a visual confirmation that it looks OK.
+
+```bash
 echo $LB_IP
 ```
 
-```
-35.237.194.237
-```
+Now that we have the IP, we can create the missing Ingress.
 
 ```bash
 echo "apiVersion: extensions/v1beta1
@@ -2085,30 +1743,23 @@ spec:
 " | kubectl create -f -
 ```
 
-```
-ingress.extensions/flagger-grafana created
-```
+With Ingress defined, we can, finally, open Grafana UI.
 
 ```bash
 open "http://flagger-grafana.$LB_IP.nip.io"
 ```
 
-Then we can access Grafana at `http://flagger-grafana.jx.$PROD_IP.nip.io/d/flagger-istio/istio-canary?refresh=5s&orgId=1&var-namespace=jx-production&var-primary=jx-go-demo-6-primary&var-canary=jx-go-demo-6` using `admin/admin` credentials.
-If not displayed directly, we should go to the `Istio Canary` dashboard and select
+Just as Istio is not the main subject of this book, neither is Grafana. So, we won't go into details. I expect you to figure them out yourself. Instead, we'll just take a quick look at the predefined Flagger dashboard.
 
-* namespace: `jx-staging`
-* primary: `jx-go-demo-6-primary`
-* canary: `jx-go-demo-6`
+Please select *Dashboards* from the left-hand menu, click the *Manage* button, and select *Istio Canary*,
 
-to see metrics side by side of the previous version and the new version, such as request volume, request success rate, request duration, CPU and memory usage,...
+Lo and behold, the dashboard is in front of us and I'll leave you to explore it. But, before I go, please note that in order to visualize the process, you should make yet another change to the source code, push it to GitHub, and wait until the pipeline-initiated canary deployment start. From there on, please select `cd-staging` or `jx-staging` as the *namespace*, choose `jx-go-demo-6-primary` as *primary* and `jx-go-demo-6` as *canary*. Now you should be able to visualize the process.
 
-NOTE: We should change the production environment as well
+![Figure 17-TODO: TODO:](images/ch17/canary-grafana.png)
 
 ## What Now?
 
-TODO: Viktor: Rewrite
-
-Now is a good time for you to take a break.
+This was a long chapter and you deserve a break.
 
 If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
 
