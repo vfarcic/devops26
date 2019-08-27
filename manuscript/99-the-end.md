@@ -20,7 +20,7 @@ A few rose above the crowd.
 
 In his own words...
 
-TODO: Write a bio here. Change the text above if there's anything to add/remove/change.
+*I have been working for over 15 years in software automation, from build tools to Continuous Delivery and Progressive Delivery. In all this time I have been involved in Open Source, as a member of the Apache Software Foundation and contributing to a variety of popular projects such as Apache Maven or Jenkins. As I started playing with Kubernetes during its early days I created the [Jenkins Kubernetes plugin](https://github.com/jenkinsci/kubernetes-plugin), and recently started the [Progressive Delivery and Canary deployment implementation for Jenkins X](https://jenkins-x.io/developing/progressive-delivery/).*
 
 **Joost van der Griendt** is one of those people that embrace a challenge wholeheartedly. We worked together for the same customer and quickly established a great relationship. From there on, he started helping me with discussions and advice on the subjects I worked on. Later on, he began contributing to this book. At times he was so proactive and helpful that I could not keep up with his pull requests. Just when I would think that I'm done for the day, I'd see a new pull request with more questions, changes, additions, and corrections.
 
