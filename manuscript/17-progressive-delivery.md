@@ -22,11 +22,11 @@
 
 # Choosing The Right Deployment Strategy
 
-I> This chapter is co-authored by Carlos Sanchez.
+I> This chapter is co-authored by **Carlos Sanchez**.
 
-W> The examples in this chapter work with any Jenkins X flavor (static or serverless) and with any hosting vendor (e.g., AWS, AKS, GKE, on-prem, etc.).
+W> The examples in this chapter should work with any Jenkins X flavor (static or serverless) and with any hosting vendor (e.g., AWS, AKS, GKE, on-prem, etc.).
 
-So far, we performed many deployments of our releases. All those created from master branches were deployed to the staging environment and a few reached production through manual promotions. Nevertheless, with exception of serverless deployments with Knative, we did not have a say in how an application is deployed. We just assumed that the default method employed by Jenkins X is the correct one. As it happens, the default deployment process used by Jenkins X happens to be the default or, to be more precise, the most commonly used deployment process in Kubernetes. However, that does not necessarily mean that the default deployment is the right deployment for all your applications.
+So far, we performed many deployments of our releases. All those created from master branches were deployed to the staging environment and a few reached production through manual promotions. Nevertheless, with exception of serverless deployments with Knative, we did not have a say in how an application is deployed. We just assumed that the default method employed by Jenkins X is the correct one. As it happens, the default deployment process used by Jenkins X happens to be the default or, to be more precise, the most commonly used deployment process in Kubernetes. However, that does not necessarily mean that the default deployment is the right one for all our applications.
 
 For many people, deploying applications is transparent or even irrelevant. If you are a developer, you might be focused on writing code and allowing magic to happen. By magic, I mean letting other people and departments figuring out how to deploy your code. Similarly, you might be oblivious to deployments if you are a tester or you have some other role not directly related to system administration, operations, or infrastructure. Now, I doubt that you are one of the oblivious. The chances are that you would not be even reading this if that's the case. If, against all chances, you do belong to the deployment-is-not-my-thing group, the only thing I can say is that you are terribly wrong.
 
@@ -1685,7 +1685,39 @@ When Flagger rolls back a deployment, `jx get applications` will still show the 
 
 Finally, I will not show you how to implement canary deployments in production given that it follows the same logic as staging. All you'd really need to do is to set the `go-demo-6.canary.enable` variable to `true` inside the `values.yaml` file in the production environment repository.
 
-The last piece of the puzzle is to figure out how to visualize canary deployments.
+## To Canary Or Not To Canary?
+
+We saw one possible implementation of canary deployments with Flagger, Istio, and Prometheus. As we discussed, we could have used other tools and we could have as well created more complex formulas used to decide whether to proceed or roll back a release. Now the time has come to evaluate canary deployments and see how they fit the requirements we defined initially.
+
+Canary deployments are, in a way, an extension of rolling updates. As such, some of the requirements fullfilled by one are fullfilled by the other.
+
+The deployments we did using canary strategy were highly available. The process itself could be qualified as rolling updates on steroids. New releases are initially being rolled out to a fraction of users and, over time, we were increasing the reach of the new release until all requests were going there. From that perspective, there was no substantial difference between rolling updates and canary releases. However, the process behind the scenes was different.
+
+While rolling updates are increasing the number of Pods of the new release and decreasing those from the old, canaries are leaving the old release untouched. Instead, a new Pod (or a set of Pods) is spin up and service mesh (e.g., Istio) is making sure to redirect some requests to the new and others to the old release. While rolling updates are becoming available to users by changing how many Pods of the new release are available, canaries are accomplishing the same result through networking. As such, canaries allow us to have much greater control over the process.
+
+Given that with canary deployments we are in control over who sees what, we can fine tune it to meet our precise needs. We are less relying on chance and more on instructions we're giving to Flagger. That allows us to create more complicated calculations like, for example, allow only people from one country to see the new release, check their reactions, and decide whether to proceed with the rollout or not.
+
+All in all, with canary deployments, we have as much high-availability as with rolling updates. Given that our applications are running in multiple replicas and that we can just as easily use HorizontalPodAutoscaler or any other Kubernetes resource type, canary deployments make our applications as responsive as rolling updates.
+
+Where canary deployments truly shine and make a huge difference is in progressive rollout. While, as we already mentioned, rolling updates give us that feature as well, the additional control the process makes canary deployments true progressive rollout.
+
+On top of all that, canary deployments were the only ones that had a built-in mechanism to roll back. While we could extend our pipelines to run tests during and after the deployment and roll back if they fail, the synergy provided by canary deployments is truly stunning. The process itself decides whether to roll forward, to temporarily halt the process, or to roll back. Such tight integration provides benefits which would require considerable effort to implement with the other deployment strategies. I cannot say that only canary deployments allow us to roll back automatically, but that it is the only deployment strategy that we explored that has rollbacks integrated into the process. And that should come as no surprise. Given that canary deployments rely on using a defined set of rules to decide when to progress with rollouts, it would be strange if the oposite is not true. If a machnine can decide when to move forward, it can just as well decide when to move back.
+
+Judging by our requirements, the only area where the `Canary` deployment strategy is not as good or better than any other is cost efectiveness. If we want to save on resources, serverless deployments are in most cases the best option. Not only that serverless but also rolling updates are cheaper than canaries. With rolling updates, we replace one Pod at the time (unless we specify differently). However, with `Canary` deployments we keep running the full old release throughout the whole process, and add the new one in parallel. In that aspect, canaries are similar to blue-green deployments, except that we do not need to duplicate everything. Running a fraction (e.g., one) of the Pods with the new release should be enough.
+
+All in all, canaries are expensive or, at least, more expensive than other strategies, excluding blue-green that we already discarded.
+
+The summary of the fullfillement of our requirements for the `Recreate` deployment strategy is as follows.
+
+|Requirement        |Fullfilled|
+|-------------------|----------|
+|High-availability  |Fully     |
+|Responsiveness     |Fully     |
+|Progressive rollout|Fully     |
+|Rollback           |Fully     |
+|Cost effectiveness |Not       |
+
+The last piece of the canary puzzle is to figure out how to visualize canary deployments.
 
 ## Visualizing Rollouts Of Canary Deployments
 
@@ -1756,6 +1788,34 @@ Please select *Dashboards* from the left-hand menu, click the *Manage* button, a
 Lo and behold, the dashboard is in front of us and I'll leave you to explore it. But, before I go, please note that in order to visualize the process, you should make yet another change to the source code, push it to GitHub, and wait until the pipeline-initiated canary deployment start. From there on, please select `cd-staging` or `jx-staging` as the *namespace*, choose `jx-go-demo-6-primary` as *primary* and `jx-go-demo-6` as *canary*. Now you should be able to visualize the process.
 
 ![Figure 17-TODO: TODO:](images/ch17/canary-grafana.png)
+
+## Which Deployment Strategy Should We Choose?
+
+We saw some of the deployment strategies. There are others and this chapter does not exclude you from exploring them. Please do that. Still, until you figure out all the other strategies and variations you can do, we accumulated enough material to talk about.
+
+So, can we conclude that canary deployments are the best and that everyone should use them for all the applications? Certainly not. To begin with, if an application is not eligible for rolling updates (e.g., single replica app), it is almost certainly not eligible for canary deployments. If we think of canaries as extensions of rolling updates, whomever does not fit the latter will also not fit the former. In other words, there is a good use case for using the `Recreate` strategy in some cases.
+
+So, if both `Canary` and `Recreate` strategies have their use cases, can we discard rolling updates and serverless?
+
+Rolling updates should, in most cases, we replaced with canary deployments. The applications eligible for one deployment strategy are eligible for the other, and canaries provide so much more. If nothing else, they give us a bigger safety net. The exceptions would be very small clusters serving very small teams. In those cases, the resource overhead added by a service mesh (e.g., Istio) and metrics collector and database (e.g., Prometheus) might be too much. Another advantage of rolling updates is simplicity. There are no additional components to install and manage, and there are no additional YAML files. Long story short, canary deployments could easily replace all your rolling updates as long as the cost (on resources and operations) is not too high.
+
+That leaves us with serverless (e.g., Knative). It would be hard for me to find a situation in which there is no use for serverless deployments. It has a fantastic scaling capabilities on its own that can be combined with HorizontalPodAutoscaler. It saves us money by shutting (almost) everything down when our applications are not in use. Knative ticks all the boxes and the only downside is the deployment process itself which is more elaborated with canaries. The only downside is that scaling from nothing to something can introduce a delay from user's perspective. Nevertheless, that is rarely a problem. If an application is unused for a long period, users rarely complain when they need to wait for an additional second or two to wake it up.
+
+So, we are in a situation where one solution (`Canary`) provides better capabilities for the deployment process itself, while the other (serverless) might be a better choice as a model for running applications. Ultimatelly, you'll need to make a choice. What matters more? Operational cost (use serverless) or deployment safety net (use canary).
+
+What is important though, is that it is not winner-takes-all type of decision. We can use `Recreate` with some applications, `RollingUpdate` with others, and so on. But it goes beyond choosing a single deployment strategy for a single application. Deployment types can differ from one environment to the other. Canaries, for example, are not a good choice for preview environments. All we'd get is increased time required to terminate the deployment process and potential failures due to the lack of metrics.
+
+Let's make a quick set of rules when to use one deployment strategy over the other. Bear in mind that what follows is not a comprehensive list but rather elevator pitch for each deployment type.
+
+Use the **recreate** strategy when working with legacy applications that often do not scale, that are stateful without replication, and are lacking other feautures that make them not cloud-native.
+
+Use the **rolling update** strategy with cloud-native applications which, for one reason or another, cannot use canary deployments.
+
+Use the **canary** strategy instead of **rolling update**, especially when you need the additional control when to roll forward and when to roll back.
+
+Use the **serverless** strategy in permanent environments when you need great scaling capabilities or when an application is not in constant use.
+
+Finally, use **serverless** strategy for all the deployments to preview environments, no matter which strategy you're using in staging and production.
 
 ## What Now?
 
