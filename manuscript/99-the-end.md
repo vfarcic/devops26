@@ -6,7 +6,7 @@ At the time of this writing (August 2019), Jenkins X is still in its early phase
 
 Assuming that you did not skip directly to this section, you read everything I know about Jenkins X, at least until a new feature comes along and I update the book. Now its up to you to implement it in your organization and put it to the only real test by running it in production. That is, if I managed to convince you that Jenkins X is the best way to implement continuous delivery inside your Kubernetes clusters.
 
-That being said, I'd love to get your point of view. Are you using Jenkins X? Did you create a custom build pack? How did you onboard teams? Any information about the way you use it and your experience with Jenkins X will help us improve the projecct. Please send me what you created. I want to see your processes and your pipelines. Even more, I'd love to work with you to publish them in a blog or as an appendix to this book. If you think you did something interesting, as I'm sure you did, please contact me on [DevOps20](http://slack.devops20toolkit.com/) Slack and show me what you created. **You learned from others, now it's time for others to learn from you.**
+That being said, I'd love to get your point of view. Are you using Jenkins X? Did you create a custom build pack? How did you onboard teams? Any information about the way you use it and your experience with Jenkins X will help us improve the project. Please send me what you created. I want to see your processes and your pipelines. Even more, I'd love to work with you to publish them in a blog or as an appendix to this book. If you think you did something interesting, as I'm sure you did, please contact me on [DevOps20](http://slack.devops20toolkit.com/) Slack and show me what you created. **You learned from others, now it's time for others to learn from you.**
 
 **I'm done explaining what I did, now it's your turn to share what you made.**
 
@@ -28,8 +28,8 @@ In his own words...
 
 *Joost started out a Java backend developer but found himself fascinated by developer productivity through tools like Jenkins and Maven. Inspired by Viktor's books and Workshops, he moved his attention to Docker, Cloud, and DevOps to the point where he joined CloudBees to help spread the knowledge.*
 
-**Darin Pope** was continually sending pull requests with corrections and suggestions. He made this book much clearer than it would be if I had to rely on my, often incorrect, assumptions of what readers expect. Without him, my "broken" English would be even more evident. Outside of the help with this book, we're hosting together[DevOps Paradox podcast](https://www.devopsparadox.com). Please check it out. 
+**Darin Pope** was continually sending pull requests with corrections and suggestions. He made this book much clearer than it would be if I had to rely on my, often incorrect, assumptions of what readers expect. Without him, my "broken" English would be even more evident. Outside of the help with this book, together we co-host [DevOps Paradox podcast](https://www.devopsparadox.com/). Please check it out. 
 
 In his own words...
 
-TODO: Write a bio here. Change the text above if there's anything to add/remove/change.
+*I started out working with MultiValue database platforms in the late 80s. Since that time, I've been fortunate to work with a lot of great clients and companies using numerous technologies. Said differently, I'm old and I've seen a lot. As we head into the new roaring 20s, I'm really looking forward to what the future holds, especially in the IoT space.*

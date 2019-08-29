@@ -14,7 +14,7 @@ Now, let's define some objectives.
 
 It would be silly to explore Jenkins X pipeline syntax in more depth using random and irrelevant examples. Instead, we'll define some real and tangible goals. It does not matter whether they fit your specific needs since the objective is for them to guide us in our effort to learn by producing concrete outcomes.
 
-Our next mission is to add code coverage reports, to ensure that functional tests are executed only after a release rolls out and that we build a version of our application binary for each of the popular operating systems (e.g., Windows, MacOS, and Linux). Now, you might think that those goals are useful, or you might feel that they are a waste of time given your context. But, our real objective is not to accomplish those goals. Instead, we are using them as an excuse to learn some additional constructs that might come in handy. They will force us to learn a few new things.
+Our next mission is to add code coverage reports, to ensure that functional tests are executed only after a release rolls out and that we build a version of our application binary for each of the popular operating systems (e.g., Windows, macOS, and Linux). Now, you might think that those goals are useful, or you might feel that they are a waste of time given your context. But, our real objective is not to accomplish those goals. Instead, we are using them as an excuse to learn some additional constructs that might come in handy. They will force us to learn a few new things.
 
 * We'll add names to pipeline steps
 * We'll learn how to define multi-line commands
@@ -23,7 +23,7 @@ Our next mission is to add code coverage reports, to ensure that functional test
 * We'll learn how to override pipelines, stages, and steps defined in build packs
 * We'll learn how to implement loops
 
-Those are only a fraction of what we could use. But, we need to start somewhere, and we have a set of improvements to our application that we'll be able to implement using the beforementioned concepts. Later on, it'll be up to you to expand your knowledge of pipeline constructs by exploring the other definitions we can use.
+Those are only a fraction of what we could use. But, we need to start somewhere, and we have a set of improvements to our application that we'll be able to implement using the aforementioned concepts. Later on, it'll be up to you to expand your knowledge of pipeline constructs by exploring the other definitions we can use.
 
 You might find those improvements useful as they are, or you might think of them as things you do not need. Both options are OK since the goal is not to show you how to add specific steps like code coverage, but rather to showcase some of the pipeline constructs that we might use in the context of our projects. All in all, focus on the value brought by additional pipeline instructions and not on examples I'll use to demonstrate how those constructs work.
 
@@ -493,7 +493,7 @@ Off we go to the next challenge.
 
 ## Overriding Pipelines, Stages, And Steps And Implementing Loops
 
-Our pipeline is currently building a Linux binary of our application before adding it to a container image. But what if we'd like to distribute the application also as executables for different operating systems? We could provide that same binary, but that would work only for Linux users since that is the architecture it is currently built for. We might want to extend the reach to Windows and MacOS users as well, and that would mean that we'd need to build two additional binaries. How could we do that?
+Our pipeline is currently building a Linux binary of our application before adding it to a container image. But what if we'd like to distribute the application also as executables for different operating systems? We could provide that same binary, but that would work only for Linux users since that is the architecture it is currently built for. We might want to extend the reach to Windows and macOS users as well, and that would mean that we'd need to build two additional binaries. How could we do that?
 
 Since our pipeline is already building a Linux executable through a step inherited from the build pack, we can add two additional steps that would build for the other two operating systems. But that approach would result in *go-demo-6* binary for Linux, and our new steps would, let's say, build *go-demo-6_Windows* and *go-demo-6_darwin*. That, however, would result in "strange" naming. In that context, it would make much more sense to have *go-demo-6_linux* instead of *go-demo-6*. We could add yet another step that would rename it, but then we'd be adding unnecessary complexity to the pipeline that would make those reading it wonder what we're doing. We could build the Linux executable again, but that would result in duplication of the steps.
 

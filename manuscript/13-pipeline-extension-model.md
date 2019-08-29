@@ -2,7 +2,7 @@
 
 W> The examples in this chapter work only with serverless Jenkins X.
 
-Jenkin X pipeline extension model is, in my opinion, one of the most exciting and innovative improvements we got with Jenkins X. It allows us to focus on what really matters in our projects and to ignore the steps that are common to others. Understanding the evolution of Jenkins pipelines is vital if we are to adopt the extension model. So, before we dive into extensions, we need to understand better how pipelines evolved over time.
+Jenkins X pipeline extension model is, in my opinion, one of the most exciting and innovative improvements we got with Jenkins X. It allows us to focus on what really matters in our projects and to ignore the steps that are common to others. Understanding the evolution of Jenkins pipelines is vital if we are to adopt the extension model. So, before we dive into extensions, we need to understand better how pipelines evolved over time.
 
 ## The Evolution Of Jenkins Jobs And How We Got To The YAML-Based jenkins-x.yml Format
 
