@@ -1,18 +1,19 @@
+
 ## TODO
 
 - [X] Code
 - [X] Write
 - [X] Code review static GKE
 - [X] Code review serverless GKE
-- [ ] Code review static EKS
+- [-] Code review static EKS
 - [X] Code review serverless EKS
 - [X] Code review static AKS
 - [X] Code review serverless AKS
 - [-] Code review existing static cluster
 - [-] Code review existing serverless cluster
-- [ ] Text review
-- [ ] Gist
-- [ ] Review titles
+- [X] Text review
+- [X] Gist
+- [X] Review titles
 - [ ] Proofread
 - [ ] Diagrams
 - [ ] Add to slides
@@ -22,76 +23,76 @@
 
 # Choosing The Right Deployment Strategy
 
-I> This chapter is co-authored by **Carlos Sanchez**.
+I> **Carlos Sanchez** co-authored this chapter.
 
 W> The examples in this chapter should work with any Jenkins X flavor (static or serverless) and with any hosting vendor (e.g., AWS, AKS, GKE, on-prem, etc.).
 
-So far, we performed many deployments of our releases. All those created from master branches were deployed to the staging environment and a few reached production through manual promotions. On top of those, we deployed quite a few release to preview environments. Nevertheless, with exception of serverless deployments with Knative, we did not have a say in how an application is deployed. We just assumed that the default method employed by Jenkins X is the correct one. As it happens, the default deployment process used by Jenkins X happens to be the default or, to be more precise, the most commonly used deployment process in Kubernetes. However, that does not necessarily mean that the default strategy is the right one for all our applications.
+So far, we performed many deployments of our releases. All those created from master branches were deployed to the staging environment, and a few reached production through manual promotions. On top of those, we deployed quite a few releases to preview environments. Nevertheless, except for serverless deployments with Knative, we did not have a say in how an application is deployed. We just assumed that the default method employed by Jenkins X is the correct one. As it happens, the default deployment process used by Jenkins X happens to be the default or, to be more precise, the most commonly used deployment process in Kubernetes. However, that does not necessarily mean that the default strategy is the right one for all our applications.
 
-For many people, deploying applications is transparent or even irrelevant. If you are a developer, you might be focused on writing code and allowing magic to happen. By magic, I mean letting other people and departments figure out how to deploy your code. Similarly, you might be oblivious to deployments if you are a tester or you have some other role not directly related to system administration, operations, or infrastructure. Now, I doubt that you are one of the oblivious. The chances are that you would not be even reading this if that's the case. If, against all chances, you do belong to the deployment-is-not-my-thing group, the only thing I can say is that you are terribly wrong.
+For many people, deploying applications is transparent or even irrelevant. If you are a developer, you might be focused on writing code and allowing magic to happen. By magic, I mean letting other people and departments figure out how to deploy your code. Similarly, you might be oblivious to deployments. You might be a tester, or you might have some other role not directly related to system administration, operations, or infrastructure. Now, I doubt that you are one of the oblivious. The chances are that you would not be even reading this if that's the case. If, against all bets, you do belong to the deployment-is-not-my-thing group, the only thing I can say is that you are wrong.
 
-Generally speaking, there are two types of teams. Vast majority of us is still working in teams based on types of tasks and parts of application lifecycles. If you're wondering whether that's the type of the team you work in, ask youself whether you are in a development, testing, operations, or some other department focused on a fraction of a lifecycle of an application. Are you handing your work to someone else? When you finish writing code, do you give it to the testing department to validate it? When you need to test a live application, are you giving it to operations to deploy it to an environment? Or, to formulate the question on a higher level, are you (your team) in charge only of a part of the lifecycle of your application? If the answer to any of those question is "yes", you are NOT working in a self-sufficient team. Now, I'm not going to tell you why that is wrong nor I'm here to judge you. Instead, I'm only going to state that there is a high probability that you do not know in detail how your application is deployed. As a result, you don't know how to architecture it properly, you don't know how to test it well, and so on and so forth. That, of course, is not true if you are dedicated only to operations. But, in that case, you might not be aware of the architecture of the application. You might know how the application is deployed but you might not know whether that is the optimum way to go.
+Generally speaking, there are two types of teams. The vast majority of us is still working in groups based on types of tasks and parts of application lifecycles. If you're wondering whether that's the type of the team you work in, ask yourself whether you are in development, testing, operations, or some other department? Is your team focused on a fraction of a lifecycle of an application? Are you handing your work to someone else? When you finish writing code, do you give it to the testing department to validate it? When you need to test a live application, are you giving it to operations to deploy it to an environment? Or, to formulate the question on a higher level, are you (your team) in charge only of a part of the lifecycle of your application? If the answer to any of those question is "yes", you are NOT working in a self-sufficient team. Now, I'm not going to tell you why that is wrong, nor I'm here to judge you. Instead, I'm only going to state that there is a high probability that you do not know in detail how your application is deployed. As a result, you don't know how to architecture it properly, you don't know how to test it well, and so on. That, of course, is not true if you are dedicated only to operations. But, in that case, you might not be aware of the architecture of the application. You might know how the application is deployed, but you might not know whether that is the optimum way to go.
 
-On the other hand, you might be indeed working in a self-sufficient team that is fully responsible for each aspect of application's lifecycle, from requirements all the way until it is running in production. If that's the case, your definition of done is likely defined as "it's running in production and nothing exploded." Being in a self-sufficient team has a distinct advantage of everyone being aware of every aspect of application's lifecycle. You know the architecture, you know the code, you understand the tests, and you are aware how it is deployed. That is not to say that you are an expert in all those and other areas. No one can know everything in depth, but everyone can have enough high-level knowledge of everything, while being specialized in something.
+On the other hand, you might be indeed working in a self-sufficient team. Your team might be fully responsible for each aspect of the application lifecycle, from requirements until it is running in production. If that's the case, your definition of done is likely defined as "it's running in production and nothing exploded." Being in a self-sufficient team has a distinct advantage of everyone being aware of every aspect of the application lifecycle. You know the architecture, you can read the code, you understand the tests, and you are aware of how it is deployed. That is not to say that you are an expert in all those and other areas. No one can know everything in depth, but everyone can have enough high-level knowledge of everything while being specialized in something.
 
-Why am I rumbling about team organizations? The answer is simple. Deployment strategies affect everyone, no matter whether we are focused only on a single aspect of application's lifecycle or we are in full control. The way we deploy affects the architecture, testing, monitoring, and many other aspects. And not only that, but we can say that architecture, testing, and monitoring affect the way we deploy. All those things are closely related and affect each others in ways that might not be obvious on the first look.
+Why am I rumbling about team organizations? The answer is simple. Deployment strategies affect everyone, no matter whether we are focused only on a single aspect of the application lifecycle or we are in full control. The way we deploy affects the architecture, testing, monitoring, and many other aspects. And not only that, but we can say that architecture, testing, and monitoring affect the way we deploy. All those things are closely related and affect each other in ways that might not be obvious on the first look.
 
-We already learned many of the things Jenkins X does out-of-the-box and quite a few others that could be useful to customize it to behave as we want. But, so far, we mostly ignored deployment strategies. If we exclude our brief exploration of serverless deployments with Knative, we always assumed that the application will be deployed using whichever strategy was defined in a build pack. Not only that, but we did not even question whether the types of the resources defined in our Helm charts are the right ones. We'll fill at least one of those holes next.
+We already learned many of the things Jenkins X does out-of-the-box and quite a few others that could be useful to customize it to behave as we want. But, so far, we mostly ignored deployment strategies. Excluding our brief exploration of serverless deployments with Knative, we always assumed that the application should be deployed using whichever strategy was defined in a build pack. Not only that, but we did not even question whether the types of resources defined in our Helm charts are the right ones. We'll fill at least one of those holes next.
 
-The time has come to discuss different deployment strategies and answer a couple of questions. Is your application stateful or stateless? Does its architecture permit scaling? How do your roll back? How do you scale up and down? Do you need your application to run constantly? Should you use Kubernetes Deployments instead of, let's say, StatefulSets? Those are only a few of the questions you need to answer in order to choose the right deployment mechanism. But, answers to those questions will not serve much purpose unless we are familiar with some of the most commonly used deployment strategies. Not only that knowledge will help us choose which one to pick, but they might even influence the architecture of our applications.
+The time has come to discuss different deployment strategies and answer a couple of questions. Is your application stateful or stateless? Does its architecture permit scaling? How do you roll back? How do you scale up and down? Do you need your application to run always? Should you use Kubernetes Deployments instead of, let's say, StatefulSets? Those are only a few of the questions you need to answer to choose the right deployment mechanism. But, answers to those questions will not serve much unless we are familiar with some of the most commonly used deployment strategies. Not only that knowledge will help us choose which one to pick, but they might even influence the architecture of our applications.
 
 ## What Do We Expect From Deployments?
 
 Before we dive into some of the deployment strategies, we might want to set some expectations that will guide us through our choices. But, before we do that, let's try to define what a deployment is.
 
-Traditionally, a deployment is a process through which we would install new applications into our servers or update those that are already running with new releases. That was, more or less, what we were doing from the beginning of the history of our industry, and that is in its essence what we're doing today. But, as we evolved our requirements were evolving as well. Today, say that all we expect is for our releases to run is an understatement. Today we want so much more and we have technology that can help us fulfil those desired. So, what does "much more" mean today?
+Traditionally, a deployment is a process through which we would install new applications into our servers or update those that are already running with new releases. That was, more or less, what we were doing from the beginning of the history of our industry, and that is in its essence what we're doing today. But, as we evolved, our requirements were changing as well. Today, say that all we expect is for our releases to run is an understatement. Today we want so much more, and we have technology that can help us fulfill those desires. So, what does "much more" mean today?
 
-Depending on who you speak with, you will get a different list of "desires", so mine might not be all encompassing and include every single thing than anyone might need. What follows is what I believe is important and what I observed that the companies I worked typically put emphasis. Without further ado, the requirements, excluding the obvious that applications should be running inside the cluster, are as follows.
+Depending on who you speak with, you will get a different list of "desires". So, mine might not be all-encompassing and include every single thing than anyone might need. What follows is what I believe is essential, and what I observed that the companies I worked typically put emphasis. Without further ado, the requirements, excluding the obvious that applications should be running inside the cluster, are as follows.
 
-Applications should be **fault-tolerant.** If an instance of the application dies, it should be brought back up. If a node where an application is running dies, the application should be moved to a healthy node. Even if a whole datacenter goes down, the system should be able to move the applications that were running there into a healthy one. An alternative would be to recreate the failed nodes or even whole datacenters with exactly the same applications that were running there before the outage. However, that is too slow and, frankly speaking, we moved away from that concept the moment we adopted schedulers. That does not mean that failed nodes and failed datacenters should not recuperate, but rather that we should not wait for infrastructure to get back to normal. Instead, we should run failed applications (no matter the cause) on healthy nodes as long as there is enough available capacity.
+Applications should be **fault-tolerant.** If an instance of the application dies, it should be brought back up. If a node where an application is running dies, the application should be moved to a healthy node. Even if a whole data center goes down, the system should be able to move the applications that were running there into a healthy one. An alternative would be to recreate the failed nodes or even whole data centers with precisely the same apps that were running there before the outage. However, that is too slow and, frankly speaking, we moved away from that concept the moment we adopted schedulers. That does not mean that failed nodes and failed data centers should not recuperate, but rather that we should not wait for infrastructure to get back to normal. Instead, we should run failed applications (no matter the cause) on healthy nodes as long as there is enough available capacity.
 
-Fault tolerance might be the most important requirement of all. If our application is not running, our users cannot use it, and that results in dissatisfaction, loss of profit, churn, and quite a few other negative outcomes. Still, we will not use fault tolerance as a criteria because Kuberentes makes (almost) everything fault tolerant. As long as it has enough available capacity, our applications will run. So, even that is an important requirement, it is off the table because we are fulfiling it no matter the deployment strategy we choose. That is not to say that there is no chance for an application not to recuperate from a failure but rather that Kubernetes provides a reasonable guarantee of fault tolerance. If things do go terribly wrong we are likely going to have to do some manual actions no matter which deployment strategy we choose.
+Fault tolerance might be the most crucial requirement of all. If our application is not running, our users cannot use it. That results in dissatisfaction, loss of profit, churn, and quite a few other adverse outcomes. Still, we will not use fault tolerance as a criterion because Kubernetes makes (almost) everything fault-tolerant. As long as it has enough available capacity, our applications will run. So, even that is an essential requirement, it is off the table because we are fulfilling it no matter the deployment strategy we choose. That is not to say that there is no chance for an application not to recuperate from a failure but instead that Kubernetes provides a reasonable guarantee of fault tolerance. If things do go terribly wrong, we are likely going to have to do some manual actions no matter which deployment strategy we choose.
 
-Long story short, fault-tollarance is a given with Kubernetes and there's no need to think about it in terms of deployment strategies.
+Long story short, fault-tolerance is a given with Kubernetes, and there's no need to think about it in terms of deployment strategies.
 
 The next in line is **high availability**, and that a trickier one.
 
-Being fault tolerant means that the system will recuperate from a failure, not that there will be no downtime. If our application goes down, a few moments later it will be up-and-running again. Still, those few moments can result in downtime. Depending on many factors, "few moments" can be translated to miliseconds, seconds, minutes, hours, or even days. While it is certainly not the same whether our application is unavailable during miliseconds as apposed to hours, for the sake of brevity, we'll assume that any downtime is bad and look at things as black and white. Either there is or there isn't downtime. Or, to be more precise, either there is a considerable downtime or there isn't. What changed over time is what "considerable" means. In the past, having 99% availability was a worthy goal for many. Today, that figure is unaceptable. Today we are taking about how many nines there are after the decimal. For some, 99.99% uptime is aceptable. For others, that could be 99.99999%.
+Being fault-tolerant means that the system will recuperate from failure, not that there will be no downtime. If our application goes down, a few moments later, it will be up-and-running again. Still, those few moments can result in downtime. Depending on many factors, "few moments" can be translated to milliseconds, seconds, minutes, hours, or even days. It is certainly not the same whether our application is unavailable during milliseconds as opposed to hours. Still, for the sake of brevity, we'll assume that any downtime is bad and look at things as black and white. Either there is, or there isn't downtime. Or, to be more precise, either there is a considerable downtime, or there isn't. What changed over time is what "considerable" means. In the past, having 99% availability was a worthy goal for many. Today, that figure is unacceptable. Today we are talking about how many nines there are after the decimal. For some, 99.99% uptime is acceptable. For others, that could be 99.99999%.
 
-Now, you might say "my business is important, therefore I want 100% uptime." If anyone says that to you, feel free to respond with "you have no idea what you're talking about." Hundred percent uptime is impossible, assuming that by that we mean "real" uptime, and not "my application runs all the time."
+Now, you might say: "my business is important; therefore, I want 100% uptime." If anyone says that to you, feel free to respond with: "you have no idea what you're talking about." Hundred percent uptime is impossible, assuming that by that we mean "real" uptime, and not "my application runs all the time."
 
-Making sure that our application is always running is not that hard. Making sure that not a single request is ever lost or, in other words, that our users perceive our application as being always available, is impossible. By the nature of HTTP, some requests will fail. Even if that never happens (as it will), network might go down, storage might fail, or some other thing might happen that will produce at least one request without response or with 4xx or 5xx message.
+Making sure that our application is always running is not that hard. Making sure that not a single request is ever lost or, in other words, that our users perceive our application as being always available, is impossible. By the nature of HTTP, some requests will fail. Even if that never happens (as it will), network might go down, storage might fail, or some other thing might happen. Any of those is bound to produce at least one request without a response or with a 4xx or 5xx message.
 
-All in all, high-availability means that our applications are responding to our users most of the time, and by most we mean at least 99.99%. Even that is a very pesimistic number that would result in one failure for each ten thousand requests.
+All in all, high-availability means that our applications are responding to our users most of the time. By "most", we mean at least 99.99%. Even that is a very pessimistic number that would result in one failure for each ten thousand requests.
 
-What are common causes of unavailability? We already discussed those that tend to be the first associations (hardware and softwar failures). However, those are often not the primary causes of unavaibility. You might have missed something in your tests and that might cause a failure. More often than not, those are not failures caused by "obvious" bugs but rather those that manifest itself a while after a new release is deployed. I will not tell you that you should make sure that there are no bugs (that's impossible), but rather that you should focus on detecting those that sneak into production. It's as important to try to avoid bugs as to minimize their affect to as few users as possible. So, our next requirement will be that our deployments should reduce the number of users affected by bugs. We'll call it **progressive rollout**. Don't worry if you never heard that term. We'll explain it in more depth later.
+What are the common causes of unavailability? We already discussed those that tend to be the first associations (hardware and software failures). However, those are often not the primary causes of unavailability. You might have missed something in your tests, and that might cause a malfunction. More often than not, those are not failures caused by "obvious" bugs but rather by those that manifest themselves a while after a new release is deployed. I will not tell you that you should make sure that there are no bugs because that is impossible). Instead, I'll tell you that you should focus on detecting those that sneak into production. It's as important to try to avoid bugs as to minimize their effect to as few users as possible. So, our next requirement will be that our deployments should reduce the number of users affected by bugs. We'll call it **progressive rollout**. Don't worry if you never heard that term. We'll explain it in more depth later.
 
-Progressive rollout, as you'll see later, does allow us to abort upgrades or, to be more precise, not to proceed with them, if something goes wrong. But that might not be enough. We might need not only to abort deployment of a new release, but also to roll back what the one we had before. So, we'll add **rollback** as yet another requirement.
+Progressive rollout, as you'll see later, does allow us to abort upgrades or, to be more precise, not to proceed with them, if something goes wrong. But that might not be enough. We might need not only to abort deployment of a new release but also to roll back what the one we had before. So, we'll add **rollback** as yet another requirement.
 
-We'll probably find more requirements directly or indirectly related to high-availability or, to inverse it, to unavailability. For now, we'll leave those aside, and move to yet another important aspect. We should strive to make our applications **responsive**. Now, there are many ways to accomplish that. We can design our applications in a certain way, we can avoid congestions and memory leaks, and we can do many other things. However, right now that's not the focus. We're interested in things that are directly or indirectly related to deployments. With such a limited scope, scalability is the key to responsiveness. If we need more replicas of our application, it should scale up. Similarly, if we do not need as many, it should scale down and free the resources for some other processes if cost savings are not a good enough reason.
+We'll probably find more requirements directly or indirectly related to high-availability or, to inverse it, to unavailability. For now, we'll leave those aside, and move to yet another vital aspect. We should strive to make our applications **responsive**, and there are many ways to accomplish that. We can design our apps in a certain way, we can avoid congestions and memory leaks, and we can do many other things. However, right now, that's not the focus. We're interested in things that are directly or indirectly related to deployments. With such a limited scope, scalability is the key to responsiveness. If we need more replicas of our application, it should scale up. Similarly, if we do not need as many, it should scale down and free the resources for some other processes if cost savings are not a good enough reason.
 
-Finally, we'll add one more requirement. It would be nice if our applications do not use more resources than it is necessary. We can say that scalability provides that (it can scale up and down) but we might want to take it a step further and say that our applications should not use (almost) any resources when they are not in use. We can call that "nothing when idle" or, to use a more commonly used term, serverless. 
+Finally, we'll add one more requirement. It would be nice if our applications do not use more resources than it is necessary. We can say that scalability provides that (it can scale up and down) but we might want to take it a step further and say that our applications should not use (almost) any resources when they are not in use. We can call that "nothing when idle" or, use a more commonly used term, serverless. 
 
-I'll use this as yet another opportunity to express my discust with that term given that it implies that there are no servers involved. But, since it is a commonly used one, we'll stick with it. After all, it's still better than calling it function-as-a-service since that is just as missleading as serverless, and it occupies more characters (it is a longer word). However, serverless is not the real goal. What really matters is that our solution is **cost effective**, so that will be our last requirement.
+I'll use this as yet another opportunity to express my disgust with that term given that it implies that there are no servers involved. But, since it is a commonly used one, we'll stick with it. After all, it's still better than calling it function-as-a-service since that is just as misleading as serverless, and it occupies more characters (it is a longer word). However, serverless is not the real goal. What matters is that our solution is **cost-effective**, so that will be our last requirement.
 
-Are those all the requirements we care about. They certainly aren't. Yet, this text cannot contain infinite number of words and we need to focus on something. Those, in my experience, are the most important ones, so we'll stick with them, at least for now.
+Are those all the requirements we care for. They certainly aren't. But, this text cannot contain an infinite number of words, and we need to focus on something. Those, in my experience, are the most important ones, so we'll stick with them, at least for now.
 
 Another thing we might need to note is that those requirements or, to be more precise, that those features are all interconnected. More often than not, one cannot be accomplished without the other or, in some other cases, one facilitates the other and makes it easier to accomplish.
 
-Another thing worth noting is that we'll focus only on automation. For example, I know perfectly well that anything can be rolled back through a human intervention or that we can extend our pipelines with post-deployment tests followed with a rollback step in case they fail. As a matter of fact, anything can be done with enough time and manpower. But that's not what matters in this discussion. We'll ignore humans and focus only on the things that can be automated and be integral part of deployment processes. I don't want you to scale your applications. I want the system to do it for you. I don't want you to roll back in case of a failure. I want the system to do that for you. I don't want you to waste your brain capacity on such trivial tasks. I want to you spend your time on things that matter and leave the rest to machines.
+Another thing worth noting is that we'll focus only on automation. For example, I know perfectly well that anything can be rolled back through human intervention. I know that we can extend our pipelines with post-deployment tests followed with a rollback step in case they fail. As a matter of fact, anything can be done with enough time and manpower. But that's not what matters in this discussion. We'll ignore humans and focus only on the things that can be automated and be an integral part of deployment processes. I don't want you to scale your applications. I want the system to do it for you. I don't want you to roll back in case of a failure. I want the system to do that for you. I don't want you to waste your brain capacity on such trivial tasks. I wish you to spend your time on things that matter and leave the rest to machines.
 
 After all that, we can summarize our requirements or features by saying that we'd like deployments to result in applications that are running and are:
 
-* fault tolerant
+* fault-tolerant
 * highly available
 * responsive
 * rolling out progressively
 * rolling back in case of a failure
-* cost effective
+* cost-effective
 
-We'll remove *fault tolerance* from the future discussions since Kubernetes providees that out-of-the-box. As for the rest... We are yet to see whether we can accomplish them all and, if we can, whether a single deployment strategy will give us all those benefits.
+We'll remove *fault tolerance* from the future discussions since Kubernetes provides that out-of-the-box. As for the rest, we are yet to see whether we can accomplish them all and, if we can, whether a single deployment strategy will give us all those benefits.
 
-There is a strong chance that there is no solution that will provide all those features. Even if we do find such a solution, the chances are that it might not be appropriate for your applications and their architecture. But, we'll worry about that later. For now, we'll explore some of the commonly used deployment strategies and see which of those requirements they fullfil.
+There is a strong chance that there is no solution that will provide all those features. Even if we do find such a solution, the chances are that it might not be appropriate for your applications and their architecture. We'll worry about that later. For now, we'll explore some of the commonly used deployment strategies and see which of those requirements they fulfill.
 
 Just as in any other chapter, we'll explore the subject in more depth through practical examples. For that, we need a working Jenkins X cluster as well as the *go-demo-6* application since we'll use it as a guinea pig on which we'll experiment with different deployment strategies.
 
@@ -99,9 +100,9 @@ Just as in any other chapter, we'll explore the subject in more depth through pr
 
 If you kept the cluster from the previous chapter, you can skip this section only if you were doubting my choice of VM sizes and make the nodes bigger than what I suggested. Otherwise, we'll need to create a new Jenkins X cluster.
 
-We've been using the same cluster specifications for a while now. No matter the hosting vendor you chose in the past, if you created the cluster using my instructions if is based on nodes with only 2 available CPUs or even less. We'll need more. Even if your cluster is set to autoscale, increasing the number of nodes will not help since one of the Istio components we'll use requires at least 2 CPU available. Remember, even if you do have nodes with 2 CPUs, some computing power is reserved for system-level processes or Kubernetes daemons, so a 2 CPUs node does not result in 2 CPUs available.
+We've been using the same cluster specifications for a while now. No matter the hosting vendor you chose in the past, if you created the cluster using my instructions, it is based on nodes with only 2 available CPUs or even less. We'll need more. Even if your cluster is set to autoscale, increasing the number of nodes will not help since one of the Istio components we'll use requires at least 2 CPUs available. Remember, even if you do have nodes with 2 CPUs, some computing power is reserved for system-level processes or Kubernetes daemons, so a 2 CPUs node does not result in 2 CPUs available.
 
-We'll need to create a cluster with bigger nodes. The gists listed below will do just that. Those related to AKS, EKS, and GKE are now having nodes with 4 CPUs. If you are using your own cluster hosted somewhere else, the Gists are the same and I will assume that the nodes have more than 2 available CPUs.
+We'll need to create a cluster with bigger nodes. The gists listed below will do just that. Those related to AKS, EKS, and GKE are now having nodes with 4 CPUs. If you are using your own cluster hosted somewhere else, the Gists are the same, and I will assume that the nodes have more than 2 available CPUs.
 
 On top of all that, if you are using GKE, the gists now contain the command that installs **Gloo** which we explored in the previous chapter.
 
@@ -118,9 +119,9 @@ The new Gists are as follows.
 * Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
 * Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
-I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the branch that contain all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
+I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
-W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. To make things more complicated, those of you running GKE will have to use the branch based on the previous chapter while others are still stuck with those from before. The commands that follow will restore `knative-cd` if you are using GKE and serverless Jenkins X and `knative-jx` if you're in GKE but with static Jenkins X. For everyone else, `extension-model-jx` is the branch if you are using static Jenkins X and `extension-model-cd` if you prefer the serverless flavor. In the commands listed below you will see `# If GKE` and `# If NOT GKE`. Execute only one command or the other depending on whether you use GKE or something else.
+W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. To make things more complicated, those of you running GKE will have to use the branch based on the previous chapter while others are still stuck with those from before. The commands that follow will restore `knative-cd` if you are using GKE and serverless Jenkins X and `knative-jx` if you're in GKE but with static Jenkins X. For everyone else, `extension-model-jx` is the branch if you are using static Jenkins X and `extension-model-cd` if you prefer the serverless flavor. In the commands listed below, you will see `# If GKE` and `# If NOT GKE`. Execute only one command or the other depending on whether you use GKE or something else.
 
 ```bash
 NAMESPACE=$(kubectl config view \
@@ -199,13 +200,13 @@ Now we can start exploring deployment strategies, with serverless being the firs
 
 Judging by the name of this section, you might be wondering why do we start with serverless deployments. The honest answer is that I did not try to put the deployment strategies in any order. We're starting with serverless simply because that is the one we used in the previous chapter. So, we'll start with what we have right now, at least for those who are running Jenkins X in GKE.
 
-Another question you might be asking is why do we cover serverless with Knative in here given that we already discussed it in the previous chapter. The answer to that question lies in completeness. Serverless deployments are one of the important options we have when choosing the strategy and this chapter could not be complete without it. If you did go through the previous chapter, consider this one a refresher with a potential to find out something new. If nothing else, you'll might get a better understanding of the flow of events with Knative as well as to see a few diagrams. In any case, the rest of the strategies will build on top of this one. On the other hand, you might be impatient and bored with repetion. If that's the case, feel free to skip this section all together.
+Another question you might be asking is why do we cover serverless with Knative in here given that we already discussed it in the previous chapter. The answer to that question lies in completeness. Serverless deployments are one of the essential options we have when choosing the strategy, and this chapter could not be complete without it. If you did go through the previous chapter, consider this one a refresher with a potential to find out something new. If nothing else, you'll get a better understanding of the flow of events with Knative as well as to see a few diagrams. In any case, the rest of the strategies will build on top of this one. On the other hand, you might be impatient and bored with repetition. If that's the case, feel free to skip this section altogether.
 
-W> At the time of this writing (August 2019), serverless deployments with Knative work out-of-the-box only in GKE ([issue 4668](https://github.com/jenkins-x/jx/issues/4668)). That does not mean that Knative does not work in other Kubernetes flavors, but rather that Jenkins X installation of Knative works only in GKE. I encourage you to set up Knative yourself and follow along in your Kubernetes flavor. If you cannot run Knative, I still suggest you to stick around even if you cannot run the examples. I'll do my best to be brief and to make the examples clear even for those not running them.
+W> At the time of this writing (August 2019), serverless deployments with Knative work out-of-the-box only in GKE ([issue 4668](https://github.com/jenkins-x/jx/issues/4668)). That does not mean that Knative does not work in other Kubernetes flavors, but rather that Jenkins X installation of Knative works only in GKE. I encourage you to set up Knative yourself and follow along in your Kubernetes flavor. If you cannot run Knative, I still suggest you stick around even if you cannot run the examples. I'll do my best to be brief and to make the examples clear even for those not running them.
 
-Instead of discussing pros and cons first, we'll start each strategy with an example, observe the results, and, based on that, comment their advantages and dissadvantages as well as the scenarios when they might be a good fit. In that spirit, let's create a serverless deployment first and see what we'll get.
+Instead of discussing the pros and cons first, we'll start each strategy with an example. We'll observe the results, and, based on that, comment on their advantages and disadvantages as well as the scenarios when they might be a good fit. In that spirit, let's create a serverless deployment first and see what we'll get.
 
-When we imported *go-demo-6* it was already running in Knative mode, so there is nothing for us to do to enable it. Thanks to what we did in the previous chapter, *go-demo-6* is already running as serverless or, to be more precise, a part of it is.
+When we imported *go-demo-6*, it was already running in Knative mode, so there is nothing for us to do to enable it. Thanks to what we did in the previous chapter, *go-demo-6* is already running as serverless or, to be more precise, a part of it is.
 
 Let's go into the project directory and take a quick look at the definition that makes the application serverless.
 
@@ -217,7 +218,7 @@ cat charts/go-demo-6/templates/ksvc.yaml
 
 We won't go into details of Knative specification. It was briefly explained in the [Using Jenkins X To Define And Run Serverless Deployments](#knative) chapter and details can be found in the [official docs](https://knative.dev). What matters in the context of the current discussion is that the YAML you see in front of you defined a serverless deployment using Knative.
 
-By now, if you created a new cluster the application we imported should be up-and-running. But, to be on the safe side, we'll confirm that by taking a quick look at the *go-demo-6* activities.
+By now, if you created a new cluster, the application we imported should be up-and-running. But, to be on the safe side, we'll confirm that by taking a quick look at the *go-demo-6* activities.
 
 W> There's no need to inspect the activities to confirm whether the build is finished if you are reusing the cluster from the previous chapter. The application we deployed previously should still be running.
 
@@ -259,7 +260,7 @@ jx-go-demo-6-db-primary-0      1/1   Running 0        27s
 jx-go-demo-6-db-secondary-0    1/1   Running 0        27s
 ```
 
-In your case, `go-demo-6` deployment might not be there. If that's the case, it's been a while since you used the application and Knative made the decision to scale it to zero replicas. We'll go through scaling-to-zero example later. For now, imagine that you do have that Pod running.
+In your case, `go-demo-6` deployment might not be there. If that's the case, it's been a while since you used the application and Knative made the decision to scale it to zero replicas. We'll go through a scaling-to-zero example later. For now, imagine that you do have that Pod running.
 
 On the first look, everything looks "normal". It as if the application was deployed like any other. The only "strange" thing we can observe by looking at the Pods is the name of the one created through the *go-demo-6* Deployment and that it contains two containers instead of one. We'll ignore the "naming strangeness" and focus on the latter observation.
 
@@ -278,13 +279,13 @@ STAGING_ADDR=$(kubectl \
 curl "http://$STAGING_ADDR/demo/hello"
 ```
 
-We retrieved the address through which we can reach the application running in the staging environment and we used `curl` to send a request. The output should be `hello, PR!` which is the message we defined in one of the previous chapters. 
+We retrieved the address through which we can reach the application running in the staging environment, and we used `curl` to send a request. The output should be `hello, PR!` which is the message we defined in one of the previous chapters. 
 
-So far, the major difference when compared with "normal" Kubernetes deployments is that the access to the application is not controlled through Ingress any more but through a new resource type abbreviated as `ksvc` (short for Knative Service). Apart from that, everything else seems to be the same, except if we left the application unused for a while. If that's the case, we still got the same output, but there was a slight delay between sending the request and receiving the response. The reason for such a delay lies in Knative's scaling capabilities. It saw that the application is not used and scaled it to zero replicas. But, the moment we sent a request, it noticed that zero replicas is not the desired state and scaled it back to one replica. All in all, the request entered into a gateway (in our case served by Gloo Envoy) and waited there until a new replica was created and initialized unless one was already running. After that, it forwarded the request to it, and the rest is the "standard" process of our application responding and that response being forwarded to us (back to `curl`).
+So far, the significant difference when compared with "normal" Kubernetes deployments is that the access to the application is not controlled through Ingress any more. Instead, it goes through a new resource type abbreviated as `ksvc` (short for Knative Service). Apart from that, everything else seems to be the same, except if we left the application unused for a while. If that's the case, we still got the same output, but there was a slight delay between sending the request and receiving the response. The reason for such a delay lies in Knative's scaling capabilities. It saw that the application is not used and scaled it to zero replicas. But, the moment we sent a request, it noticed that zero replicas is not the desired state and scaled it back to one replica. All in all, the request entered into a gateway (in our case served by Gloo Envoy) and waited there until a new replica was created and initialized, unless one was already running. After that, it forwarded the request to it, and the rest is the "standard" process of our application responding and that response being forwarded to us (back to `curl`).
 
 ![Figure 17-1: The flow of a request with Gloo API gateway](images/ch17/knative-request.png)
 
-Given that I couldn't be sure whether your serverless deployment indeed scaled to zero or it didn't, we'll use a bit of patience to validate that it does indeed scale to nothing after a bit of inactivity. All we have to do is wait for five to ten minutes. Go get a coffee or some snack.
+I cannot be sure whether your serverless deployment indeed scaled to zero or it didn't. So, we'll use a bit of patience to validate that it does indeed scale to nothing after a bit of inactivity. All we have to do is wait for five to ten minutes. Get a coffee or some snack.
 
 ```bash
 kubectl \
@@ -301,7 +302,7 @@ jx-go-demo-6-db-primary-0   1/1   Running 0        6m21s
 jx-go-demo-6-db-secondary-0 1/1   Running 0        6m21s
 ```
 
-The database is there but the application is now gone. If we ignore other resources and focus only on Pods, it seems like the application is wiped out completely. That is true in terms that nothing application-specific is running. All that's left are a few Knative definitions and the common resources used for all applications (not specific to *go-demo-6*).
+The database is there, but the application is now gone. If we ignore other resources and focus only on Pods, it seems like the application is wiped out completely. That is true in terms that nothing application-specific is running. All that's left are a few Knative definitions and the common resources used for all applications (not specific to *go-demo-6*).
 
 I> If you still see the *go-demo-6* Pod, all I can say is that you are impatient and you did not wait long enough. If that's what happened, wait for a while longer and repeat the `get pods` command.
 
@@ -309,19 +310,19 @@ Using telemetry collected from all the Pods deployed as Knative applications, Gl
 
 ![Figure 17-2: Knative's ability to scale to zero replicas](images/ch17/knative-scale-to-zero.png)
 
-Bear in mind that the actual procees is more complicated than that and that there are quite a few other components involved. Nevertheless, for the sake of brevity, the simplistic view we presented should suffice. I'll leave it up to you to go deeper into Gloo and Knative or accept it as magic. In either case, our application was successfully scaled to zero replicas thus saving resources that could be better used by other applications and save us some costs in the process.
+Bear in mind that the actual process is more complicated than that and that there are quite a few other components involved. Nevertheless, for the sake of brevity, the simplistic view we presented should suffice. I'll leave it up to you to go deeper into Gloo and Knative or accept it as magic. In either case, our application was successfully scaled to zero replicas. We started saving resources that could be better used by other applications and save us some costs in the process.
 
-If you never used serverless deployments and if never worked with Knative, you might think that your users would not be able to access it any more since the application is not running. Or you might think that it will be scaled up once requests start coming in but you might be scared that you'll loose those sent before the new replica starts running. Or you might have read the previous chapter and know that those fears are unfounded. In any case, we'll put that to the test by sending three hundred concurrent requests during twenty seconds.
+If you never used serverless deployments and if you never worked with Knative, you might think that your users would not be able to access it anymore since the application is not running. Or you might think that it will be scaled up once requests start coming in, but you might be scared that you'll lose those sent before the new replica starts running. Or you might have read the previous chapter and know that those fears are unfounded. In any case, we'll put that to the test by sending three hundred concurrent requests for twenty seconds.
 
 ```bash
 kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
-     -it --rm \
-     -- --concurrent 300 --time 20S \
-     "http://$STAGING_ADDR/demo/hello" \
-     && kubectl \
-     --namespace $NAMESPACE-staging \
+    -it --rm \
+    -- --concurrent 300 --time 20S \
+    "http://$STAGING_ADDR/demo/hello" \
+    && kubectl \
+    --namespace $NAMESPACE-staging \
     get pods
 ```
 
@@ -337,39 +338,41 @@ jx-go-demo-6-db-primary-0      1/1   Running 0        6m59s
 jx-go-demo-6-db-secondary-0    1/1   Running 0        6m59s
 ```
 
-Our application is up-and-running again. Few moments ago the application was not running and now it is. Not only that, but it was scaled to three replicas to accomodate the elevated number of concurrent requests.
+Our application is up-and-running again. A few moments ago, the application was not running, and now it is. Not only that, but it was scaled to three replicas to accommodate the high number of concurrent requests.
 
 ![Figure 17-3: Knative's ability to scale from zero to multiple replicas](images/ch17/knative-scale-to-three.png)
 
 What did we learn from serverless deployments in the context of our quest to find one that fits our needs the best?
 
-Highly availability is easy in Kuberentes, as long as our applications are designed with that in mind. What that means is that our applications should be scalable and should not contain state. If they cannot be scaled, they cannot be highly available. When a replica fails (note that I did not say *if* but *when*), no matter how fast Kubernetes will reschedule it somewhere else, there will be downtime, unless other replicas take over its load. If there are no other replicas, we are bound to have downtime both due to failures but also whenever we deploy a new release. So, scalability (running more than one replica) is the prerequisite for high availability. At least, that's what logic might makes us think.
+Highly availability is easy in Kubernetes, as long as our applications are designed with that in mind. What that means is that our apps should be scalable and should not contain state. If they cannot be scaled, they cannot be highly available. When a replica fails (note that I did not say *if* but *when*), no matter how fast Kubernetes will reschedule it somewhere else, there will be downtime, unless other replicas take over its load. If there are no other replicas, we are bound to have downtime both due to failures but also whenever we deploy a new release. So, scalability (running more than one replica) is the prerequisite for high availability. At least, that's what logic might make us think.
 
-In case of serverless deployments with Knative, not having replicas that can respond to user requests is not an issue, at least not from high availability point of view. While in a "normal" situation the requests would fail to receive a response, in our case they were queued in the gateway and forwarded only after the application is up-and-running. So, even if the application is scaled to zero replicas (if nothing is running), we are still highly available. The major downside is in potential delays between receiving the first requests and until the first replica of the application is responsive.
+In the case of serverless deployments with Knative, not having replicas that can respond to user requests is not an issue, at least not from the high availability point of view. While in a "normal" situation, the requests would fail to receive a response, in our case, they were queued in the gateway and forwarded after the application is up-and-running. So, even if the application is scaled to zero replicas (if nothing is running), we are still highly available. The major downside is in potential delays between receiving the first requests and until the first replica of the application is responsive.
 
-The problem we might have with serverless deployments, at least when used in Kubernetes, is responsiveness. If we keep the default settings, our application will scale to zero if there are no incoming requests. As a result, when someone does send a request to our application it might take longer than usual until the response is received. That could be a couple of milliseconds, a few seconds, or much longer. It all depends on the size of the container image, whether it is already cached on the node where the Pod is scheduled, the amount of time the application needs to initialize, and quite a few other criteria. If we do things right, that delay can be short. Still, any delay, no matter how short or long it is, reduces the responsivenes of our application. What we need to do is compare pros and cons. The results will differ from one application to another.
+The problem we might have with serverless deployments, at least when used in Kubernetes, is responsiveness. If we keep the default settings, our application will scale to zero if there are no incoming requests. As a result, when someone does send a request to our app, it might take longer than usual until the response is received. That could be a couple of milliseconds, a few seconds, or much longer. It all depends on the size of the container image, whether it is already cached on the node where the Pod is scheduled, the amount of time the application needs to initialize, and quite a few other criteria. If we do things right, that delay can be short. Still, any delay reduces the responsiveness of our application, no matter how short or long it is. What we need to do is compare the pros and cons. The results will differ from one app to another.
 
-Let's take the static Jenkins as an example. In many organizations, it is under heavy usage throughout working hours, and with low or no usage at nights. We can say that half of the day it is not used. What that really means is that we are paying double to our hosting vendor. We could have shut it down over night and potenatially remove a node from the cluster due to decreased resource usage. Even if the price is not an issue, surely those resources reserved by inactive Jenkins could be better used by some other processes. Shutting down the application would be an improvement but it would also produce potentially very negative effects.
+Let's take the static Jenkins as an example. In many organizations, it is under heavy usage throughout working hours, and with low or no usage at nights. We can say that half of the day it is not used. What that means is that we are paying double to our hosting vendor. We could have shut it down overnight and potentially remove a node from the cluster due to decreased resource usage. Even if the price is not an issue, surely those resources reserved by inactive Jenkins could be better used by some other processes. Shutting down the application would be an improvement, but it would also produce potentially very adverse effects.
 
-What if someone is working over night and pushes a change to Git. A webhook would fire trying to notify Jenkins that it should run a build. But, such webhook would fail if there is no Jenkins to handle the request. A build would never be executed. Unless we set up a policy that says "you are never allowed to work after 6pm, even if the whole system crashed", having a non-responsive system is unacceptable.
+What if someone is working overnight and pushes a change to Git. A webhook would fire trying to notify Jenkins that it should run a build. But, such webhook would fail if there is no Jenkins to handle the request. A build would never be executed. Unless we set up a policy that says "you are never allowed to work after 6 pm, even if the whole system crashed", having a non-responsive system is unacceptable.
 
-Another issue would be to figure out when is our system not in use. If we continue using the "traditional" Jenkins as an example, we could say that it should shut-down at 9pm. If our official working hours end at 6pm, that would provide three hours margin for those who do stay in the office longer. But, that would still be a suboptimal solution. During much of those three hours Jenkins would not be used and it would continue wasting resources. On the other hand, there is still no guarantee that no one will ever push a change after 9pm.
+Another issue would be to figure out when is our system not in use. If we continue using the "traditional" Jenkins as an example, we could say that it should shut-down at 9 pm. If our official working hours end at 6 pm, that will provide three hours margin for those who do stay in the office longer. But, that would still be a suboptimal solution. During much of those three hours, Jenkins would not be used, and it would continue wasting resources. On the other hand, there is still no guarantee that no one will ever push a change after 9 pm.
 
-Knative solves those and quite a few other problems. Instead of shutting down our applications at predefined hours and hoping that no one is using them while they are unavailable, we can let Knative (together with Gloo or Istio) to monitor requests. It would scale down if certain period of inactivity passed. On the other hand, it would scale back up if a request is sent to it. Such requests would not be lost but queued until the application becomes available again.
+Knative solves those and quite a few other problems. Instead of shutting down our applications at predefined hours and hoping that no one is using them while they are unavailable, we can let Knative (together with Gloo or Istio) monitor requests. It would scale down if a certain period of inactivity passed. On the other hand, it would scale back up if a request is sent to it. Such requests would not be lost but queued until the application becomes available again.
 
-All in all, I cannot say that Knative might result in non-responsiveness but that it might produce slower responses in some cases (between having none and having some replicas). Such periodical slower responsiveness might produce less negative effect than the good it brings. Is it really such a bad thing if static Jenkins takes aditional ten seconds to start building something after a whole night of inactivity? Even a minute or two of delay is not a big deal. On the other hand, in that particular case, the upside outweights the downsides. Still, there are even better examples of the advantages of serverless deployments than Jenkins.
+All in all, I cannot say that Knative might result in non-responsiveness. What I can say is that it might produce slower responses in some cases (between having none and having some replicas). Such periodical slower responsiveness might produce less negative effect than the good it brings. Is it such a bad thing if static Jenkins takes an additional ten seconds to start building something after a whole night of inactivity? Even a minute or two of delay is not a big deal. On the other hand, in that particular case, the upside outweighs the downsides. Still, there are even better examples of the advantages of serverless deployments than Jenkins.
 
-Preview environments might be the best example of wasted resources. Every time we create a pull request, a release is deployed into a temporary environment. That, by itself, is not a waste since the benefits of being able to test and review an application before merging it to master outweight the fact that most of the time we are not using those applications. Nevertheless, we can do better. Just as we explained in the previous chapter, we can use Knative to deploy to preview environments, no matter whether we use it for permanent environments like staging and production. After all, preview environments are not meant to provide a place to test something before promoting it to production (staging does that), but rather to have relative certainty that what we'll merge to the master branch is likely code that works well.
+Preview environments might be the best example of wasted resources. Every time we create a pull request, a release is deployed into a temporary environment. That, by itself, is not a waste. The benefits of being able to test and review an application before merging it to master outweigh the fact that most of the time we are not using those applications. Nevertheless, we can do better. Just as we explained in the previous chapter, we can use Knative to deploy to preview environments, no matter whether we use it for permanent environments like staging and production. After all, preview environments are not meant to provide a place to test something before promoting it to production (staging does that). Instead, they provide us with relative certainty that what we'll merge to the master branch is likely code that works well.
 
-If the response delay caused by scaling up from zero replicas is unacceptable in certain situations, we can still configure Knative to have one or more replicas as a minimum. In such a case, we'd still benefit from Knative capabilities. For example, the metrics it uses to decide when to scale might be easier or better than those provided by HorizontalPodAutoscaler (HPA). Nevertheless, the result of having Knative deployment with a minimum number of replicas above zero is similar to the one we'd have with using HPA so we'll ignore such situations since our applications would not be serverless. That is not to say that Knative is not useful if it doesn't scale to zero, but rather that we'll treat those situations separately and stick to serverless features in this section.
+If the response delay caused by scaling up from zero replicas is unacceptable in certain situations, we can still configure Knative to have one or more replicas as a minimum. In such a case, we'd still benefit from Knative capabilities. For example, the metrics it uses to decide when to scale might be easier or better than those provided by HorizontalPodAutoscaler (HPA). Nevertheless, the result of having Knative deployment with a minimum number of replicas above zero is similar to the one we'd have with using HPA. So, we'll ignore such situations since our applications would not be serverless. That is not to say that Knative is not useful if it doesn't scale to zero. What it means is that we'll treat those situations separately and stick to serverless features in this section.
 
 What's next in our list of deployment requirements?
 
-Even though we did not demonstrate it through examples, serverless deployments with Knative do not produce downtime when deploying new releases. During the process, all new requests are be handled by the new release, while the old ones are still available to process all those requests that were initiated before the new deployment started rolling out. Similarly, if we have health checks, it will stop the rollout if they fail. In that aspect, we can say that rollout is progressive. On the other hand, it is not true progressive rollout but similar to those we get with rolling updates. Knative, by itself, cannot choose whether to continue progressing with a deployment based on arbitrary metrics. Similarly, it cannot roll back automatically if pre-defined criteria is met. Just like rolling updates, it will stop the rollout if health checks fail, and not much more. If those health checks fail with the first replica, even though there is no rollback, all the requests will continue being served with the old release. Still, there are too many ifs in those statements. We can only say that serverless deployments with Knative (without additional tooling) partially fullfills the progressive rollout requirement and that they are incapable of automated rollbacks.
+Even though we did not demonstrate it through examples, serverless deployments with Knative do not produce downtime when deploying new releases. During the process, all new requests are handled by the new release. At the same time, the old ones are still available to process all those requests that were initiated before the new deployment started rolling out. Similarly, if we have health checks, it will stop the rollout if they fail. In that aspect, we can say that rollout is progressive.
 
-Finally, the last requirement is that our deployment strategy should be cost effective. Serverless deployments, at least those implemented with Knative, are probably the most cost effective deployments we can have. Unlike vendor-specific serverless implementations like AWS Lambda, Azure Functions, and Google Cloud's serverless platform, we are in (almost) full control. We can define how many requests are served by a single replica. We control the size of our applications given that anything that can run in a container can be serverless (but is not necesarrily a good candidate). We control which metrics are used to make decisions and what are the thresholds. Truth be told, that is likely more complicated than using vendor-specific serverless implementations. It's up to us to decide whether additional complications with Knative outweight the benefits it brings. I'll leave such a decision in your hands.
+On the other hand, it is not "true" progressive rollout but similar to those we get with rolling updates. Knative, by itself, cannot choose whether to continue progressing with a deployment based on arbitrary metrics. Similarly, it cannot roll back automatically if predefined criteria are met. Just like rolling updates, it will stop the rollout if health checks fail, and not much more. If those health checks fail with the first replica, even though there is no rollback, all the requests will continue being served with the old release. Still, there are too many ifs in those statements. We can only say that serverless deployments with Knative (without additional tooling) partially fulfills the progressive rollout requirement and that they are incapable of automated rollbacks.
 
-So, what did we conclude? Do serverless deployments with Knative fullfull all our requirements? The answer to that question is a resounding "no". No deployment strategy is perfect. Serverless deployments provide **huge benefits** with **high-availability** and **cost-effectiveness**. They are **relatively responsive and provide certain level of progressive rollouts**. The major drawback is the **lack automated rollabacks**.
+Finally, the last requirement is that our deployment strategy should be cost-effective. Serverless deployments, at least those implemented with Knative, are probably the most cost-effective deployments we can have. Unlike vendor-specific serverless implementations like AWS Lambda, Azure Functions, and Google Cloud's serverless platform, we are in (almost) full control. We can define how many requests are served by a single replica. We control the size of our applications given that anything that can run in a container can be serverless (but is not necessarily a good candidate). We control which metrics are used to make decisions and what are the thresholds. Truth be told, that is likely more complicated than using vendor-specific serverless implementations. It's up to us to decide whether additional complications with Knative outweigh the benefits it brings. I'll leave such a decision in your hands.
+
+So, what did we conclude? Do serverless deployments with Knative fulfill all our requirements? The answer to that question is a resounding "no". No deployment strategy is perfect. Serverless deployments provide **huge benefits** with **high-availability** and **cost-effectiveness**. They are **relatively responsive and offer a certain level of progressive rollouts**. The major drawback is the **lack of automated rollbacks**.
 
 |Requirement        |Fullfilled|
 |-------------------|----------|
@@ -377,13 +380,13 @@ So, what did we conclude? Do serverless deployments with Knative fullfull all ou
 |Responsiveness     |Partly    |
 |Progressive rollout|Partly    |
 |Rollback           |Not       |
-|Cost effectiveness |Fully     |
+|Cost-effectiveness |Fully     |
 
-Please note that we used Gloo in conjunction with Knative to perform serverless deployments. We could have used Istio instead of Gloo. Similarly, we could have used OpenFaaS instead of Knative. Or we could have opted for something completely different. There are many different solutions we could assemble with the goal of making our applications serverless. Still, the goal was not to compare them all and choose the best one, but rather to explore serverless deployments in general as one possible strategy we could employ. I do believe that Knative is the most promising one, but we are still in early stages with serverless in general and especially in Kubernetes. It would be impossible to be certain what will prevail. Similarly, for many engineers Istio would be the service mesh of choice due to its high popularity. Yet, I chose Gloo mostly because of its simplicity and its small footprint. For those of you who prefer Istio, all I can say is that we will use it for different purposes later on in this chapter.
+Please note that we used Gloo in conjunction with Knative to perform serverless deployments. We could have used Istio instead of Gloo. Similarly, we could have used OpenFaaS instead of Knative. Or we could have opted for something completely different. There are many different solutions we could assemble to make our applications serverless. Still, the goal was not to compare them all and choose the best one. Instead, we explored serverless deployments in general as one possible strategy we could employ. I do believe that Knative is the most promising one, but we are still in early stages with serverless in general and especially in Kubernetes. It would be impossible to be sure of what will prevail. Similarly, for many engineers, Istio would be the service mesh of choice due to its high popularity. I chose Gloo mostly because of its simplicity and its small footprint. For those of you who prefer Istio, all I can say is that we will use it for different purposes later on in this chapter.
 
-Finally, I made a decision to present only one serverless implementation mostly because it would take much more than a single chapter to compare all those that are popular. The same can be said for service mesh (Gloo). Both are very interesting subjects that I might explore in the next book. But, at this moment I cannot make that promise because I do not plan a new book before the one I'm writing (this one) is finished.
+Finally, I decided to present only one serverless implementation mostly because it would take much more than a single chapter to compare all those that are popular. The same can be said for service mesh (Gloo). Both are fascinating subjects that I might explore in the next book. But, at this moment I cannot make that promise because I do not plan a new book before the one I'm writing (this one) is finished.
 
-What matters is that we're finished with a very high-level exploration of pros and cons of using serverless deployments and now we can move into the next one. But, before we do that, we'll revert our chart to the good old Kubernetes Deployment.
+What matters is that we're finished with a very high-level exploration of the pros and cons of using serverless deployments and now we can move into the next one. But, before we do that, we'll revert our chart to the good old Kubernetes Deployment.
 
 ```bash
 jx edit deploy \
@@ -394,9 +397,9 @@ cat charts/go-demo-6/values.yaml \
     | grep knative
 ```
 
-We edited the deployment strategy by setting it to `default` (it was `knative` so far) and we output the `knative` variable to confirm that it is now set to `false`.
+We edited the deployment strategy by setting it to `default` (it was `knative` so far). Also, we output the `knative` variable to confirm that it is now set to `false`.
 
-The last thing we'll do is go out of the local copy of the *go-demo-6* directory so that we are in the same place as those who could not follow the examples because their cluster cannot yet run Knative or those who were too lazy to set it up.
+The last thing we'll do is go out of the local copy of the *go-demo-6* directory. That way we'll be in the same place as those who could not follow the examples because their cluster cannot yet run Knative or those who were too lazy to set it up.
 
 ```bash
 cd ..
@@ -404,7 +407,7 @@ cd ..
 
 ## Using Recreate Strategy With Standard Kubernetes Deployments
 
-*A long time ago in a galaxy far, far away...* most of the applications were deployed with what today we call the *recreate* strategy. We'll discuss it shortly. For now, we'll focus on implementing it and observing the outcome.
+*A long time ago in a galaxy far, far away,* most of the applications were deployed with what today we call the *recreate* strategy. We'll discuss it shortly. For now, we'll focus on implementing it and observing the outcome.
 
 By default, Kubernetes Deployments use the `RollingUpdate` strategy. If we do not specify any, that's the one that is implied. We'll get to that one later. For now, what we need to do is ad the `strategy` into the `deployment.yaml` file that defines the Deployment.
 
@@ -419,13 +422,13 @@ cat charts/go-demo-6/templates/deployment.yaml \
     | tee charts/go-demo-6/templates/deployment.yaml
 ```
 
-We entered the local copy of the *go-demo-6* repository and we used a bit of `sed` magic to add the `strategy` entry just above `replicas`. If you are not a `sed` ninja, that command might have been confusing, so let's output the file and see what we got.
+We entered the local copy of the *go-demo-6* repository, and we used a bit of `sed` magic to add the `strategy` entry just above `replicas`. If you are not a `sed` ninja, that command might have been confusing, so let's output the file and see what we got.
 
 ```bash
 cat charts/go-demo-6/templates/deployment.yaml
 ```
 
-The output, limited to the relevant section, is a follows.
+The output, limited to the relevant section, is as follows.
 
 ```yaml
 ...
@@ -449,9 +452,9 @@ jx get activities \
     --watch
 ```
 
-We pushed the changes and we started watching the activities. Please press *ctrl+c* to cancel the watcher once you confirm that the newly started build is finished.
+We pushed the changes, and we started watching the activities. Please press *ctrl+c* to cancel the watcher once you confirm that the newly launched build is finished.
 
-If you're using serverless Jenkins X, the build of an application does not wait for the activity associated with automatic promotion to finish so we'll confirm whether that is done as well.
+If you're using serverless Jenkins X, the build of an application does not wait for the activity associated with automatic promotion to finish. So, we'll confirm whether that is done as well.
 
 W> Please execute the command that follows only if you are using **serverless Jenkins X**.
 
@@ -483,7 +486,7 @@ jx-go-demo-6-db-primary-0   1/1   Running 0        15m
 jx-go-demo-6-db-secondary-0 1/1   Running 0        15m
 ```
 
-There's nothing new here. Judging by the look of the Pods, if we did not change the strategy to `Recreate` you would probably think that it is still the default one. The only difference we can notice is in the description of the Deployment, so let's output it.
+There's nothing new here. Judging by the look of the Pods, if we did not change the strategy to `Recreate`, you would probably think that it is still the default one. The only difference we can notice is in the description of the Deployment, so let's output it.
 
 ```bash
 kubectl \
@@ -506,7 +509,7 @@ Events:
 
 Judging by the output, we can confirm that the `StrategyType` is now `Recreate`. That's not a surprise. What is more interesting is the last entry in the `Events` section. It scaled replicas of the new release to three. Why is that a surprise? Isn't that the logical action when deploying the first release with the new strategy? Well... It is indeed logical for the first release so we'll have to create and deploy another to see what's really going on.
 
-If you had Knative deployment running before, there is a small nuisance we need to fix. Ingress is missing and I can prove that.
+If you had Knative deployment running before, there is a small nuisance we need to fix. Ingress is missing, and I can prove that.
 
 ```bash
 kubectl \
@@ -520,7 +523,7 @@ W> Non-Knative users will have Ingress running and will not have to execute the 
 
 What happened? Why isn't there Ingress when we saw it countless times before in previous exercises?
 
-Jenkins X creates Ingress resources automatically unless we tell it otherwise. You know that already. What you might not know is that there is a bug (undocummented feature) that prevents Ingress from being created the first time we change the deployment type from Knative to plain-old Kubernetes Deployments. Given that that happens only when we switch and not in consecutive deployments of new releases, all we have to do is deploy a new release and Jenkins X will pick it up correctly and create the missing Ingress resource the second time. Without it we won't be able to access the application from outside the cluster. So, all we have to do is make a trivial change and push it to GitHub. That will trigger yet another pipeline activity that will result in creation of a new release and its deployment to the staging environment.
+Jenkins X creates Ingress resources automatically unless we tell it otherwise. You know that already. What you might not know is that there is a bug (undocumented feature) that prevents Ingress from being created the first time we change the deployment type from Knative to plain-old Kubernetes Deployments. That happens only when we switch and not in consecutive deployments of new releases. So, all we have to do is deploy a new release, and Jenkins X will pick it up correctly and create the missing Ingress resource the second time. Without it we won't be able to access the application from outside the cluster. So, all we have to do is make a trivial change and push it to GitHub. That will trigger yet another pipeline activity that will result in creation of a new release and its deployment to the staging environment.
 
 ```bash
 echo "something" | tee README.md
@@ -532,7 +535,7 @@ git commit -m "Recreate strategy"
 git push
 ```
 
-We made a silly change, we pushed it to GitHub, and that triggered yet another build. All we have to do is wait or, even better, watch the activities of *go-demo-6* and the staging environment pipelines to confirm that everything was executed correctly. I'll skip showing you the `jx get activities` commands given that I'm sure you already know them by heart.
+We made a silly change, we pushed it to GitHub, and that triggered yet another build. All we have to do is wait. Or, even better, we can watch the activities of *go-demo-6* and the staging environment pipelines to confirm that everything was executed correctly. I'll skip showing you the `jx get activities` commands given that I'm sure you already know them by heart.
 
 Assuming that you were patient enough and waited until the new release is deployed, now we can confirm that the Ingress was indeed created.
 
@@ -549,7 +552,7 @@ NAME      HOSTS                                      ADDRESS        PORTS AGE
 go-demo-6 go-demo-6.cd-staging.35.237.194.237.nip.io 35.237.194.237 80    61s
 ```
 
-That's the same output that those that did not run Knative before saw after the first release, so now we are all on the same page.
+That's the same output that those that did not run Knative before saw after the first release. Now we are all on the same page.
 
 All in all, the application is now running in staging, and it was deployed using the `recreate` strategy.
 
@@ -571,7 +574,7 @@ git commit -m "Recreate strategy"
 git push
 ```
 
-We changed the message. As a result, our current release is outputting `hello, PR` while the new release, once it's deployed, will return `hello, recreate`.
+We changed the message. As a result, our current release is outputting `hello, PR`, while the new release, once it's deployed, will return `hello, recreate`.
 
 Now we need to be **very fast** and start sending requests to our application before the new release is rolled out. If you're unsure why we need to do that, it will become evident in a few moments.
 
@@ -622,9 +625,9 @@ We created an infinite loop inside which we're sending requests to the applicati
 
 If you were fast enough, the output should consist of an endless list of `hello, PR!` messages. If that's what you're getting, it means that the deployment of the new release did not yet start. In such a case, all we have to do is wait.
 
-At one moment, `hello, PR!` messages will turn into 5xx responses. Our application is down. If this would be a "real world" situation, our users would experience outage. Some of them might even be so dissapointed that they would choose not to stick around to see whether we'll recuperate and instead switch to a competing product. I know that I, at least, have a very short tollerance threshold. If something does not work and I do not have a strong dependency on it, I move somewhere else almost instantly. If I'm commited to a service or an application, my tollerance might be a bit more forgiving but it is not indefinite. I might forgive you one outage, maybe even two, but the third time I cannot consume something I will start considering an alternative. Than again, that's only me and your users might be more forgiving. Still, even if you do have loyal customers, downtime is not a good thing and we should avoid it.
+At one moment, `hello, PR!` messages will turn into 5xx responses. Our application is down. If this were a "real world" situation, our users would experience an outage. Some of them might even be so disappointed that they would choose not to stick around to see whether we'll recuperate and instead switch to a competing product. I know that I, at least, have a very low tolerance threshold. If something does not work and I do not have a strong dependency on it, I move somewhere else almost instantly. If I'm committed to a service or an application, my tolerance might be a bit more forgiving, but it is not indefinite. I might forgive you one outage. I might even forgive two. But, the third time I cannot consume something, I will start considering an alternative. Then again, that's me, and your users might be more forgiving. Still, even if you do have loyal customers, downtime is not a good thing, and we should avoid it.
 
-While you were reading the previous paragraph, the message probably changed again. Now it should be end endless loop of `hello, recreate!`. Our application recuperated and is now operational again. It's showing us the output from the new release. If we could erase from our memory the 5xx messages, that would be awesome.
+While you were reading the previous paragraph, the message probably changed again. Now it should be an endless loop of `hello, recreate!`. Our application recuperated and is now operational again. It's showing us the output from the new release. If we could erase from our memory the 5xx messages, that would be awesome.
 
 All in all, the output, limited to the relevant parts, should be as follows.
 
@@ -653,51 +656,51 @@ hello, recreate!
 ...
 ```
 
-If all you ever saw was only the loop of `hello, recreate!`, all I can say is that you were too slow and you'll have to trust me that there were some nasty messages in between the old and the new release.
+If all you ever saw was only the loop of `hello, recreate!`, all I can say is that you were too slow. If that's the case, you'll have to trust me that there were some nasty messages in between the old and the new release.
 
 That was enough looping for now. Please press *ctrl+c* to stop it and give your laptop a rest. Leave the second terminal open and go **back to the first one**.
 
-What happened was neither pretty nor desirable. Even if you are not familiar with the `RollingUpdate` strategy (the default one for Kubernetes Deployments), you already experienced it countless times before. You probably did not see those 5xx messages in the previous exercises and that might make you wonder why did we switch to `Recreate`. Why would anyone want it? The answer to that question is that no one desires such outcomes, but many are having them anyway. I'll explain soon why we want to use the `Recreate` strategy even though it produces downtime. To answer why would anyone want something like that, we'll first explore why was the outage produced in the first place.
+What happened was neither pretty nor desirable. Even if you are not familiar with the `RollingUpdate` strategy (the default one for Kubernetes Deployments), you already experienced it countless times before. You probably did not see those 5xx messages in the previous exercises, and that might make you wonder why did we switch to `Recreate`. Why would anyone want it? The answer to that question is that no one desires such outcomes, but many are having them anyway. I'll explain soon why we want to use the `Recreate` strategy even though it produces downtime. To answer why would anyone want something like that, we'll first explore why was the outage created in the first place.
 
-When we deployed the second release using the `Recreate` strategy, Kubernetes first shut down all the instances of the old release and only when they all ceased to work it deployed the new release in its place. The downtime we experienced existed between the time the old release was shut down and the time the new one became fully operational. The downtime lasted only for a couple of seconds, but that's because our application (*go-demo-6*) boots up very fast. Some other applications might be much slower and the downtime would be much longer. It's not uncommon for the downtime in such cases to take minutes and sometimes even hours.
+When we deployed the second release using the `Recreate` strategy, Kubernetes first shut down all the instances of the old release. Only when they all ceased to work, it deployed the new release in its place. The downtime we experienced existed between the time the old release was shut down, and the time the new one became fully operational. The downtime lasted only for a couple of seconds, but that's because our application (*go-demo-6*) boots up very fast. Some other apps might be much slower, and the downtime would be much longer. It's not uncommon for the downtime in such cases to take minutes and sometimes even hours.
 
-Alternativelly, you might not have seen a single 5xx error. If that's the case, you were very lucky because that means that the old release was shut down and the new was up-and-running within 200 milliseconds (iteration between two requests in the loop9. If that's what happened to you, rest assured that it is highly unlikely it'll happen again. You just experienced once in a lifetime event. As you can probably guess, we cannot rely on users being that lucky.
+Alternatively, you might not have seen a single 5xx error. If that's the case, you were fortunate because that means that the old release was shut down and the new was up-and-running within 200 milliseconds (iteration between two requests in the loop9. If that's what happened to you, rest assured that it is highly unlikely it'll happen again. You just experienced once in a lifetime event. As you can probably guess, we cannot rely on users being that lucky.
 
-We can think of the `Recreate` strategy as "big bang". There is no transition period, there are no rolling updates, nor there are any other"modern" deployment practices. The old release is shut down and the new one is put in its place. It's simple and straightforward, but it results in inevitable downtime.
+We can think of the `Recreate` strategy as a "big bang". There is no transition period, there are no rolling updates, nor there are any other"modern" deployment practices. The old release is shut down, and the new one is put in its place. It's simple and straightforward, but it results in inevitable downtime.
 
 ![Figure 17-4: The recreate deployments strategy](images/ch17/recreate.png)
 
 Still, the initial question stands. Who would ever want to use the `Recreate` strategy? The answer is not that much who wants it, but rather who must use it.
 
-Let's take another look at static Jenkins. It is a stateful application that cannot scale. So, replacing one replica at a time as a way to avoid downtime is out of question. When applications cannot scale, there is no way we could ever accomplish deployments without downtime. Two replicas are a minimum. Otherwise, if only one replica is allowed to run at any given moment, we have to shut it down to make room for the other replica (the one from the new release). So, when there is no scaling, there is no high availability. Downtime, at least related to new releases, is unavoidable.
+Let's take another look at static Jenkins. It is a stateful application that cannot scale. So, replacing one replica at a time as a way to avoid downtime is out of the question. When applications cannot scale, there is no way we could ever accomplish deployments without downtime. Two replicas are a minimum. Otherwise, if only one replica is allowed to run at any given moment, we have to shut it down to make room for the other replica (the one from the new release). So, when there is no scaling, there is no high availability. Downtime, at least related to new releases, is unavoidable.
 
-Why static Jenkins cannot scale? There can be many answers to that question, but the main culprit is its state. It is a stateful application unable to share that state across multiple instances. Even if you deploy multiple Jenkins instances, they would operate independently from each other. Each would have a different state and manage different pipelines. That, dear reader, is not scaling. Having multiple independent instances of an application is not replication. For an application to be scalable, each replica needs to work together with others and share the load. As a rule of thumb, for an application to be scalable it needs to be stateless (e.g., *go-demo-6*) or to be able to replicate state across all replicas (e.g,. MongoDB). Jenkins does not fulfill either of the two criteria and, therefore, it cannot scale. Each instance has its own file storage where it keeps the state unique to that instance. The best we can do with static Jenkins is to give an instance to each team. That solves quite a few Jenkins-specific problems, but it does not make it scalable. As a result, it is impossible to upgrade Jenkins without downtime.
+Why can static Jenkins not scale? There can be many answers to that question, but the main culprit is its state. It is a stateful application unable to share that state across multiple instances. Even if you deploy various Jenkins instances, they will operate independently from each other. Each would have a different state and manage different pipelines. That, dear reader, is not scaling. Having multiple independent instances of an application is not replication. For an application to be scalable, each replica needs to work together with others and share the load. As a rule of thumb, for an application to be scalable, it needs to be stateless (e.g., *go-demo-6*) or to be able to replicate state across all replicas (e.g., MongoDB). Jenkins does not fulfill either of the two criteria and, therefore, it cannot scale. Each instance has its separate file storage where it keeps the state unique to that instance. The best we can do with static Jenkins is to give an instance to each team. That solves quite a few Jenkins-specific problems, but it does not make it scalable. As a result, it is impossible to upgrade Jenkins without downtime.
 
-Upgrades are not the only source of downtime with unscalable applications. If we have only one replica, when it fails Kubernetes will recreate it. But that will also result in downtime. As a matter of fact, failure and upgrades of single-replica applications are more or less the same processes. In both cases the only replica is shut down and a new one is put in its place. There is downtime between those two actions.
+Upgrades are not the only source of downtime with unscalable applications. If we have only one replica, Kubernetes will recreate it when it fails. But that will also result in downtime. As a matter of fact, failure and upgrades of single-replica applications are more or less the same processes. In both cases, the only replica is shut down, and a new one is put in its place. There is downtime between those two actions.
 
-All that might leads you to conclude that only single-replica applications should use the `Recreate` strategy. That's not true. There are many other reasons while "big bang" deployment strategy should be used. We won't have time to discuss all the reasons so I'll mention only one more.
+All that might leads you to conclude that only single-replica applications should use the `Recreate` strategy. That's not true. There are many other reasons while the "big bang" deployment strategy should be applied. We won't have time to discuss all. Instead, I'll mention only one more example.
 
-The only way to avoid downtime when upgrading applications is to run multiple replicas and start replacing them one by one or in batches. It does not matter much how many replicas we shut down and replace with those of the new release, just as long as long as there is at least one replica running. What that means is that we are likely going to run new releases in parallel with the old ones, at least for a while. We'll go through that scenario soon. For now, trust me when I say that running multiple releases of an application in parallel is unavoidable if we are to perform deployments without downtime. That means that our releases must be backwards compatible, that our applications need to version APIs, and that clients need to take that versioning into account when working with our applications. Backwards compatibility is usually the main stumbling block that prevents teams to apply zero-downtime deployments. It extends everywhere. Database schemas, APIs, clients, and many other components need to be backwards compatible.
+The only way to avoid downtime when upgrading applications is to run multiple replicas and start replacing them one by one or in batches. It does not matter much how many replicas we shut down and replace with those of the new release. We should be able to avoid downtime as long as there is at least one replica running. So, we are likely going to run new releases in parallel with the old ones, at least for a while. We'll go through that scenario soon. For now, trust me when I say that running multiple releases of an application in parallel is unavoidable if we are to perform deployments without downtime. That means that our releases must be backward compatible, that our applications need to version APIs, and that clients need to take that versioning into account when working with our apps. Backward compatibility is usually the main stumbling block that prevents teams from applying zero-downtime deployments. It extends everywhere. Database schemas, APIs, clients, and many other components need to be backward compatible.
 
-All in all, inability to scale, statefullness, lack of backwards compatibility. and quite a few other things might prevent us from running two releases in parallel. As a result, we are forced to use the `Recreate` strategy or something similar.
+All in all, inability to scale, statefulness, lack of backward compatibility, and quite a few other things might prevent us from running two releases in parallel. As a result, we are forced to use the `Recreate` strategy or something similar.
 
-So, the real question is not whether anyone wants to use the `Recreate` strategy, but rether who is forced to apply it due to the problems usually related to architecture of an application. If you are having a stateful application, the chances are the you have to use that strategy. Similarly, if your application cannot scale, you are probably forced to use it as well.
+So, the real question is not whether anyone wants to use the `Recreate` strategy, but rather who is forced to apply it due to the problems usually related to the architecture of an application. If you have a stateful application, the chances are that you have to use that strategy. Similarly, if your application cannot scale, you are probably forced to use it as well.
 
-Given that deployment with the `Recreate` strategy inevitably produces downtime, most teams tend to have less frequent releases. The impact of, lets say, one minute of downtime is not that big if we produce it only a couple of times a year. But, if we would increase the release frequency, that negative impact would increase as well. Having downtime a couple of times a year is much better than once a month which is still better than if we'd have it once a day. High velocity iterations are out of question. We cannot deploy releases frequentlyif we'll experience downtime each time we do that. In other words, zero-downtime deployments are a prerequisite for high-frequency releases to production. Given that the `Recreate` strategy does produce downtime, it stands to reason that it fosters less frequent releases to production as a way to reduce the impact of downtime.
+Given that deployment with the `Recreate` strategy inevitably produces downtime, most teams tend to have less frequent releases. The impact of, let's say, one minute of downtime is not that big if we produce it only a couple of times a year. But, if we would increase the release frequency, that negative impact would increase as well. Having downtime a couple of times a year is much better than once a month, which is still better than if we'd have it once a day. High-velocity iterations are out of the question. We cannot deploy releases frequently if we experience downtime each time we do that. In other words, zero-downtime deployments are a prerequisite for high-frequency releases to production. Given that the `Recreate` strategy does produce downtime, it stands to reason that it fosters less frequent releases to production as a way to reduce the impact of downtime.
 
-Before we proceed, it might be important to note that there was no particular reason to use the `Recreate` deployment strategy. The *go-demo-6* application is scalable, stateless, and it is designed to be backwards compatible. Any other strategy would be better suited given that zero-downtime deployments is probably the most important requirement we can have. We used the `Recreate` strategy only to demonstrate how that deployment type works and to be consistent with other examples in this chapter.
+Before we proceed, it might be important to note that there was no particular reason to use the `Recreate` deployment strategy. The *go-demo-6* application is scalable, stateless, and it is designed to be backward compatible. Any other strategy would be better suited given that zero-downtime deployment is probably the most important requirement we can have. We used the `Recreate` strategy only to demonstrate how that deployment type works and to be consistent with other examples in this chapter.
 
-Now that we saw how the `Recreate` strategy works, let's see which requirements it fullfils, and which it fails to address. As you can probably guess, what follows is not going to be a pretty picture.
+Now that we saw how the `Recreate` strategy works, let's see which requirements it fulfills, and which it fails to address. As you can probably guess, what follows is not going to be a pretty picture.
 
 When there is downtime, there is no high-availability. One excludes the other, so we failed with that one.
 
-Is our application responsive? If we used an application more appropriate for that type of deployment, we would probably discover that it would not be responsive or that it would be using more resources than it needs. Likely we'd experience both sideeffects.
+Is our application responsive? If we used an application that is more appropriate for that type of deployment, we would probably discover that it would not be responsive or that it would be using more resources than it needs. Likely we'd experience both side effects.
 
-If we go back to static Jenkins as a good example for the `Recreate` deployment strategy, we would quickly discover that it is expensive to run it. Now, I do not mean expensive in terms of licencing costs but rather in resource usage. We'd need to set it up to always use memory and CPU required for its peak load. We'd probably take a look at metrics and try to figure out how much memory and CPU it uses when the most concurrent builds are running, Then, we'd increase those values just to be on the safe side, and set them as requested resources. That would mean that we'd use more CPU and memory that what is required event for the peak load, even if most of the time we need much less. In the case of some other applications, we'd let them scale up and down and, in that way, balance the load while using only the resources they needs. But, if that would be possible with Jenkins, we would not use the `Recreate` strategy. Instead, we'd have to waste resources just to be on the safe side knowing that it can handle any load. That's very costly. The alternative would be to be cheaper and give it less resources than the peak load. However, in that case it would not be responsive given that the builds at the peak load would need to be queued. Or, even worse, it would just bleed out and fail under a lot of pressure. In any case, a typical application used with the `Recreate` deployment strategy is either not responsive or it is expensive. More often than not, it is both.
+If we go back to static Jenkins as an excellent example for the `Recreate` deployment strategy, we would quickly discover that it is expensive to run it. Now, I do not mean expensive in terms of licensing costs but rather in resource usage. We'd need to set it up to always use memory and CPU required for its peak load. We'd probably take a look at metrics and try to figure out how much memory and CPU it uses when the most concurrent builds are running. Then, we'd increase those values to be on the safe side and set them as requested resources. That would mean that we'd use more CPU and memory than what is required for the peak load, even if most of the time we need much less. In the case of some other applications, we'd let them scale up and down and, in that way, balance the load while using only the resources they need. But, if that would be possible with Jenkins, we would not use the `Recreate` strategy. Instead, we'd have to waste resources to be on the safe side, knowing that it can handle any load. That's very costly. The alternative would be to be cheaper and give it fewer resources than the peak load. However, in that case, it would not be responsive given that the builds at the peak load would need to be queued. Or, even worse, it would just bleed out and fail under a lot of pressure. In any case, a typical application used with the `Recreate` deployment strategy is often unresponsive, or it is expensive. More often than not, it is both.
 
-The only thing left is to see whether the `Recreate` strategy allows progressive rollout and automated rollbacks. In both cases, the answer is a resounding no. Given that most of the time only one replica is allowed to run, progressive rollout is impossible. On the other hand, there is no mechanism to roll back in case of a failure. That is not to say that it is not possible to do that, but rather that it is not incorporated into the deployment process itself. We'd need to modify our pipelines to accomplish that. Given that we're focused only on deployments, we can say that rollbacks are not available.
+The only thing left is to see whether the `Recreate` strategy allows progressive rollout and automated rollbacks. In both cases, the answer is a resounding no. Given that most of the time only one replica is allowed to run, progressive rollout is impossible. On the other hand, there is no mechanism to roll back in case of a failure. That is not to say that it is not possible to do that, but that it is not incorporated into the deployment process itself. We'd need to modify our pipelines to accomplish that. Given that we're focused only on deployments, we can say that rollbacks are not available.
 
-What's the score? Does the `Recreate` strategy fullfull all our requirements? The answer to that question is huge "no". Did we manage to get at least one of the requirements? The answer is still no. "Big bang" deployments do **not provide high-availability**, they are **not cost-effective**, they are **rarely responsive**. There is **no possibility to perform progressive rollouts** and there it comes with **no automated rollbacks**.
+What's the score? Does the `Recreate` strategy fulfill all our requirements? The answer to that question is a huge "no". Did we manage to get at least one of the requirements? The answer is still no. "Big bang" deployments do **not provide high-availability**. They are **not cost-effective**. They are **rarely responsive**. There is **no possibility to perform progressive rollouts**, and they come with **no automated rollbacks**.
 
 The summary of the fulfillment of our requirements for the `Recreate` deployment strategy is as follows.
 
@@ -707,21 +710,21 @@ The summary of the fulfillment of our requirements for the `Recreate` deployment
 |Responsiveness     |Not       |
 |Progressive rollout|Not       |
 |Rollback           |Not       |
-|Cost effectiveness |Not       |
+|Cost-effectiveness |Not       |
 
-As you can see, that was a very depressing outcome. Yet, architecture of our applications often forces us to apply it and we need to learn to live with it, at least until the day we are allowed to redesign those applications or throw them to thrash and start over.
+As you can see, that was a very depressing outcome. Still, the architecture of our applications often forces us to apply it. We need to learn to live with it, at least until the day we are allowed to redesign those applications or throw them to thrash and start over.
 
-I hope that you never worked with such applications. If you didn't, you are either very young, or you always worked in awesome companies. I, for example, spent most of my cerreer with applications that had to be put down for hours every time we deploy a new release. I had to come to the office during weekends because that's then the least number of people were using our applications. I had to spend hours or even days doing deployments. I spent too many nights sleeping in the office over weekends. Luckily, we had only a few releases a year. Those days now feel like nightmare that I never want to experience again. That might be the reason why I got interested in automation and architecture. I wanted to make sure that I replace myself with scripts.
+I hope that you never worked with such applications. If you didn't, you are either very young, or you always worked in awesome companies. I, for example, spent most of my career with applications that had to be put down for hours every time we deploy a new release. I had to come to the office during weekends because that's then the least number of people were using our applications. I had to spend hours or even days doing deployments. I spent too many nights sleeping in the office over weekends. Luckily, we had only a few releases a year. Those days now feel like a nightmare that I never want to experience again. That might be the reason why I got interested in automation and architecture. I wanted to make sure that I replace myself with scripts.
 
-So far, we saw two deployment strategies. We probably started with the inverted order, at least from the historical perspective. We can say that serverless deployments are one of the most advanced and modern strategies, while `Recreate` or, to use a better name, "big bang" deployments are the ghosts of the past that are still haunting us. It's no wonder that Kubernetes does not use it as a default deployment type.
+So far, we saw two deployment strategies. We probably started with the inverted order, at least from the historical perspective. We can say that serverless deployments are one of the most advanced and modern strategies. At the same time, `Recreate` or, to use a better name, "big bang" deployments are the ghosts of the past that are still haunting us. It's no wonder that Kubernetes does not use it as a default deployment type.
 
 From here on, the situation can only be more positive. Brace yourself for an increased level of happiness.
 
 ## Using RollingUpdate Strategy With Standard Kubernetes Deployments
 
-We explored one of the only two strategies we can use with Kubernetes Deployment resource. As we saw, the non-default `Recreate` is meant to serve legacy applications that are typically stateful and often do not scale. Next, we'll see what Kubernetes community thinks is the default way we should deploy our software.
+We explored one of the only two strategies we can use with Kubernetes Deployment resource. As we saw, the non-default `Recreate` is meant to serve legacy applications that are typically stateful and often do not scale. Next, we'll see what the Kubernetes community thinks is the default way we should deploy our software.
 
-I> Please bear in mind that both in the previous and in this section we are focused on what Kubernetes Deployments offer. We could have just as well used StatefulSet for stateful applications or DeamonSet for those that should be running in each node of the cluster. However, even though those behave differently, they are still based on similar principles. Given that I do not want to convert this chapter into a neverending flow of rambling, we'll ignore those and focus only on Kubernetes Deployment resource before we go yet again outside of what Kubernetes offers out-of-the-box.
+I> Please bear in mind that, both in the previous and in this section, we are focused on what Kubernetes Deployments offer. We could have just as well used StatefulSet for stateful applications or DeamonSet for those that should be running in each node of the cluster. However, even though those behave differently, they are still based on similar principles. We'll ignore those and focus only on Kubernetes Deployment resource, given that I do not want to convert this chapter into a neverending flow of rambling. Later on, we'll go yet again outside of what Kubernetes offers out-of-the-box.
 
 Now, let's get back to to the topic.
 
@@ -736,7 +739,7 @@ cat charts/go-demo-6/templates/deployment.yaml \
 
 All we did was to change the `strategy.type` to `RollingUpdate`. You should see the full definition of the Deployment on the screen.
 
-Next, we'll change the application's return message so that we can track easily the change from one release to the other.
+Next, we'll change the application's return message so that we can track the change easily from one release to the other.
 
 ```bash
 cat main.go | sed -e \
@@ -754,7 +757,7 @@ git commit -m "Recreate strategy"
 git push
 ```
 
-We made the changes and pushed them to the GitHub repository. Now, all that's left is to execute another loop that will keep sending requests to the application and display the output.
+We made the changes and pushed them to the GitHub repository. Now, all that's left is to execute another loop. We'll keep sending requests to the application and display the output.
 
 W> Please go to the **second terminal** before executing the command that follows.
 
@@ -777,7 +780,7 @@ hello, rolling update!
 ...
 ```
 
-As you can see, this time there was no downtime. The application switched from one release to another, or so it seems. But, if that's what happened, we would have seen some downtime, unless that switch happened exactly in those 0.2 seconds between the two requests. To see better what happened, we'll describe the deployment and explore its events.
+As you can see, this time, there was no downtime. The application switched from one release to another, or so it seems. But, if that's what happened, we would have seen some downtime, unless that switch happened exactly in those 0.2 seconds between the two requests. To understand better what happened, we'll describe the deployment and explore its events.
 
 W> Please stop the loop with *ctrl+c* and return to the **first terminal**.
 
@@ -805,31 +808,31 @@ Events:
   Normal  ScalingReplicaSet  69s   deployment-controller Scaled down replica set jx-go-demo-6-77b6455c87 to 0
 ```
 
-From those events we can see what happened to the Deployment so far. The first entry in my output (the one that happened over 6 minutes ago) we can see that it scaled one replica set to `0` and the other to `3`. That was the rollout of the new release we created when we used the `Recreate` strategy. Everything was shut down before the new release was put in its place. That was the cause of downtime.
+From those events, we can see what happened to the Deployment so far. The first entry in my output (the one that happened over 6 minutes ago) we can see that it scaled one replica set to `0` and the other to `3`. That was the rollout of the new release we created when we used the `Recreate` strategy. Everything was shut down before the new release was put in its place. That was the cause of downtime.
 
-Now, with the `RollingUpdate` strategy, we can see that the system was gradually increasing replicas of one ReplicaSet (`jx-go-demo-6-658f88478b`) and decreasing the other (`jx-go-demo-6-77b6455c87`). As a result, instead of having "big bang" deployment, the system was gradually replacing the old release with the new one, one replica at the time. That means that there was not a single moment without one or the other release available and, during brief period, both were running in parallel.
+Now, with the `RollingUpdate` strategy, we can see that the system was gradually increasing replicas of one ReplicaSet (`jx-go-demo-6-658f88478b`) and decreasing the other (`jx-go-demo-6-77b6455c87`). As a result, instead of having "big bang" deployment, the system was gradually replacing the old release with the new one, one replica at the time. That means that there was not a single moment without one or the other release available and, during a brief period, both were running in parallel.
 
 ![Figure 17-5: The RollingUpdate deployment strategy](images/ch17/rolling-update.png)
 
-You saw from the output of the loop that the messages switched from the old to the new release. In "real world" scenarios, you are likely going to have mixed outputs from both releases. For that reason, it is paramount that releases are backwards compatible.
+You saw from the output of the loop that the messages switched from the old to the new release. In "real world" scenarios, you are likely going to have mixed outputs from both releases. For that reason, it is paramount that releases are backward compatible.
 
-Let's take a database as an example. If we updated schema before initiating the deployment of the application, we could assume that for some time both releases would use the new schema. If the change is not backwards compatible, we could end up in a situation where some requests fail because the old release running in parallel with the new is incapable to operate with the new schema. If that was to happen, the result would be similar as if we used the `Recreate` strategy. Some requests would fail. Or, even worse, evverything might seem to be working correctly from the end-user point of view, but we would end up with inconsistent data. That could be even worse than downtime.
+Let's take a database as an example. If we updated schema before initiating the deployment of the application, we could assume that for some time both releases would use the new schema. If the change is not backward compatible, we could end up in a situation where some requests fail because the old release running in parallel with the new is incapable of operating with the new schema. If that were to happen, the result would be similar as if we used the `Recreate` strategy. Some requests would fail. Or, even worse, everything might seem to be working correctly from the end-user point of view, but we would end up with inconsistent data. That could be even worse than downtime.
 
-There are quite a few other things that could go wrong with `RollingUpdates`, but most of them can be resolved by answering positivelly to two important questions. Is our application scalable? Are our releases backwards compatible? Without scaling (multiple replicas), `RollingUpdate` is impossible and without backwards compatibility we can expect errors caused by serving requests through multiple versions of our software.
+There are quite a few other things that could go wrong with `RollingUpdates`, but most of them can be resolved by answering positively to two crucial questions. Is our application scalable? Are our releases backward compatible? Without scaling (multiple replicas), `RollingUpdate` is impossible, and without backward compatibility, we can expect errors caused by serving requests through multiple versions of our software.
 
 So, what did we learn so far? Which requirements did we fulfill with the `RollingUpdate` strategy?
 
-Our application was highly available at all times. By running multiple replicas we are safe from downtime that could be caused by one or more of them failing. Similarly, by gradually rolling out new releases we are avoiding downtime that we experienced with the `Recreate` strategy.
+Our application was highly available at all times. By running multiple replicas, we are safe from downtime that could be caused by one or more of them failing. Similarly, by gradually rolling out new releases, we are avoiding downtime that we experienced with the `Recreate` strategy.
 
-Even though we did not use HorizontalPodAutoscaler (HPA) in our example, we should add it our solution. With it, we can make our application scale up and down to meet the changes in traffic. The effect would be similar as if we'd use serverless deployments (e.g., with Knative). Still, since HPA does not scale to zero replicas, it would be even more responsive given that there would be no response delay while the system is going from nothing to something (from zero replicas to whatever is needed). On the other hand, this approach comes at a higher cost. We'd have to run at least one replica even if our application is receiving no traffic. Also, some might argue that setting up HPA might be more complex given that Knative comes with some sensible scaling defaults. That might or might not be an issue, depending on the knowledge one has with deployments and Kubernetes in general. While with Knative HPA and quite a few other resources are implied, with Deployments and the `RollingUpdate` strategy we do need to define it ourselves. We can say that Knative is more developer-friendly given its simpler syntax and that there is less need to change the defaults.
+Even though we did not use HorizontalPodAutoscaler (HPA) in our example, we should add it our solution. With it, we can make our application scale up and down to meet the changes in traffic. The effect would be similar as if we'd use serverless deployments (e.g., with Knative). Still, since HPA does not scale to zero replicas, it would be even more responsive given that there would be no response delay while the system is going from nothing to something (from zero replicas to whatever is needed). On the other hand, this approach comes at a higher cost. We'd have to run at least one replica even if our application is receiving no traffic. Also, some might argue that setting up HPA might be more complicated given that Knative comes with some sensible scaling defaults. That might or might not be an issue, depending on the knowledge one has with deployments and Kubernetes in general. While with Knative HPA and quite a few other resources are implied, with Deployments and the `RollingUpdate` strategy, we do need to define it ourselves. We can say that Knative is more developer-friendly given its simpler syntax and that there is less need to change the defaults.
 
 The only two requirements left to explore are progressive rollout and rollback.
 
-Just as with serverless deployments, `RollingUpdate` kind of works. As you already saw, it does roll out replicas of the new release progressivelly, one or more at the time. However, the best we can do is make it stop the progress based on health checks which are very limiting. We can do much better on this front and later we'll see how.
+Just as with serverless deployments, `RollingUpdate` kind of works. As you already saw, it does roll out replicas of the new release progressively, one or more at the time. However, the best we can do is make it stop the progress based on very limiting health checks. We can do much better on this front and later we'll see how.
 
-Rollback feature does not exist with the `RollingUpdate` strategy. It's true that it can stop rolling forward and that, in some cases, we might end up with only one non-funcional replica of the new release. From user's perspective, that might seem like only the old release is running. But there is no guarantee for such behavior given that in many occassions a problem might be detected only after the second, third, or some other replica is rolled out. Automated rollbacks are the only requirement that wasn't fullfilled by any of the deployment strategies we employed so far. Bear in mind that, just as before, by automated rollback I'm referring to what deployments offer us, and that I'm excluding situations in which you would do them inside your Jenkins X pipelines. Anything can be rolled back with a few tests and scripts executed if they fail, but that's not our current goal.
+Rollback feature does not exist with the `RollingUpdate` strategy. It can, however, stop rolling forward and that, in some cases, we might end up with only one non-functional replica of the new release. From the user's perspective, that might seem like only the old release is running. But there is no guarantee for such behavior given that in many occasions a problem might be detected after the second, third, or some other replica is rolled out. Automated rollbacks are the only requirement that wasn't fulfilled by any of the deployment strategies we employed so far. Bear in mind that, just as before, by automated rollback, I'm referring to what deployments offer us. I'm excluding situations in which you would do them inside your Jenkins X pipelines. Anything can be rolled back with a few tests and scripts executed if they fail, but that's not our current goal.
 
-So, what did we conclude? Do rolling updates fullfull all our requirements? Just as with other deployment strategies, the answer is still "no". Yet, `RollingUpdate` is much better than what we experienced with the `Recreate` strategy. Rolling updates provide **high-availability** and **responsiveness**. They are getting us **half-way towards progressive rollouts** and they are **more or less cost effective**. The major drawback is the **lack automated rollabacks**.
+So, what did we conclude? Do rolling updates fulfill all our requirements? Just as with other deployment strategies, the answer is still "no". Still, `RollingUpdate` is much better than what we experienced with the `Recreate` strategy. Rolling updates provide **high-availability** and **responsiveness**. They are getting us **half-way towards progressive rollouts**, and they are **more or less cost-effective**. The major drawback is the **lack of automated rollbacks**.
 
 The summary of the fulfillment of our requirements for the `RollingUpdate` deployment strategy is as follows.
 
@@ -839,11 +842,13 @@ The summary of the fulfillment of our requirements for the `RollingUpdate` deplo
 |Responsiveness     |Fully     |
 |Progressive rollout|Partly    |
 |Rollback           |Not       |
-|Cost effectiveness |Partly    |
+|Cost-effectiveness |Partly    |
 
 The next in line is blue-green deployment.
 
 ## Evaluating Whether Blue-Green Deployments Are Useful
+
+TODO: Continue proofreading
 
 Blue-green deployment is probably the most commonly mentioned "modern" deployment strategy. It was made popular by Martin Fowler.
 
@@ -1752,9 +1757,7 @@ The last piece of the canary puzzle is to figure out how to visualize canary dep
 
 ## Visualizing Rollouts Of Canary Deployments
 
-TODO: Continue review
-
-Jenkins X Flagger addon includes a Grafana dashboard that we can use to see metrics related to canary deployments visually. However, there is a tiny problem. Grafana Ingress was not created so, for now, its UI is not accessible. We'll fix that easily by creating an Ingress pointing to the Grafana service. For that, first we need to find out the IP of the Ingress controller.
+Jenkins X Flagger addon includes Grafana with a dashboard that we can use to see metrics related to canary deployments visually. However, there is a tiny problem. Grafana Ingress was not created so, for now, Grafana's UI is not accessible. We'll fix that easily by creating an Ingress pointing to the Grafana service. For that, first we need to find out the IP of the Ingress controller.
 
 Please note that the commands that follow will differ depending on whether you are using EKS or some other Kubernetes provider.
 
@@ -1779,7 +1782,7 @@ export LB_IP="$(dig +short $LB_HOST \
     | tail -n 1)"
 ```
 
-Finally, you might not be using Ingress controlled installed by Jenkins X. For example, you might be using the "official" NGINX Ingress (the one from Jenkins X is a variation of it). If that's the case, you'll have to modify the command(s) to fit your situation.
+Finally, you might not be using Ingress controller installed by Jenkins X. For example, you might be using the "official" NGINX Ingress (the one from Jenkins X is a variation of it). If that's the case, you'll have to modify the command(s) to fit your situation.
 
 Now matter how we retrieved the IP of the external load balancer, we'll output it as a way to have a visual confirmation that it looks OK.
 
@@ -1808,6 +1811,8 @@ spec:
 " | kubectl create -f -
 ```
 
+I> Do not create resources with ad-hoc commands like the one we just executed. That is undocumented and hard to reproduce. Store everything in a declarative format (e.g., YAML) in a Git repository and let Jenkins X deal with its deployment. We did what we did only to make it easy, not as a suggestion to follow the same practice in "real world" situations.
+
 With Ingress defined, we can, finally, open Grafana UI.
 
 ```bash
@@ -1818,25 +1823,29 @@ Just as Istio is not the main subject of this book, neither is Grafana. So, we w
 
 Please select *Dashboards* from the left-hand menu, click the *Manage* button, and select *Istio Canary*,
 
-Lo and behold, the dashboard is in front of us and I'll leave you to explore it. But, before I go, please note that in order to visualize the process, you should make yet another change to the source code, push it to GitHub, and wait until the pipeline-initiated canary deployment start. From there on, please select `cd-staging` or `jx-staging` as the *namespace*, choose `jx-go-demo-6-primary` as *primary* and `jx-go-demo-6` as *canary*. Now you should be able to visualize the process.
+Lo and behold, the dashboard is in front of us and I'll leave you to explore it. But, before I go, please note that in order to visualize the process, you should make yet another change to the source code, push it to GitHub, and wait until the pipeline-initiated canary deployment starts. From there on, please select `cd-staging` or `jx-staging` as the *namespace*, choose `jx-go-demo-6-primary` as *primary* and `jx-go-demo-6` as *canary*. Now you should be able to visualize the process.
 
-![Figure 17-TODO: TODO:](images/ch17/canary-grafana.png)
+![Figure 17-9: The dashboard with visualizations related to canary deployments](images/ch17/canary-grafana.png)
+
+That's all I'm going to say about Grafana. It's not the focus of this book so you're on your own if you're not already familiar with it. Right now, we are left with the last and potentially the most important discussion.
 
 ## Which Deployment Strategy Should We Choose?
 
-We saw some of the deployment strategies. There are others and this chapter does not exclude you from exploring them. Please do that. Still, until you figure out all the other strategies and variations you can do, we accumulated enough material to talk about.
+We saw some of the deployment strategies. There are others and this chapter does not exclude you from exploring them. Please do that. The more you learn, the more educated decisions you'll make. Still, until you figure out all the other strategies and variations you can do, we accumulated enough material to talk summarize what we learned so far.
 
-So, can we conclude that canary deployments are the best and that everyone should use them for all the applications? Certainly not. To begin with, if an application is not eligible for rolling updates (e.g., single replica app), it is almost certainly not eligible for canary deployments. If we think of canaries as extensions of rolling updates, whomever does not fit the latter will also not fit the former. In other words, there is a good use case for using the `Recreate` strategy in some cases.
+Can we conclude that canary deployments are the best and that everyone should use them for all their applications? Certainly not. To begin with, if an application is not eligible for rolling updates (e.g., single replica app), it is almost certainly not eligible for canary deployments. If we think of canaries as extensions of rolling updates, if an app is not a good candidate for the latter it will also not be fit for the former. In other words, there is a good use case for using the `Recreate` strategy in some cases, specifically for those applications that cannot (or shouldn't) use one of the other strategies.
 
 So, if both `Canary` and `Recreate` strategies have their use cases, can we discard rolling updates and serverless?
 
-Rolling updates should, in most cases, we replaced with canary deployments. The applications eligible for one deployment strategy are eligible for the other, and canaries provide so much more. If nothing else, they give us a bigger safety net. The exceptions would be very small clusters serving very small teams. In those cases, the resource overhead added by a service mesh (e.g., Istio) and metrics collector and database (e.g., Prometheus) might be too much. Another advantage of rolling updates is simplicity. There are no additional components to install and manage, and there are no additional YAML files. Long story short, canary deployments could easily replace all your rolling updates as long as the cost (on resources and operations) is not too high.
+Rolling updates should, in most cases, we replaced with canary deployments. The applications eligible for one deployment strategy are eligible for the other, and canaries provide so much more. If nothing else, they give us a bigger safety net. The exceptions would be very small clusters serving very small teams. In those cases, the resource overhead added by a service mesh (e.g., Istio) and metrics collector and database (e.g., Prometheus) might be too much. Another advantage of rolling updates is simplicity. There are no additional components to install and manage, and there are no additional YAML files. Long story short, canary deployments could easily replace all your rolling updates as long as the cost (on resources and operations) is not too high for your use case.
 
-That leaves us with serverless (e.g., Knative). It would be hard for me to find a situation in which there is no use for serverless deployments. It has a fantastic scaling capabilities on its own that can be combined with HorizontalPodAutoscaler. It saves us money by shutting (almost) everything down when our applications are not in use. Knative ticks all the boxes and the only downside is the deployment process itself which is more elaborated with canaries. The only downside is that scaling from nothing to something can introduce a delay from user's perspective. Nevertheless, that is rarely a problem. If an application is unused for a long period, users rarely complain when they need to wait for an additional second or two to wake it up.
+That leaves us with serverless (e.g., Knative). It would be hard for me to find a situation in which there is no use for serverless deployments. It has fantastic scaling capabilities on its own that can be combined with HorizontalPodAutoscaler. It saves us money by shutting (almost) everything down when our applications are not in use.
 
-So, we are in a situation where one solution (`Canary`) provides better capabilities for the deployment process itself, while the other (serverless) might be a better choice as a model for running applications. Ultimatelly, you'll need to make a choice. What matters more? Operational cost (use serverless) or deployment safety net (use canary).
+Knative ticks all the boxes and the only downside is the deployment process itself which is more elaborated with canaries. The more imporant potential drawback is that scaling from nothing to something can introduce a delay from user's perspective. Nevertheless, that is rarely a problem. If an application is unused for a long period, users rarely complain when they need to wait for an additional few seconds for the application to wake it up.
 
-What is important though, is that it is not winner-takes-all type of decision. We can use `Recreate` with some applications, `RollingUpdate` with others, and so on. But it goes beyond choosing a single deployment strategy for a single application. Deployment types can differ from one environment to the other. Canaries, for example, are not a good choice for preview environments. All we'd get is increased time required to terminate the deployment process and potential failures due to the lack of metrics.
+So, we are in a situation where one solution (`Canary`) provides better capabilities for the deployment process itself, while the other (serverless) might be a better choice as a model for running applications. Ultimatelly, you'll need to make a choice. What matters more? Is it operational cost (use serverless) or deployment safety net (use canary)? Ultimatelly, you might be able to combine the two but, at the time of this writing (August 2019), that is not that easy since the integration is not available in Flagger or other similar tools.
+
+What is important though, is that it is not winner-takes-all type of a decision. We can use `Recreate` with some applications, `RollingUpdate` with others, and so on. But it goes beyond choosing a single deployment strategy for a single application. Deployment types can differ from one environment to the other. Canaries, for example, are not a good choice for preview environments. All we'd get is increased time required to terminate the deployment process and potential failures due to the lack of metrics.
 
 Let's make a quick set of rules when to use one deployment strategy over the other. Bear in mind that what follows is not a comprehensive list but rather elevator pitch for each deployment type.
 
@@ -1844,19 +1853,21 @@ Use the **recreate** strategy when working with legacy applications that often d
 
 Use the **rolling update** strategy with cloud-native applications which, for one reason or another, cannot use canary deployments.
 
-Use the **canary** strategy instead of **rolling update**, especially when you need the additional control when to roll forward and when to roll back.
+Use the **canary** strategy instead of **rolling update** when you need the additional control when to roll forward and when to roll back.
 
-Use the **serverless** strategy in permanent environments when you need great scaling capabilities or when an application is not in constant use.
+Use **serverless** deployments in permanent environments when you need great scaling capabilities or when an application is not in constant use.
 
-Finally, use **serverless** strategy for all the deployments to preview environments, no matter which strategy you're using in staging and production.
+Finally, use **serverless** for all the deployments to preview environments, no matter which strategy you're using in staging and production.
+
+Finally, remember that your Kubernetes cluster might not support all those choices, so choose among those that you can use.
 
 ## What Now?
 
 This was a long chapter and you deserve a break.
 
-If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
+If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom of those Gists.
 
-If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that. Just remember to replace `[...]` with your GitHub user.
+If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that. Just remember to replace `[...]` with your GitHub user and pay attention to the comments.
 
 ```bash
 cd ..
