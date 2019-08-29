@@ -358,7 +358,7 @@ Let's imagine that we reviewed the pull request and that we decided that we do n
 
 Please type `/hold` and click the *Comment* button. You'll see that the *do-not-merge/hold* label was added. Now it should be clear to everyone that the PR should not be merged. Hopefully, we would also add a comment that would explain the reasons behind such a decision. I will let your imagination kick in and let you compose it.
 
-![Figure 12-6: Pull request with Prow-creted labels](images/ch12/prow-pr-label-hold.png)
+![Figure 12-6: Pull request with Prow-created labels](images/ch12/prow-pr-label-hold.png)
 
 At this moment, you might wonder whether it is more efficient to create comments with slash commands that add labels, instead of merely creating them directly. It is not. We could just as easily create a label using GitHub console. But the reason for applying ChatOps principles is not primarily efficiency. Instead, it is more focused on documenting and executing actions. When we write a comment with the `/hold` command, we did not only create a label, but we also recorded who did that (the person who wrote the comment), as well as when it was done. The comments serve as a ledger and can be used to infer the flow of actions and decisions. We can find everything that happened to a pull request by reading the comments from top to bottom.
 

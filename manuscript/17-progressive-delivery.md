@@ -44,9 +44,9 @@ The time has come to discuss different deployment strategies and answer a couple
 
 Before we dive into some of the deployment strategies, we might want to set some expectations that will guide us through our choices. But, before we do that, let's try to define what a deployment is.
 
-Traditionally, a deployment is a process through which we would install new applications into our servers or update those that are already running with new releases. That was, more or less, what we were doing from the begining of the history of our industry, and that is in its essence what we're doing today. But, as the industry evolved, our requirements evolved as well. Today, saying that all we expect is for our releases to run is an understatement. Today we want so much more and we have technology that can help us fulfil those desires. So, what does "much more" mean today?
+Traditionally, a deployment is a process through which we would install new applications into our servers or update those that are already running with new releases. That was, more or less, what we were doing from the beginning of the history of our industry, and that is in its essence what we're doing today. But, as we evolved our requirements were evolving as well. Today, say that all we expect is for our releases to run is an understatement. Today we want so much more and we have technology that can help us fulfil those desired. So, what does "much more" mean today?
 
-Depending on who you speak with, you will get a different list of "desires", so mine might not be all encompasing and include every single thing than anyone might need. What follows is what I believe is important and what I observed that the companies I worked typically emphasise. Without further ado, the requirements, excluding the obvious that applications should be running inside the cluster, are as follows.
+Depending on who you speak with, you will get a different list of "desires", so mine might not be all encompassing and include every single thing than anyone might need. What follows is what I believe is important and what I observed that the companies I worked typically put emphasis. Without further ado, the requirements, excluding the obvious that applications should be running inside the cluster, are as follows.
 
 Applications should be **fault-tolerant.** If an instance of the application dies, it should be brought back up. If a node where an application is running dies, the application should be moved to a healthy node. Even if a whole datacenter goes down, the system should be able to move the applications that were running there into a healthy one. An alternative would be to recreate the failed nodes or even whole datacenters with exactly the same applications that were running there before the outage. However, that is too slow and, frankly speaking, we moved away from that concept the moment we adopted schedulers. That does not mean that failed nodes and failed datacenters should not recuperate, but rather that we should not wait for infrastructure to get back to normal. Instead, we should run failed applications (no matter the cause) on healthy nodes as long as there is enough available capacity.
 
@@ -85,7 +85,7 @@ After all that, we can summarize our requirements or features by saying that we'
 * fault tolerant
 * highly available
 * responsive
-* rolling out progressivelly
+* rolling out progressively
 * rolling back in case of a failure
 * cost effective
 
@@ -506,7 +506,7 @@ Events:
 
 Judging by the output, we can confirm that the `StrategyType` is now `Recreate`. That's not a surprise. What is more interesting is the last entry in the `Events` section. It scaled replicas of the new release to three. Why is that a surprise? Isn't that the logical action when deploying the first release with the new strategy? Well... It is indeed logical for the first release so we'll have to create and deploy another to see what's really going on.
 
-If you had Knative deployment running before, there is a small nuasance we need to fix. Ingress is missing and I can prove that.
+If you had Knative deployment running before, there is a small nuisance we need to fix. Ingress is missing and I can prove that.
 
 ```bash
 kubectl \
@@ -518,7 +518,7 @@ The output claims that `no resources` were `found`.
 
 W> Non-Knative users will have Ingress running and will not have to execute the workaround we are about to do. Feel free to skip the few commands that follow. Alternatively, you can run them as well. No harm will be done. Just remember that their purpose is to create the missing Ingress that is already running and that there will be no visible effect.
 
-What happened? Why isn't there Ingress when we saw it countless times before in previous execises?
+What happened? Why isn't there Ingress when we saw it countless times before in previous exercises?
 
 Jenkins X creates Ingress resources automatically unless we tell it otherwise. You know that already. What you might not know is that there is a bug (undocummented feature) that prevents Ingress from being created the first time we change the deployment type from Knative to plain-old Kubernetes Deployments. Given that that happens only when we switch and not in consecutive deployments of new releases, all we have to do is deploy a new release and Jenkins X will pick it up correctly and create the missing Ingress resource the second time. Without it we won't be able to access the application from outside the cluster. So, all we have to do is make a trivial change and push it to GitHub. That will trigger yet another pipeline activity that will result in creation of a new release and its deployment to the staging environment.
 
@@ -671,7 +671,7 @@ Still, the initial question stands. Who would ever want to use the `Recreate` st
 
 Let's take another look at static Jenkins. It is a stateful application that cannot scale. So, replacing one replica at a time as a way to avoid downtime is out of question. When applications cannot scale, there is no way we could ever accomplish deployments without downtime. Two replicas are a minimum. Otherwise, if only one replica is allowed to run at any given moment, we have to shut it down to make room for the other replica (the one from the new release). So, when there is no scaling, there is no high availability. Downtime, at least related to new releases, is unavoidable.
 
-Why static Jenkins cannot scale? There can be many answers to that question, but the main culprit is its state. It is a stateful application unable to share that state across multiple instances. Even if you deploy multiple Jenkins instances, they would operate independenly from each other. Each would have a different state and manage different pipelines. That, dear reader, is not scaling. Having multiple independent instances of an application is not replication. For an application to be scalable, each replica needs to work together with others and share the load. As a rule of thumb, for an application to be scalable it needs to be stateless (e.g., *go-demo-6*) or to be able to replicate state across all replicas (e.g,. MongoDB). Jenkins does not fullfil either of the two criteria and, therefore, it cannot scale. Each instance has its own file storage where it keeps the state unique to that instance. The best we can do with static Jenkins is to give an instance to each team. That solves quite a few Jenkins-specific problems, but it does not make it scalable. As a result, it is impossible to upgrade Jenkins without downtime.
+Why static Jenkins cannot scale? There can be many answers to that question, but the main culprit is its state. It is a stateful application unable to share that state across multiple instances. Even if you deploy multiple Jenkins instances, they would operate independently from each other. Each would have a different state and manage different pipelines. That, dear reader, is not scaling. Having multiple independent instances of an application is not replication. For an application to be scalable, each replica needs to work together with others and share the load. As a rule of thumb, for an application to be scalable it needs to be stateless (e.g., *go-demo-6*) or to be able to replicate state across all replicas (e.g,. MongoDB). Jenkins does not fulfill either of the two criteria and, therefore, it cannot scale. Each instance has its own file storage where it keeps the state unique to that instance. The best we can do with static Jenkins is to give an instance to each team. That solves quite a few Jenkins-specific problems, but it does not make it scalable. As a result, it is impossible to upgrade Jenkins without downtime.
 
 Upgrades are not the only source of downtime with unscalable applications. If we have only one replica, when it fails Kubernetes will recreate it. But that will also result in downtime. As a matter of fact, failure and upgrades of single-replica applications are more or less the same processes. In both cases the only replica is shut down and a new one is put in its place. There is downtime between those two actions.
 
@@ -699,9 +699,9 @@ The only thing left is to see whether the `Recreate` strategy allows progressive
 
 What's the score? Does the `Recreate` strategy fullfull all our requirements? The answer to that question is huge "no". Did we manage to get at least one of the requirements? The answer is still no. "Big bang" deployments do **not provide high-availability**, they are **not cost-effective**, they are **rarely responsive**. There is **no possibility to perform progressive rollouts** and there it comes with **no automated rollbacks**.
 
-The summary of the fullfillement of our requirements for the `Recreate` deployment strategy is as follows.
+The summary of the fulfillment of our requirements for the `Recreate` deployment strategy is as follows.
 
-|Requirement        |Fullfilled|
+|Requirement        |Fulfilled|
 |-------------------|----------|
 |High-availability  |Not       |
 |Responsiveness     |Not       |
@@ -817,7 +817,7 @@ Let's take a database as an example. If we updated schema before initiating the 
 
 There are quite a few other things that could go wrong with `RollingUpdates`, but most of them can be resolved by answering positivelly to two important questions. Is our application scalable? Are our releases backwards compatible? Without scaling (multiple replicas), `RollingUpdate` is impossible and without backwards compatibility we can expect errors caused by serving requests through multiple versions of our software.
 
-So, what did we learn so far? Which requirements did we fullfil with the `RollingUpdate` strategy?
+So, what did we learn so far? Which requirements did we fulfill with the `RollingUpdate` strategy?
 
 Our application was highly available at all times. By running multiple replicas we are safe from downtime that could be caused by one or more of them failing. Similarly, by gradually rolling out new releases we are avoiding downtime that we experienced with the `Recreate` strategy.
 
@@ -831,9 +831,9 @@ Rollback feature does not exist with the `RollingUpdate` strategy. It's true tha
 
 So, what did we conclude? Do rolling updates fullfull all our requirements? Just as with other deployment strategies, the answer is still "no". Yet, `RollingUpdate` is much better than what we experienced with the `Recreate` strategy. Rolling updates provide **high-availability** and **responsiveness**. They are getting us **half-way towards progressive rollouts** and they are **more or less cost effective**. The major drawback is the **lack automated rollabacks**.
 
-The summary of the fullfillement of our requirements for the `RollingUpdate` deployment strategy is as follows.
+The summary of the fulfillment of our requirements for the `RollingUpdate` deployment strategy is as follows.
 
-|Requirement        |Fullfilled|
+|Requirement        |Fulfilled|
 |-------------------|----------|
 |High-availability  |Fully     |
 |Responsiveness     |Fully     |
@@ -971,7 +971,7 @@ Progressive delivery is a term that includes a group of deployment strategies th
 
 Progressive Delivery encompasses methodologies such as rolling updates, blue-green or canary deployments. As a matter of fact, we already used rolling updates for most of our deployments so you should be familiar with at least one flavor of progressive delivery. What is common to all of them is that monitoring and metrics are used to evaluate whether a new version is "safe" or needs to be rolled back. That's the part that our deployments were missing so far or, at least, did not do very well. Even though we did add tests that run during and after deployments to staging and production environments, they were not communicating findings to the deployment process. We did manage to have a system that can decide whether the deployment was successful or not, but we need more. We need a system that will run validations during the deployment process and let it decide whether to proceed, to halt, or to roll back. We should be able to roll out a release to a fraction of users, evaluate whether it works well and whether the users are finding it useful. If everything goes well, we should be able to continue extending the percentage of users affected by the new release. All in all, we should be able to roll out gradually, lets say ten percent at a time, run some tests and evaluate results, and, depending on the outcome, choose whether to proceed or to roll back.
 
-To make progressive delivery easier to grasp, we should probably go through the high-level process followed for the three most commonly used falvors.
+To make progressive delivery easier to grasp, we should probably go through the high-level process followed for the three most commonly used flavors.
 
 Using rolling updates not all the instances of our application are updated at the same time, but they are rolled out incrementally. If we have several replicas (containers, virtual machines, etc.) of our application we would update one at a time and check the metrics before updating the next. In case of issues we would remove them from the pool and increase the number of instances running the previous version.
 
@@ -1380,7 +1380,7 @@ curl $STAGING_ADDR/demo/hello
 
 The output should say `hello, rolling update!`. If, on the other hand, you received `no healthy upstream`, the database is not yet up and running so wait a few moments and re-run the `curl` command.
 
-Now that we confirmed that the application released with the new defition is accessible through the Istio gateway, we can take a quick look at the Pods running in the staging Namespace.
+Now that we confirmed that the application released with the new definition is accessible through the Istio gateway, we can take a quick look at the Pods running in the staging Namespace.
 
 ```bash
 kubectl \
@@ -1578,7 +1578,7 @@ kubectl \
     describe canary jx-go-demo-6
 ```
 
-The output, limited to the `events` initited by the latest deployment, is as follows.
+The output, limited to the `events` initiated by the latest deployment, is as follows.
 
 ```
 ...
@@ -1779,7 +1779,7 @@ export LB_IP="$(dig +short $LB_HOST \
     | tail -n 1)"
 ```
 
-Finally, you might not be using Ingress controlled installed by Jenkins X. For example, you might be using the "official" nginx Ingress (the one from Jenkins X is a variation of it). If that's the case, you'll have to modify the command(s) to fit your situation.
+Finally, you might not be using Ingress controlled installed by Jenkins X. For example, you might be using the "official" NGINX Ingress (the one from Jenkins X is a variation of it). If that's the case, you'll have to modify the command(s) to fit your situation.
 
 Now matter how we retrieved the IP of the external load balancer, we'll output it as a way to have a visual confirmation that it looks OK.
 

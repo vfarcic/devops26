@@ -20,7 +20,7 @@ The name serverless is misleading by giving the impression that they are no serv
 
 But not everything is excellent in the serverless world. The number of use-cases that can be fulfilled with functions (as opposed to applications) is limited. Even when we do have enough use-cases to make serverless computing a worthwhile effort, a more significant concern is lurking just around the corner. We are likely going to be locked into a vendor given that none of them implements any type of industry standard. No matter whether we choose AWS Lambda, Azure Functions, or Google Cloud Functions, the code we write will not be portable from one vendor to another. That does not mean that there are no serverless frameworks that are not tied to a specific cloud provider. There are, but we'd need to maintain them ourselves, be it on-prem or inside clusters running in a public cloud, and that removes one of the most essential benefits of serverless concepts.
 
-That's where Kuberentes comes into play.
+That's where Kubernetes comes into play.
 
 ## Serverless Deployments In Kubernetes
 
@@ -418,7 +418,7 @@ configuration.serving.knative.dev/jx-knative ...
 revision.serving.knative.dev/jx-knative-...
 ```
 
-As you can see, quite a few resources were created from a single YAML definition with a (`serving.knative.dev`) `Service`. There are some core Kuberentes resources we are likely already familiar with, like Deployment, ReplicaSet, Pod, Service. Even if that would be all we've got, we could already conclude that Knative service simplifies things since it would take us approximately double the lines in YAML to define the same resources (Deployment and Service, the rest was created by those) ourselves. But we got so much more. There are seven or more resources created from Knative specific Custom Resource Definitions (CRDs). Their responsibilities differ. One (`podautoscaler.autoscaling`) is in charge of scaling based on the number of requests or other metrics, the other (`image.caching`) of caching of the image so that boot-up time is faster, a few are making sure that networking is working as expected, and so on and so forth. We'll get more familiar with those features later.
+As you can see, quite a few resources were created from a single YAML definition with a (`serving.knative.dev`) `Service`. There are some core Kubernetes resources we are likely already familiar with, like Deployment, ReplicaSet, Pod, Service. Even if that would be all we've got, we could already conclude that Knative service simplifies things since it would take us approximately double the lines in YAML to define the same resources (Deployment and Service, the rest was created by those) ourselves. But we got so much more. There are seven or more resources created from Knative specific Custom Resource Definitions (CRDs). Their responsibilities differ. One (`podautoscaler.autoscaling`) is in charge of scaling based on the number of requests or other metrics, the other (`image.caching`) of caching of the image so that boot-up time is faster, a few are making sure that networking is working as expected, and so on and so forth. We'll get more familiar with those features later.
 
 There is one inconvenience, though. As of today (July 7), `get applications` does not report Knative-based applications correctly. 
 
