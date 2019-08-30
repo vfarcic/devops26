@@ -35,13 +35,8 @@ kubectl get nodes
 
 GH_USER=[...]
 
-CLUSTER_NAME=[...]
-
 hub delete -y \
     $GH_USER/environment-$CLUSTER_NAME-staging
-
-hub delete -y \
-    $GH_USER/environment-$CLUSTER_NAME-production
 
 hub delete -y \
     $GH_USER/environment-$CLUSTER_NAME-production
@@ -98,6 +93,12 @@ git status
 # Check the changes
 
 git push
+
+jx get activities --watch
+
+# ctrl+c
+
+# https://github.com/jenkins-x/jx/issues/5279
 
 kubectl get pods
 
