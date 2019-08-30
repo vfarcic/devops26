@@ -8,26 +8,33 @@ jx version
 # Create a cluster #
 ####################
 
-jx version
-
 PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
-jx create cluster gke \
-    --cluster-name jx-boot \
-    --project-id $PROJECT \
+CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-boot)
+
+gcloud auth login
+
+gcloud container clusters \
+    create $CLUSTER_NAME \
+    --project $PROJECT \
     --region us-east1 \
     --machine-type n1-standard-2 \
-    --min-num-nodes 1 \
-    --max-num-nodes 2 \
-    --skip-installation \
-    --batch-mode
+    --enable-autoscaling \
+    --num-nodes 1 \
+    --max-nodes 2 \
+    --min-nodes 1
+
+kubectl create clusterrolebinding \
+    cluster-admin-binding \
+    --clusterrole cluster-admin \
+    --user $(gcloud config get-value account)
 
 #######################
 # Destroy the cluster #
 #######################
 
 gcloud container clusters \
-    delete jx-boot \
+    delete $CLUSTER_NAME \
     --region us-east1 \
     --quiet
 
