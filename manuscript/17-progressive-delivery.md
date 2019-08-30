@@ -1,6 +1,6 @@
 # Choosing The Right Deployment Strategy
 
-I> **Carlos Sanchez** co-authored this chapter.
+> **Carlos Sanchez** co-authored this chapter.
 
 W> The examples in this chapter should work with any Jenkins X flavor (static or serverless) and with any hosting vendor (e.g., AWS, AKS, GKE, on-prem, etc.).
 

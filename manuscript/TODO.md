@@ -28,7 +28,7 @@
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
-- [ ] 99-features-flags-rollout.md
+- [ ] 99-feature-flags-rollout.md
 - [ ] Remove *At the time of this writing (August 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
