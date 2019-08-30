@@ -1,26 +1,3 @@
-
-## TODO
-
-- [X] Code
-- [X] Write
-- [X] Code review static GKE
-- [X] Code review serverless GKE
-- [-] Code review static EKS
-- [X] Code review serverless EKS
-- [X] Code review static AKS
-- [X] Code review serverless AKS
-- [-] Code review existing static cluster
-- [-] Code review existing serverless cluster
-- [X] Text review
-- [X] Gist
-- [X] Review titles
-- [X] Proofread
-- [X] Diagrams
-- [ ] Add to slides
-- [ ] Publish on TechnologyConversations.com (*Using Serverless Deployments Strategy* or the diagrams)
-- [ ] Add to Book.txt
-- [ ] Publish on LeanPub.com
-
 # Choosing The Right Deployment Strategy
 
 I> **Carlos Sanchez** co-authored this chapter.
@@ -283,7 +260,7 @@ We retrieved the address through which we can reach the application running in t
 
 So far, the significant difference when compared with "normal" Kubernetes deployments is that the access to the application is not controlled through Ingress any more. Instead, it goes through a new resource type abbreviated as `ksvc` (short for Knative Service). Apart from that, everything else seems to be the same, except if we left the application unused for a while. If that's the case, we still got the same output, but there was a slight delay between sending the request and receiving the response. The reason for such a delay lies in Knative's scaling capabilities. It saw that the application is not used and scaled it to zero replicas. But, the moment we sent a request, it noticed that zero replicas is not the desired state and scaled it back to one replica. All in all, the request entered into a gateway (in our case served by Gloo Envoy) and waited there until a new replica was created and initialized, unless one was already running. After that, it forwarded the request to it, and the rest is the "standard" process of our application responding and that response being forwarded to us (back to `curl`).
 
-![Figure 17-1: The flow of a request with Gloo API gateway](images/ch17/knative-request.png)
+![Figure 17-1: The flow of a request with API gateway](images/ch17/knative-request.png)
 
 I cannot be sure whether your serverless deployment indeed scaled to zero or it didn't. So, we'll use a bit of patience to validate that it does indeed scale to nothing after a bit of inactivity. All we have to do is wait for five to ten minutes. Get a coffee or some snack.
 
