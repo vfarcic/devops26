@@ -42,7 +42,7 @@ STAGING_ADDR=[...]
 curl "$STAGING_ADDR/demo/hello"
 
 kubectl --namespace jx-staging logs \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 
 echo "dependencies:
 - name: mongodb
@@ -70,7 +70,7 @@ kubectl --namespace jx-staging get pods
 
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 
 git add .
 

@@ -18,6 +18,18 @@
 - [X] 16-serverless-apps.md
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
+- [ ] Amazon.com
+- [ ] devopstoolkitseries.com
+- [ ] jenkins-x.io
+- [ ] "Book is out" to TechnologyConversations.com
+- [ ] "Book is out" to MailChimp
+- [ ] Preface to TechnologyConversations.com
+- [ ] Cover to TechnologyConversations.com
+- [ ] Amazon marketing
+- [ ] Check whether the book was added to Amazon's author page
+- [ ] Check whether the two formats are presented together in Amazon
+- [ ] Packt
+- [ ] Create a course on [udemy.com](https://www.udemy.com/)
 - [ ] 99-boot.md
 - [ ] 99-ui.md
 - [ ] https://github.com/jenkins-x/jx/issues/5000
@@ -64,14 +76,6 @@
 - [ ] 99-running-multiple-pipelines.md (https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646)
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-codified-infrastructure.md
-- [ ] Packt
-- [ ] Amazon.com
-- [ ] devopstoolkitseries.com
-- [ ] "Book is out" to TechnologyConversations.com
-- [ ] "Book is out" to MailChimp
-- [ ] Preface to TechnologyConversations.com
-- [ ] Cover to TechnologyConversations.com
-- [ ] Amazon marketing
 
 ## TODO
 
