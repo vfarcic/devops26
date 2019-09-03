@@ -16,6 +16,24 @@ git merge buildpack
 
 git push
 
+# If GKE
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+# If GKE
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+# If GKE
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
+
 jx import --pack go --batch-modes
 
 jx get activity -f go-demo-6 -w
