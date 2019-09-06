@@ -1,3 +1,7 @@
+# Links to gists for creating a Jenkins X cluster
+# gke-jx.sh: https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18
+# gke-jx-serverless.sh: https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+
 NAMESPACE=$(kubectl config view \
     --minify \
     --output jsonpath="{..namespace}")

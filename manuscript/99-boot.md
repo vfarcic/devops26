@@ -24,8 +24,7 @@
 
 NOTE: Validated (works) only with serverless GKE
 
-NOTE: `--skip-installation`
-NOTE: Changed the name of the cluster from `jx-rocks` to `jx-boot` because of phantom storage
+NOTE: Not using `jx` to create a cluster
 
 * Create new **GKE** cluster: [gke-jx-serverless-boot.sh](TODO:)
 
@@ -35,8 +34,6 @@ NOTE: Changed the name of the cluster from `jx-rocks` to `jx-boot` because of ph
 kubectl get nodes
 
 GH_USER=[...]
-
-CLUSTER_NAME=[...]
 
 hub delete -y \
     $GH_USER/environment-$CLUSTER_NAME-staging
@@ -54,6 +51,8 @@ git clone \
 
 cd environment-$CLUSTER_NAME-dev
 
+cat jx-requirements.yml
+
 cat jx-requirements.yml \
     | sed -e \
     "s@clusterName: \"\"@clusterName: \"$CLUSTER_NAME\"@g" \
@@ -63,8 +62,6 @@ cat jx-requirements.yml \
     | sed -e \
     "s@nvironmentGitOwner: \"\"@nvironmentGitOwner: \"$GH_USER\"@g" \
     | tee jx-requirements.yml
-
-PROJECT=[...] #  e.g., devops26
 
 cat jx-requirements.yml \
     | sed -e \
@@ -93,11 +90,15 @@ jx boot # --batch-mode
 
 git status
 
-git add .
-
-git commit -m "Initial setup"
+# Check the changes
 
 git push
+
+jx get activities --watch
+
+# ctrl+c
+
+# https://github.com/jenkins-x/jx/issues/5279
 
 kubectl get pods
 
@@ -106,10 +107,6 @@ cat jenkins-x.yml
 kubectl get ns
 
 jx get env
-
-# Explore the last commit
-
-git push
 
 # jx repo --batch-mode
 
@@ -213,6 +210,10 @@ jx get activity \
 # jx profile cloudbees
 
 # jx profile oss
+
+# Add gloo, istio, flagger
+
+# CB distribution
 ```
 
 ## What Now?

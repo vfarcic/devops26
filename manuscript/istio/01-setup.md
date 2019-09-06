@@ -1,4 +1,6 @@
-## Setup CLI And Cluster Components
+# Setup CLI And Cluster Components
+
+## Cluster
 
 ```bash
 git clone \
@@ -17,7 +19,11 @@ cd k8s-specs
 mkdir -p cluster
 
 cd cluster
+```
 
+## CLI
+
+```bash
 # If macOS or Linux
 curl -L https://git.io/getLatestIstio | sh -
 
@@ -41,7 +47,7 @@ TODO: Commands
 
 cd ..
 
-istioctl version
+istioctl version --output yaml
 ```
 
 ```
@@ -54,6 +60,29 @@ BuildStatus: Clean
 ```
 
 ```bash
+# TODO: Install Helm
+
+cd ../..
+```
+
+## Install
+
+```bash
+mkdir -p charts
+
+helm repo add istio.io \
+    https://storage.googleapis.com/istio-release/releases/1.2.5/charts/
+
+kubectl create namespace istio-system
+
+helm template \
+    install/kubernetes/helm/istio-init \
+    --name istio-init \
+    --namespace istio-system \
+    --output-dir k8s-specs/aws
+
+kubectl apply -f -
+
 # If Minikube or Docker for Desktop
 helm upgrade -i istio \
     cluster/istio-*/install/kubernetes/helm/istio \

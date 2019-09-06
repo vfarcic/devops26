@@ -1,6 +1,6 @@
 ## The DevOps 2.6 Toolkit
 
-- [ ] 01-preface.md (add *Overview* amd *Audience*)
+- [X] 01-preface.md
 - [X] 02-intro.md
 - [X] 03-quickstart.md
 - [X] 04-import.md
@@ -16,9 +16,23 @@
 - [X] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
-- [ ] 17-progressive-delivery.md
-- [ ] https://github.com/jenkins-x/jx/issues/5000
+- [X] 17-progressive-delivery.md
+- [X] 99-the-end.md
+- [ ] Amazon.com
+- [ ] devopstoolkitseries.com
+- [ ] jenkins-x.io
+- [ ] "Book is out" to TechnologyConversations.com
+- [ ] "Book is out" to MailChimp
+- [ ] Preface to TechnologyConversations.com
+- [ ] Cover to TechnologyConversations.com
+- [ ] Amazon marketing
+- [ ] Check whether the book was added to Amazon's author page
+- [ ] Check whether the two formats are presented together in Amazon
+- [ ] Packt
+- [ ] Create a course on [udemy.com](https://www.udemy.com/)
 - [ ] 99-boot.md
+- [ ] 99-ui.md
+- [ ] https://github.com/jenkins-x/jx/issues/5000
 - [ ] 99-storage-and-vault.md
 - [ ] Switch from `jx create addon` to `jx create app`
 - [ ] Update the personal cluster
@@ -27,6 +41,7 @@
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
+- [ ] 99-feature-flags-rollout.md
 - [ ] Remove *At the time of this writing (August 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -36,6 +51,7 @@
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
+- [ ] Change *At the time of this writing (August 2019)...* to the "real" month in 99-the-end.md
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
@@ -60,15 +76,6 @@
 - [ ] 99-running-multiple-pipelines.md (https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646)
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-codified-infrastructure.md
-- [ ] 99-the-end.md
-- [ ] Packt
-- [ ] Amazon.com
-- [ ] devopstoolkitseries.com
-- [ ] "Book is out" to TechnologyConversations.com
-- [ ] "Book is out" to MailChimp
-- [ ] Preface to TechnologyConversations.com
-- [ ] Cover to TechnologyConversations.com
-- [ ] Amazon marketing
 
 ## TODO
 
@@ -96,9 +103,9 @@
 
 - [ ] k8s CRD (e.g. jx)
 - [ ] k8s jobs
-- [ ] Service mesh ([Istio](https://istio.io/), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali))
+- [ ] Service mesh ([Istio](https://istio.io/), [Gloo](https://gloo.solo.io), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali), [Vistio](https://github.com/nmnellis/vistio))
+- [ ] Serverless
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
-- [ ] [Vistio](https://github.com/nmnellis/vistio)
 - [ ] Monitoring alternatives (Splunk, DataDog, New Relic)
 - [ ] Custom resources
 - [ ] kubernetes Networking - different CNI plugin/provider (Flannel, Calico, etc)
@@ -131,7 +138,6 @@
 - [ ] Write addons.md
 - [ ] Write deploy-advanced.md (staged update, canary, phased roll outs, bg)
 - [ ] Write write-addons.md
-- [ ] Write the-end.md
 - [ ] Harbor (https://github.com/goharbor/harbor)
 - [ ] AWS Fargate
 - [ ] Rancher
@@ -145,12 +151,10 @@
 - [ ] CRI and alternative container runtimes (CRI-O, etc)
 - [ ] Operating Systems (RancherOS)
 - [ ] Machine learning (https://github.com/kubeflow)
-- [ ] ChatOps w/k8s
 - [ ] Run containers (Docker, containerD, rkt, cri-o)
 - [ ] [cert-manager](https://github.com/jetstack/cert-manager)
 - [ ] [Google Cloud Build](https://cloud.google.com/cloud-build/docs/)
 - [ ] [Knative](https://github.com/knative/)
-- [ ] Serverless
 - [ ] Operator pattern
 - [ ] https://www.keycloak.org/
 - [ ] [KataContainers](https://katacontainers.io/)
