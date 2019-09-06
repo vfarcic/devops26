@@ -228,7 +228,7 @@ When in doubt, we can always take a look at the logs.
 
 ```bash
 kubectl --namespace jx-staging logs \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 ```
 
 The output is as follows.
@@ -353,10 +353,10 @@ The output is as follows.
 
 ```
 NAME                                READY STATUS  RESTARTS AGE
-jx-staging-go-demo-6-...            0/1   Running 5        5m
-jx-staging-go-demo-6-db-arbiter-0   1/1   Running 0        5m
-jx-staging-go-demo-6-db-primary-0   1/1   Running 0        5m
-jx-staging-go-demo-6-db-secondary-0 1/1   Running 0        5m
+jx-go-demo-6-...            0/1   Running 5        5m
+jx-go-demo-6-db-arbiter-0   1/1   Running 0        5m
+jx-go-demo-6-db-primary-0   1/1   Running 0        5m
+jx-go-demo-6-db-secondary-0 1/1   Running 0        5m
 ```
 
 The good news is that the database is indeed running. The bad news is that the application is still not operational. In my case, it already restarted five times, and `0` containers are available.
@@ -366,7 +366,7 @@ Given that the problem is this time probably not related to the database, the lo
 ```bash
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 ```
 
 The output, limited to the message of the events, is as follows.
@@ -376,7 +376,7 @@ The output, limited to the message of the events, is as follows.
 Events:
 ... Message
 ... -------
-... Successfully assigned jx-staging-go-demo-6-fdd8f6644-xx68f to gke-jx-rocks-default-pool-119fec1e-v7p7
+... Successfully assigned jx-go-demo-6-fdd8f6644-xx68f to gke-jx-rocks-default-pool-119fec1e-v7p7
 ... MountVolume.SetUp succeeded for volume "default-token-cxn5p"
 ... Readiness probe failed: Get http://10.28.2.17:8080/: dial tcp 10.28.2.17:8080: getsockopt: connection refused
 ... Back-off restarting failed container
@@ -428,10 +428,10 @@ The output is as follows.
 
 ```
 NAME                                READY STATUS  RESTARTS AGE
-jx-staging-go-demo-6-...            1/1   Running 0        39s
-jx-staging-go-demo-6-db-arbiter-0   1/1   Running 0        11m
-jx-staging-go-demo-6-db-primary-0   1/1   Running 0        11m
-jx-staging-go-demo-6-db-secondary-0 1/1   Running 0        11m
+jx-go-demo-6-...            1/1   Running 0        39s
+jx-go-demo-6-db-arbiter-0   1/1   Running 0        11m
+jx-go-demo-6-db-primary-0   1/1   Running 0        11m
+jx-go-demo-6-db-secondary-0 1/1   Running 0        11m
 ```
 
 To be on the safe side, we'll send a request to the application. If we are greeted back, we'll know that it's working as expected.

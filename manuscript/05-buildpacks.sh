@@ -28,13 +28,13 @@ cat packs/go-mongo/charts/templates/deployment.yaml \
 
 echo "dependencies:
 - name: mongodb
-  alias: code-db
+  alias: REPLACE_ME_APP_NAME-db
   version: 5.3.0
   repository:  https://kubernetes-charts.storage.googleapis.com
   condition: db.enabled
 " | tee packs/go-mongo/charts/requirements.yaml
 
-echo "code-db:
+echo "REPLACE_ME_APP_NAME-db:
   replicaSet:
     enabled: true
 " | tee -a packs/go-mongo/charts/values.yaml
@@ -104,7 +104,7 @@ kubectl --namespace jx-staging get pods
 
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-staging-go-demo-6
+    -l app=jx-go-demo-6
 
 cat charts/go-demo-6/values.yaml
 
