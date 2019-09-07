@@ -107,8 +107,11 @@ echo 'unittest:
 	CGO_ENABLED=$(CGO_ENABLED) $(GO) test --run UnitTest -v
 ' | tee -a Makefile
 
-cat watch.sh | sed -e \
+cat watch.sh |
+    sed -e \
     's@linux \&\& skaffold@linux \&\& make unittest \&\& skaffold@g' \
+    | sed -e \
+    's@skaffold@UUID=$(uuidgen) skaffold@g' \
     | tee watch.sh
 
 jx sync --daemon
@@ -118,6 +121,8 @@ jx create devpod --sync --batch-mode
 jx rsh --devpod
 
 go mod init
+
+unset GOPATH
 
 helm init --client-only
 

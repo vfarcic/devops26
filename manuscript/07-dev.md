@@ -138,7 +138,7 @@ Next, Jenkins X installed the `ExposecontrollerService`. It will communicate wit
 
 Further on, it updated the Helm repository in the DevPod so that we can utilize the charts available in ChartMuseum running inside the cluster.
 
-It also ran Theia. We'll keep it a mystery for now.
+It also ran Visual Studio Code. We'll keep it a mystery for now.
 
 Finally, it cloned the *go-demo-6* code inside the Pod.
 
@@ -432,15 +432,17 @@ Please replace `[...]` with the name of the `*-ide` application before executing
 jx open [...]
 ```
 
-What you see in front of you is Theia. It is a browser-based IDE (it can run as a desktop app as well), and it is inspired and partially powered by Visual Studio Code. It is, in my experience, the best browser-based IDE today (March 2019). If you've already used Visual Studio Code, Theia should feel familiar. If you haven't, it's intuitive and straightforward, and you'll have no problem adopting it (if you think it's useful).
+What you see in front of you is Visual Studio Code. It is a browser-based IDE (it can run as a desktop app as well). It is, in my experience, the best browser-based IDE today (March 2019). If you've already used Visual Studio Code on your laptop, what you see should feel familiar. If you haven't, it's intuitive and straightforward, and you'll have no problem adopting it (if you think it's useful).
 
-Let's give Theia a spin.
+Let's give Visual Studio Code a spin.
 
 Our next mission is to modify a few Go files and observe that the changes are build and deployed without us executing any additional commands. Remember that the watcher (`watch.sh`) is still running.
 
 Please open the *Files* section located in the left-hand menu, expand the *go-demo-6* directory, and double-click the *main.go* file to open it in the main body of the IDE. Next, change `hello, world` (or whatever else you changed it to previously) to `hello, devpod`.
 
 Since we have tests that validate that the correct message is returned, we'll need to change them as well. Open the *main_test.go* file next, search for `hello, world` (or whatever else you changed it to previously), and change it to `hello, devpod`.
+
+Make sure to save the changes.
 
 Now we can confirm that our changes are automatically built and deployed every time we change a Go source code.
 
@@ -450,11 +452,11 @@ curl "$URL/demo/hello"
 
 The output should be `hello, devpod!`
 
-![Figure 7-3: The process of using Theia to modify files inside a DevPod and building and deploying applications](images/ch07/devpod-theia.png)
+![Figure 7-3: The process of using Visual Studio Code to modify files inside a DevPod and building and deploying applications](images/ch07/devpod-vscode.png)
 
 We saw how we can work using personal development environments and modifying them from a browser.
 
-I used Theia quite a few times. It is beneficial when we do not have all the tools running inside our laptops (except `jx` CLI). But, a browser-based editor might not be your cup of tea. You might find a desktop IDE easier and faster. Or, maybe you are emotionally attached to a desktop version of Visual Studio Code, IntelliJ, or whatever else is your coding weapon of choice. Fear not, we can use them as well. Our next mission is to connect your favorite IDE with DevPods. But, before we do that, we'll delete the DevPod we're currently running and start a new one with a twist.
+I used Visual Studio Code quite a few times. It is beneficial when we do not have all the tools running inside our laptops (except `jx` CLI). But, a browser-based editor might not be your cup of tea. You might find a desktop IDE easier and faster. Or, maybe you are emotionally attached to a desktop version of Visual Studio Code, IntelliJ, or whatever else is your coding weapon of choice. Fear not, we can use them as well. Our next mission is to connect your favorite IDE with DevPods. But, before we do that, we'll delete the DevPod we're currently running and start a new one with a twist.
 
 ```bash
 jx delete devpod
@@ -468,7 +470,7 @@ The problem is that we did not push the code changes to GitHub. If we did that, 
 
 ## Synchronizing Code From A Laptop Into A DevPod
 
-I hope that you liked the idea of using a browser-based IDE like Theia. On the other hand, the chances are that you believe that it might be useful in some scenarios, but that the bulk of your development will be done using desktop-based IDE. In other words, I bet that you prefer to work with local files. If that's the case, we need to figure out how to sync them with DevPod. But, before we do that, we'll add a critical component to our development process. We're missing tests, and that is, as I'm sure you already know, unacceptable.
+I hope that you liked the idea of using a browser-based IDE like Visual Studio Code. On the other hand, the chances are that you believe that it might be useful in some scenarios, but that the bulk of your development will be done using desktop-based IDE. In other words, I bet that you prefer to work with local files. If that's the case, we need to figure out how to sync them with DevPod. But, before we do that, we'll add a critical component to our development process. We're missing tests, and that is, as I'm sure you already know, unacceptable.
 
 Given that we are using Makefile to specify our targets (at least when working with Go), that's the place where we'll add unit tests. I assume that you want to run unit tests every time you change your code and that you'll leave slower types of tests (e.g., functional and integration tests) to Jenkins. If that's not the case, you should have no problem extending our examples to run a broader set of validations.
 
@@ -486,8 +488,11 @@ We added a `unittest` target with `go test` command limited to functions that co
 Next, we need to modify `watch.sh` so that it executes the new target.
 
 ```bash
-cat watch.sh | sed -e \
+cat watch.sh |
+    sed -e \
     's@linux \&\& skaffold@linux \&\& make unittest \&\& skaffold@g' \
+    | sed -e \
+    's@skaffold@UUID=$(uuidgen) skaffold@g' \
     | tee watch.sh
 ```
 
@@ -521,6 +526,8 @@ Next, we'll enter the DevPod and execute the same commands that will end with ru
 
 ```bash
 jx rsh --devpod
+
+unset GOPATH
 
 go mod init
 

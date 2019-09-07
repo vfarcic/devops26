@@ -2,14 +2,14 @@
 
 - [ ] Code
 - [ ] Write
-- [-] Code review static GKE
+- [ ] Code review static GKE
 - [ ] Code review serverless GKE
-- [-] Code review static EKS
-- [-] Code review serverless EKS
-- [-] Code review static AKS
-- [-] Code review serverless AKS
-- [-] Code review existing static cluster
-- [-] Code review existing serverless cluster
+- [ ] Code review static EKS
+- [ ] Code review serverless EKS
+- [ ] Code review static AKS
+- [ ] Code review serverless AKS
+- [ ] Code review existing static cluster
+- [ ] Code review existing serverless cluster
 - [ ] Text review
 - [ ] Gist
 - [ ] Review titles
@@ -68,6 +68,13 @@ cat jx-requirements.yml \
     "s@project: \"\"@project: \"$PROJECT\"@g" \
     | tee jx-requirements.yml
 
+# TODO: Change storage to `enabled: true`
+
+cat jx-requirements.yml \
+    | sed -e \
+    "s@secretStorage: local@secretStorage: vault@g" \
+    | tee jx-requirements.yml
+
 # PROVIDER=[...] # e.g., gke
 
 # cat jx-requirements.yml \
@@ -81,8 +88,6 @@ cat jx-requirements.yml \
     | sed -e \
     "s@zone: \"\"@zone: \"$ZONE\"@g" \
     | tee jx-requirements.yml
-
-# https://github.com/jenkins-x/jx/issues/5039
 
 cat jx-requirements.yml
 
@@ -129,9 +134,9 @@ jx get activity \
 
 # ctrl+c
 
-kubectl get ns
+kubectl get namespaces
 
-jx get applications -e staging
+jx get applications --env staging
 
 STAGING_ADDR=[...]
 
