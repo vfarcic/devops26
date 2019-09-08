@@ -18,6 +18,7 @@
 - [X] 16-serverless-apps.md
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
+- [ ] 18-boot.md
 - [ ] Amazon.com
 - [ ] devopstoolkitseries.com
 - [ ] jenkins-x.io
@@ -29,8 +30,8 @@
 - [ ] Check whether the book was added to Amazon's author page
 - [ ] Check whether the two formats are presented together in Amazon
 - [ ] Packt
+- [ ] 99-boot-update.md
 - [ ] Create a course on [udemy.com](https://www.udemy.com/)
-- [ ] 99-boot.md
 - [ ] 99-ui.md
 - [ ] https://github.com/jenkins-x/jx/issues/5000
 - [ ] 99-storage-and-vault.md
