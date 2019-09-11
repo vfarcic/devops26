@@ -217,7 +217,7 @@ A few moments later, Jenkins & friends will be up and running, and you should se
 
 We're almost done. Only one question is pending. You'll be asked to `select the organization where you want to create the environment repository`. Choose one from the list.
 
-The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which will, in turn, trigger another job that will comply with the updated definition of the environment. 
+The process will create two GitHub repositories; `environment-jx-rocks-staging` that describes the staging environment and `environment-jx-rocks-production` for production. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which will, in turn, trigger another job that will comply with the updated definition of the environment. 
 
 That's GitOps. 
 
@@ -283,7 +283,7 @@ A few moments later, Jenkins & friends will be up and running, and you should se
 
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
-The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment.
+The process will create two GitHub repositories; `environment-jx-rocks-staging` that describes the staging environment and `environment-jx-rocks-production` for production. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment.
 
 That's GitOps
 
@@ -434,7 +434,7 @@ A few moments later, Jenkins & friends will be up and running, and you should se
 
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
-The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment.
+The process will create two GitHub repositories; `environment-jx-rocks-staging` that describes the staging environment and `environment-jx-rocks-production` for production. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment.
 
 That's GitOps.
 
@@ -664,7 +664,7 @@ A few moments later, Jenkins & friends will be up and running, and you should se
 
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
-The process will create two GitHub repositories; `environment-jx-rocks-staging` and `environment-jx-rocks-production`. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push a change to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment. 
+The process will create two GitHub repositories; `environment-jx-rocks-staging` that describes the staging environment and `environment-jx-rocks-production` for production. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push a change to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment. 
 
 That's GitOps. 
 

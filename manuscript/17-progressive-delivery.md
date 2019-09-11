@@ -1399,7 +1399,7 @@ jx-go-demo-6 Initialized 0      2019-08-16T23:17:03Z
 
 There's not much going on there since we have only the first `Canary` release running. For now, please note that `canary` can give us additional insight into the process.
 
-Finally, if you paid attention, you saw that we set the `Canary` gateway to `jx-gateway.istio-system.svc.cluster.local`. As a result, when we deployed the first `Canary` release, it created the gateway for us. We can see it by retrieving `virtualservice.networking.istio.io` resources.
+Finally, if you paid attention, you saw that we set the `Canary` gateway to the value `jx-gateway.istio-system.svc.cluster.local`. As a result, when we deployed the first `Canary` release, it created the gateway for us. We can see it by retrieving `virtualservice.networking.istio.io` resources.
 
 ```bash
 kubectl \
