@@ -33,3 +33,9 @@ In his own words...
 In his own words...
 
 *I started out working with MultiValue database platforms in the late 80s. Since that time, I've been fortunate to work with a lot of great clients and companies using numerous technologies. Said differently, I'm old, and I've seen a lot. As we head into the new roaring 20s, I'm really looking forward to what the future holds, especially in the IoT space.*
+
+**Eric Tavela** provided technical feedback to help keep the text up to date with the evolving Jenkins X platform.
+
+In his own words...
+
+*Working in the field of software engineering for over 25 years, I've continually been trying to balance my knowledge of effective coding practices, delivery infrastructure and software development process. Nowadays that generally means Agile BDD of microservices deployed to Kubernetes; tomorrow, who can say? For however long I can keep up, I look forward to finding out.*
