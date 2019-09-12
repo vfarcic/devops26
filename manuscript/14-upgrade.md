@@ -437,7 +437,7 @@ jx upgrade ingress \
     --urltemplate "{{.Service}}.staging.{{.Domain}}"
 ```
 
-We initiated the process that will change the URL template. By default, it is set to *{{.Service}}.{{.Namespace}}.{{.Domain}}*. We replaced `{{.Namespace}}` with `staging` hoping that will make it easier for other users to know the address of the applications.
+We initiated the process that will change the URL template. By default, it is set to the value of `{{.Service}}.{{.Namespace}}.{{.Domain}}`. We replaced `{{.Namespace}}` with `staging` hoping that will make it easier for other users to know the address of the applications.
 
 We are presented with the same questions as when we executed `jx upgrade ingress` the first time. Since the necessary changes are already defined in the command arguments, you can select the default answers to all by simply pressing the enter key.
 
