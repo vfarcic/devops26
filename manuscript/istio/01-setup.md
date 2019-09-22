@@ -68,39 +68,63 @@ cd ../..
 ## Install
 
 ```bash
-mkdir -p charts
-
 helm repo add istio.io \
-    https://storage.googleapis.com/istio-release/releases/1.2.5/charts/
+    https://storage.googleapis.com/istio-release/releases/1.3.0/charts/
 
 kubectl create namespace istio-system
 
+mkdir -p charts
+
+helm fetch istio.io/istio-init \
+    -d charts \
+    --untar
+
+ls -1 charts/istio-init
+
+mkdir -p istio/specs
+
+# If minikube
 helm template \
-    install/kubernetes/helm/istio-init \
+    charts/istio-init \
     --name istio-init \
     --namespace istio-system \
-    --output-dir k8s-specs/aws
+    --set gateways.istio-ingressgateway.type=NodePort \
+    --output-dir istio
 
-kubectl apply -f -
+ls -1 istio/istio-init
 
-# If Minikube or Docker for Desktop
-helm upgrade -i istio \
-    cluster/istio-*/install/kubernetes/helm/istio \
+kubectl apply \
+    --filename istio/istio-init \
+    --recursive
+    
+kubectl get crds | grep 'istio.io'
+
+kubectl get crds | grep 'istio.io' | wc -l
+
+helm fetch istio.io/istio \
+    -d charts \
+    --untar
+
+ls -1 charts/istio
+
+helm template \
+    charts/istio \
+    --name istio \
     --namespace istio-system \
     --set gateways.istio-ingressgateway.type=NodePort \
-    --set gateways.istio-egressgateway.type=NodePort \
-    --wait
+    --output-dir istio
 
-# If NOT Minikube or Docker for Desktop
-helm upgrade -i istio \
-    cluster/istio-*/install/kubernetes/helm/istio \
-    --version 1.1.0 \
-    --namespace istio-system \
-    --wait
+ls -1 istio/istio
 
-kubectl -n istio-system get svc
+kubectl apply \
+    --filename istio/istio \
+    --recursive
 
-kubectl -n istio-system get pods
+kubectl --namespace istio-system \
+    get services
+
+kubectl --namespace istio-system \
+    get pods
 ```
 
 ## Manual Sidecar Injection
@@ -109,15 +133,16 @@ kubectl -n istio-system get pods
 cat istio/alpine.yml
 
 istioctl kube-inject \
-    -f istio/alpine.yml
+    --filename istio/alpine.yml
 
 istioctl kube-inject \
-    -f istio/alpine.yml \
+    --filename istio/alpine.yml \
     | kubectl apply -f -
 
 kubectl get pods
 
-kubectl describe pod -l app=alpine
+kubectl describe pod \
+    --selector app=alpine
 
 kubectl delete deployment,svc alpine
 ```
@@ -128,27 +153,36 @@ kubectl delete deployment,svc alpine
 kubectl api-versions \
     | grep admissionregistration
 
-kubectl apply -f istio/alpine.yml
+kubectl apply --filename istio/alpine.yml
 
 kubectl get pods
 
-kubectl label ns default \
+kubectl label namespace default \
     istio-injection=enabled
 
-kubectl get ns -L istio-injection
+kubectl get namespace \
+    --label-columns istio-injection
 
-kubectl delete pod -l app=sleep
+kubectl delete pod \
+    --selector app=alpine
 
 kubectl get pods
 
-kubectl describe pod -l app=alpine
+kubectl describe pod \
+    --selector app=alpine
 
-kubectl label ns default \
+kubectl label namespace default \
     istio-injection-
 
-kubectl delete pod -l app=alpine
+kubectl delete pod \
+    --selector app=alpine
 
 kubectl get pods
 
-kubectl delete -f istio/alpine.yml
+kubectl delete \
+    --filename istio/alpine.yml
 ```
+
+## Cleanup
+
+TODO: Commands

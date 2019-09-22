@@ -20,7 +20,31 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com 
 
-# Boot
+# Applying GitOps To Jenkins X
+
+If there is a common theme in Jenkins, that is GitOps. Everything is built around the idea that everything is defined as code, that everything is stored in Git, and that every change to the system is initiated by a Git webhook. It's a great concept. But, we were not applying it fully. We were deploying our applications using GitOps principles, but we skipped them when creating clusters and when installing Jenkins X. So far, you can say that we were applying GitOps principles only after we create a cluster and installed Jenkins X. It's as if those principles do not apply to the tool that enforces them. We'll fix that next.
+
+Using a single `jx create cluster` command to create whole cluster and install all the tools that comprise Jenkins X is great. Isn't it?
+
+The community behind Jenkins X thought that providing a single command that will create a cluster and install Jenkins X is a great idea. But, they were wrong. What they did not envision initially was that there is an almost infinite number of permutations we might need. There are too many different hosting providers, too many different Kubernetes flavors, and too many different components we might want to have inside our clusters. As a result, the number of arguments in `jx create cluster` and `jx install` commands was continuous growing. What started as a simple yet very useful feature ended up as a big mess. Some were confused with too many arguments, while others thought that too many are missing. In my opinion, Jenkins X, in this specific context, tried to solve problems that were already solved by other tools. We should not use Jenkins X to create a cluster. Instead, we should use the tool specialized for that. My favorite is Terraform, but almost any other (e.g., CloudFormation, Ansible, Puppet, Chef, etc.) would do a better job. What that means is that Jenkins X should assume that we already have a fully operational Kubernetes cluster. We should have an equivalent of the `jx install` command, while `jx create cluster` should serve very specific use-cases.
+
+Now, you might just as well say "if I'm not going to use `jx create cluster`, why should we use configuration management tools like Terraform? Isn't it easier to simply run `gcloud`, `eksctl`, or `az` CLI?" It is indeed tempting to come up with a single one-off command to do things. But, that leads us to the same pitfal as when using UIs. We could just as easily replace the command with a button. But, that result in non-reproducible and non-documented way of doing things. Instead, we want to modify some files, push them to Git, and let that initiate the process that will converge the actual with the desired state. Or, it can be vice versa as well. We could run a process based on some files and push them later. As long as a Git repository always contains the desired state and the system's actual state matches those desires, we have a reproducible, documented, and (mostly) automated way to do things. Now, that does not mean that commands and buttons are always a bad thing. Running a command or pressing a button in a UI works well only when that results in changes of the definition of the desired state being pushed to a Git repository so that we can keep track of changes. Otherwise, we're just performing arbitrary actions that are not documented and not reproducible. What matters is that Git should always contain an up-to-date state of our system. How we get to store definitions in Git is of lesser importance.
+
+I'm rambling how bad it is to run arbitrary commands and pushing buttons because that's what we were doing so far. To be fair, we did follow GitOps principles most of the time, but one important aspect of our system kept being created somehow arbitrarily. So far, we were creating a Kubernetes cluster and installing Jenkins X with a single `jx create cluster` command, unless you are running it in an existing cluster. Even if that's the case, I tought you to use `jx install` command. No matter which of the two commands you used, the fact is that we do not have a place that defines all the components that constitute our Jenkins X setup. That's bad and it breaks with the GitOps principle that states that everything is defined as code, stored in a Git repository, and that Git is the only one that initiates actions aimed at converging the actual into the desired state. We'll change that next and add the last piece of the puzzle that prevents us from having the full system created by following the GitOps principles.
+
+We'll learn how *Jenkins X Boot* works.
+
+## Exploring Different Deployment Levels
+
+TODO: Continue test
+
+TODO: Infrastructure
+
+TODO: System-level and third-party applications
+
+TODO: Our applications and those supporting them
+
+## Creating A Kubernetes Cluster (Without Jenkins X)
 
 NOTE: Validated (works) only with serverless GKE
 
@@ -1354,7 +1378,9 @@ index 269d0ad..5681b64 100644
 ```bash
 git push
 
-jx get activities --watch
+jx get activities \
+  --filter environment-$CLUSTER_NAME-dev \
+  --watch
 ```
 
 ```
@@ -1647,6 +1673,13 @@ kube-system    Active   109m
 jx get env
 ```
 
+```
+NAME       LABEL       KIND        PROMOTE NAMESPACE     ORDER CLUSTER SOURCE                                                        REF    PR
+dev        Development Development Never   jx            0             https://github.com/vfarcic/environment-jx-boot-dev.git        master 
+staging    Staging     Permanent   Auto    jx-staging    100           https://github.com/vfarcic/environment-jx-boot-staging.git    master 
+production Production  Permanent   Manual  jx-production 200           https://github.com/vfarcic/environment-jx-boot-production.git master 
+```
+
 ```bash
 cd ..
 
@@ -1665,6 +1698,21 @@ error: failed to load quickstarts: failed to load quickstarts: Running in batch 
 
 jx create quickstart \
     --filter golang-http
+
+# ? github username:
+# vfarcic
+# ? API Token:
+# SOMETHING
+# ? Do you wish to use vfarcic as the Git user name? (Y/n)
+# enter
+# ? Which organisation do you want to use?  [Use arrows to move, space to select, type to filter]
+# select the org
+# ? Enter the new repository name:
+# jx-boot
+# ? Would you like to initialise git now? (Y/n)
+# enter
+# ? Commit message:  (Initial import)
+# enter
 ```
 
 ```
@@ -1896,6 +1944,8 @@ jx get activity \
 # TODO: Backup buckets
 
 # TODO: Destroy the cluster and create a new using the same `jx-boot` repository
+
+# TODO: `jx add app` (https://jenkins-x.io/apps/)
 ```
 
 ## What Now?

@@ -33,7 +33,6 @@
 - [ ] 99-boot-update.md
 - [ ] Create a course on [udemy.com](https://www.udemy.com/)
 - [ ] 99-ui.md
-- [ ] https://github.com/jenkins-x/jx/issues/5000
 - [ ] 99-storage-and-vault.md
 - [ ] Switch from `jx create addon` to `jx create app`
 - [ ] Update the personal cluster
@@ -78,6 +77,15 @@
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-codified-infrastructure.md
 
+## YouTube Live
+
+- [ ] Intro with a counter
+- [ ] Discussion with a guest
+- [ ] Terminal share of the host
+- [ ] Browser share of the host
+- [ ] Screen-share of the guest
+- [ ] Comments from YouTube to the screen
+
 ## TODO
 
 - [ ] Code
@@ -102,8 +110,6 @@
 
 ## The DevOps 2.X Toolkit
 
-- [ ] k8s CRD (e.g. jx)
-- [ ] k8s jobs
 - [ ] Service mesh ([Istio](https://istio.io/), [Gloo](https://gloo.solo.io), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali), [Vistio](https://github.com/nmnellis/vistio))
 - [ ] Serverless
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
@@ -162,3 +168,5 @@
 - [ ] [Submariner](https://submariner.io/)
 - [ ] Terraform
 - [ ] [KubeCost](https://kubecost.com/)
+- [ ] https://github.com/kubernetes-sigs/kustomize
+- [ ] k8s CRD (e.g. jx)
