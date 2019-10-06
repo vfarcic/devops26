@@ -1,17 +1,17 @@
 ## TODO
 
-- [ ] Code
-- [ ] Write
-- [ ] Code review static GKE
-- [ ] Code review serverless GKE
-- [ ] Code review static EKS
+- [X] Code
+- [X] Write
+- [-] Code review static GKE
+- [X] Code review serverless GKE
+- [-] Code review static EKS
 - [ ] Code review serverless EKS
-- [ ] Code review static AKS
-- [ ] Code review serverless AKS
-- [ ] Code review existing static cluster
-- [ ] Code review existing serverless cluster
-- [ ] Text review
-- [ ] Gist
+- [-] Code review static AKS
+- [-] Code review serverless AKS
+- [-] Code review existing static cluster
+- [-] Code review existing serverless cluster
+- [X] Text review
+- [X] Gist
 - [ ] Review titles
 - [ ] Proofread
 - [ ] Diagrams
@@ -20,76 +20,123 @@
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com 
 
-# Applying GitOps To Jenkins X
+# Applying GitOps Principles To Jenkins X
 
-If there is a common theme in Jenkins, that is GitOps. Everything is built around the idea that everything is defined as code, that everything is stored in Git, and that every change to the system is initiated by a Git webhook. It's a great concept. But, we were not applying it fully. We were deploying our applications using GitOps principles, but we skipped them when creating clusters and when installing Jenkins X. So far, you can say that we were applying GitOps principles only after we create a cluster and installed Jenkins X. It's as if those principles do not apply to the tool that enforces them. We'll fix that next.
+W> At the time of this writing (October 2019), the examples in this chapter are validated only with **serverless Jenkins X** in **GKE**. Jenkins X Boot is currently verified by the community to work only there, even though it likely works in EKS, AKS, and other Kubernetes flavors. Over time, the community will be adding support for all Kubenetes distributions and, with a slight delay, I will be updating this chapter to reflect that. Still, there will be inevitable delay between the progress of that support and me incorporating it into this book, so I strongly advice you to check the official documentation to see whether your Kubernetes flavor is added.
 
-Using a single `jx create cluster` command to create whole cluster and install all the tools that comprise Jenkins X is great. Isn't it?
+If there is a common theme in Jenkins X, that is GitOps. The platform was designed and built around the idea that everything is defined as code, that everything is stored in Git, and that every change to the system is initiated by a Git webhook. It's a great concept and we should ask ourselves whether we were applying it in all our examples. What do you think?
 
-The community behind Jenkins X thought that providing a single command that will create a cluster and install Jenkins X is a great idea. But, they were wrong. What they did not envision initially was that there is an almost infinite number of permutations we might need. There are too many different hosting providers, too many different Kubernetes flavors, and too many different components we might want to have inside our clusters. As a result, the number of arguments in `jx create cluster` and `jx install` commands was continuous growing. What started as a simple yet very useful feature ended up as a big mess. Some were confused with too many arguments, while others thought that too many are missing. In my opinion, Jenkins X, in this specific context, tried to solve problems that were already solved by other tools. We should not use Jenkins X to create a cluster. Instead, we should use the tool specialized for that. My favorite is Terraform, but almost any other (e.g., CloudFormation, Ansible, Puppet, Chef, etc.) would do a better job. What that means is that Jenkins X should assume that we already have a fully operational Kubernetes cluster. We should have an equivalent of the `jx install` command, while `jx create cluster` should serve very specific use-cases.
+Using a single `jx create cluster` command to create a whole cluster and install all the tools that comprise Jenkins X is great. Isn't it?
 
-Now, you might just as well say "if I'm not going to use `jx create cluster`, why should we use configuration management tools like Terraform? Isn't it easier to simply run `gcloud`, `eksctl`, or `az` CLI?" It is indeed tempting to come up with a single one-off command to do things. But, that leads us to the same pitfal as when using UIs. We could just as easily replace the command with a button. But, that result in non-reproducible and non-documented way of doing things. Instead, we want to modify some files, push them to Git, and let that initiate the process that will converge the actual with the desired state. Or, it can be vice versa as well. We could run a process based on some files and push them later. As long as a Git repository always contains the desired state and the system's actual state matches those desires, we have a reproducible, documented, and (mostly) automated way to do things. Now, that does not mean that commands and buttons are always a bad thing. Running a command or pressing a button in a UI works well only when that results in changes of the definition of the desired state being pushed to a Git repository so that we can keep track of changes. Otherwise, we're just performing arbitrary actions that are not documented and not reproducible. What matters is that Git should always contain an up-to-date state of our system. How we get to store definitions in Git is of lesser importance.
+The community behind Jenkins X thought that providing a single command that will create a cluster and install Jenkins X is a great idea. But, we were wrong. What we did not envision initially was that there is an almost infinite number of permutations we might need. There are too many different hosting providers, too many different Kubernetes flavors, and too many different components we might want to have inside our clusters. As a result, the number of arguments in `jx create cluster` and `jx install` commands was growing continuously. What started as a simple yet very useful feature ended up as a big mess. Some were confused with too many arguments, while others thought that too many are missing. In my opinion, Jenkins X, in this specific context, tried to solve problems that were already solved by other tools. We should not use Jenkins X to create a cluster. Instead, we should use the tool specialized for that. My favorite is Terraform, but almost any other (e.g., CloudFormation, Ansible, Puppet, Chef, etc.) would do a better job. What that means is that Jenkins X should assume that we already have a fully operational Kubernetes cluster. We should have an equivalent of the `jx install` command, while `jx create cluster` should serve very specific use-cases, mostly related to demos and playgrounds, not a rela production setting.
 
-I'm rambling how bad it is to run arbitrary commands and pushing buttons because that's what we were doing so far. To be fair, we did follow GitOps principles most of the time, but one important aspect of our system kept being created somehow arbitrarily. So far, we were creating a Kubernetes cluster and installing Jenkins X with a single `jx create cluster` command, unless you are running it in an existing cluster. Even if that's the case, I tought you to use `jx install` command. No matter which of the two commands you used, the fact is that we do not have a place that defines all the components that constitute our Jenkins X setup. That's bad and it breaks with the GitOps principle that states that everything is defined as code, stored in a Git repository, and that Git is the only one that initiates actions aimed at converging the actual into the desired state. We'll change that next and add the last piece of the puzzle that prevents us from having the full system created by following the GitOps principles.
+Now, you might just as well say "if I'm not going to use `jx create cluster`, why should we use configuration management tools like Terraform? Isn't it easier to simply run `gcloud`, `eksctl`, or `az` CLI?" It is indeed tempting to come up with a single one-off command to do things. But, that leads us to the same pitfals as when using UIs. We could just as easily replace the command with a button. But that result in non-reproducible, non-documented, and not omnipotent way of doing things. Instead, we want to modify some (preferably declarative) files, push them to Git, and let that initiate the process that will converge the actual with the desired state. Or, it can be vice versa as well. We could run a process based on some files and push them later. As long as a Git repository always contains the desired state and the system's actual state matches those desires, we have a reproducible, documented, and (mostly) automated way to do things. Now, that does not mean that commands and buttons are always a bad thing. Running a command or pressing a button in a UI works well only when that results in changes of the definition of the desired state being pushed to a Git repository so that we can keep track of changes. Otherwise, we're just performing arbitrary actions that are not documented and not reproducible. What matters is that Git should always contain an up-to-date state of our system. How we get to store definitions in Git is of lesser importance.
 
-We'll learn how *Jenkins X Boot* works.
+I'm rambling how bad it is to run arbitrary commands and pushing buttons because that's what we were doing so far. To be fair, we did follow GitOps principles most of the time, but one important aspect of our system kept being created somehow arbitrarily. So far, we were creating a Kubernetes cluster and installing Jenkins X with a single `jx create cluster` command, unless you are running it in an existing cluster. Even if that's the case, I taught you to use `jx install` command. No matter which of the two commands you used, the fact is that we do not have a place that defines all the components that constitute our Jenkins X setup. That's bad and it breaks the GitOps principle that states that everything is defined as code and stored in a Git repository, and that Git is the only one that initiates actions aimed at converging the actual into the desired state. We'll change that next by adding the last piece of the puzzle that prevented us from having the full system created by following the GitOps principles.
 
-## Exploring Different Deployment Levels
+We'll learn how *Jenkins X Boot* works but, before we do that, we'll take a quick look at a cardinal sin we were committing over and over again.
 
-TODO: Continue test
+## Discussing The Cardinal Sin
 
-TODO: Infrastructure
+Our applications and their direct third-party dependencies are managed by Jenkins X pipelines. A process is initiated with a push to a Git repository thus adhering to GitOps principles. If our applications has direct third-party dependencies, we'd specify them in `requirements.yaml`. We've been doing that for a while and there is probably no need reiterating the process that works well.
 
-TODO: System-level and third-party applications
+If we move higher into system-level third-party applications, we had mixed results so far. We could specify them as dependencies in environment repositories. If, for example, we need Prometheus in production, all we have to do is specify it as yet another entry in `requirements.yaml` in the repository associated with it. Similarly, if we'd like to deploy it to the staging environment for testing of, let's say, a new version of the application, we could specify it in the repository associated with staging. So far, so good. We were following GitOps principles. But, there was one important application in this group that we chose to deploy ignoring all the best practices we established so far. The one that eluded us is Jenkins X itself.
 
-TODO: Our applications and those supporting them
+I was very vocal that we should enforce GitOps principles as much as we can. I insisted that everything should be defined as code, that everything should be stored in Git, and that only Git can initiate actions that will change the state of the cluster. Yet, I failed to apply that same logic to creation of a cluster and installation of Jenkins X. Running commands like `jx create cluster` and `jx install` goes against everything I preached (at least in this book). Those commands were not stored in Git and they are not idempotent. Other people working with us would not be able to reproduce our actions. They might not even know what was done and when.
+
+So, why did I tell you do do things that go against my own beliefs?
+
+Running `jx create cluster` command was the easiest way to get you up to speed with Jenkins X quickly. It is the fastest way to create a cluster and install Jenkins X. At the same time, it does not need much of an explanation. *Run a command, wait for a few minutes, and start exploring the examples that explain how Jenkins X works.* For demos, for workshops, and for examples in a book, `jx create cluster` is probably the best way to get up-and-running fast. But, the time has come to say that such an approach is not good enough for any serious usage of Jenkins X. We explored most of the important features Jenkins X offers and I feel that you are ready to start using it in "real world". For that to happen, we need to be able to set up Jenkins X using the same principles we applied to other use-cases. We should store its definition in Git and we should allow webhooks to notify the system if any aspect of Jenkins X should change. We should have a pipeline that drives Jenkins X through different stages so that we can validate that it works correctly. In other words, Jenkins X should be treated the same way as other applications. Or, to be more precise, maybe not in exactly the same way but, at least, with a process based on the same principles. We'll accomplish that with `jx boot`. But, before we explore it, there is one more level we should discuss.
+
+We used `jx create cluster` both to create a cluster and to install Jenkins X. The latter part will, from now on, be done differently using `jx boot`. We still need to figure out how to create a cluster using code stored in Git. But, for better or worse, I won't teach you that part. That's outside the scope of this book. The only thing I will say is that you should define your whole infrastructure as code using one of the tools designed for that. My personal preference is [Terraform by HashiCorp](https://www.terraform.io/). However, since infrastructure-as-code is not the subject, I won't argue why I prefer Terraform over other tools. You can use anything you like; CloudFormation, Ansible, Puppet, Chef, SaltStack, etc.
+
+All in all, we'll continue deploying our application and associated third-party services as well as system-level third-party apps using Jenkins X pipelines. We'll explore `jx boot` as a much better way to install and manage Jenkins X. As for infrastructure, it'll be up to you to choose what you prefer. From now on, I will provide commands to create a Kubernetes cluster. Do NOT take those commands as a recommendation, but as my unwillingness to dive into the subject of "infrastructure as code" in this book. So, from now on, whenever you see `gcloud`, `eksctl`, or `az` commands, remember that is not what you should do with the production system.
+
+Now that we got that out of the way, let's create a Kubernetes cluster and start "playing" with `jx boot`.
 
 ## Creating A Kubernetes Cluster (Without Jenkins X)
 
-NOTE: Validated (works) only with serverless GKE
+W> As mentioned at the beginning of this chapter, the examples are verified only in GKE given that's the only currently (October 2019) supported platform for `jx boot`. Double check the documentation to see whether that changed or be brave and try it out yourself with other Kubernetes flavors.
 
-NOTE: Not using `jx` to create a cluster
+From now on, we will not use `jx create cluster` to create a Kubernetes cluster and install Jenkins X. Instead, I will assume that you will create a cluster any way you like (e.g., Terraform, `gcloud`, etc) and we'll focus only on how to set up Jenkins X. If you're lazy and do not yet want to figure out the best way to create a cluster, the Gists that follow can get you up-to-speed fast. Just remember that the commands in them are not the recommended way to create a cluster, but rather the easiest and fastest method I could come up with.
 
-* Create new **GKE** cluster: [gke-jx-serverless-boot.sh](TODO:)
+I opted for commands instead of, let's say, Terraform for two reasons. First of all, I'm trying to keep this neutral as a way to avoid influencing you about the the tool you should use for managing infrastructure. Now, I'm aware that I already stated a couple of times that I prefer Terraform, so I cannot say that I am neutral (I'm not), so that argument is not really valid, so let's jump to the second one. The more important reason for not using any tool for creating and setting up a cluster lies in the decision not to spend time explaining such a tool. This is neither time nor place to enter into configuration management discussion. 
+
+Finally, please note that, just as before, the Gists contain instructions not only to create but also to destroy the cluster. For now, focus on creating it and postpone your destructive tendencies for the end.
+
+I> All the commands from this chapter are available in the [18-boot.sh](https://gist.github.com/8af2cdfe9ffad2beac9c1e89cf863a46) Gist.
+
+The Gists are as follows.
+
+* Create new **GKE** cluster: [gke.sh](https://gist.github.com/1b7a1c833bae1d5da02f4fd7b3cd3c17)
+
+Now that we have a Kubernetes cluster, we can turn our attention to Jenkins X Boot.
+
+## What Is Jenkins X Boot?
+
+What's wrong with `jx create cluster` and `jx install` commands? Why do we need a different way to install, manage, and upgrade Jenkins X? Those are ad-hoc commands that do not follow GitOpts principles. They are not idempotent (you cannot run them multiple times and expect the same result). They are not stored in Git, at least not in a form that the system can interpret and consume in an attempt to converge the desired into the actual state. They are not declarative.
+
+We know all those reasons. They are the same issues we're trying to get rid of with other applications by implementing pipelines and declarative configurations and storing everything in Git. But, there is one more reason that we did not discuss yet.
+
+The `jx` CLI contains a lot of custom-made code written specifically for Jenkins X. Part of it, however, consists of wrappers. The `jx create pullrequest` command is a wrapper around `hub`. Similarly, `jx create cluster` is a wrapper around `az` (AKS), `eksctl` (EKS), `gcloud` (GKE), and a few others. That's all great because `jx` allows us to have a single user-facing CLI that allows us to do (almost) everything we need, at least with the tasks related to application lifecycle. But, in my opinion, Jenkins X tried to do more than it should. Its scope went overboard by trying to enter into configuration management sphere and trying to provide ways to create Kubernetes clusters. Truth be told, that was done mostly so that project contributors could spin up clusters easily. Nevertheless, the feature became popular and many started using it. That begs the question. If many are adopting something, isn't that a sign that it is useful?
+
+Over time, the number of requests to add additional features (arguments) to `jx create cluster` kept increasing. People were missing things that are already available in the arguments of the commands it was wrapping, so the community kept adding them. At one point, the command became too confusing with too many arguments and it went far beyond the initial idea to quickly span up a cluster, mostly for demo purposes.
+
+Jenkins X boot is a result of two main needs, to create infrastructure and to install and maintain Jenkins X and other system-level components. It, in a way, puts the creation of the cluster back to the commands like  `gcloud`, `az`, and `eksctl` (to name a few). At the same time, it urges people not to use them and to opt for tools like Terraform to create a Kubernetes cluster. On the other hand, it transforms the `jx install` process from being a command into a GitOps-based process. As you will see soon, `jx boot` fully depends on a set of declarative files residing in a Git repository. It embraces GitOps principles, as it should have been done from the start.
+
+So, given that having a declarative GitOps-based process is better than one-shot commands, you might be asking "why did it take the community so long to create it?" Jenkins X Boot was released sometime around August 2019, over a year and a half after Jenkins X project started. What took us so long?
+
+Jenkins X Boot had "chicken and egg" type of a problem. Jenkins X assumes that everything is a pipeline triggered by a Git webhook. We make a change to Git, Git triggers a webhook, and that wehook notifies the cluster that there is a change that should trigger a pipeline that will ultimately converge the actual into the desired state. The process that performs that convergance is executed by Jenkins X running in that cluster. Now, if we say that installation of Jenkins X should follow the same process, who will run those steps? How can we make Jenkins X install itself? If it doesn't exist, it cannot run the process that will install it. When there is nothing in a cluster, nothing cannot create something. That would be magic.
+
+The solution to the problem was to allow `jx` CLI to run a pipeline as well. After all, until we install Jenkins X inside a Kubernetes cluster, the only thing we have is the CLI. So, the community made that happen. It created the necessary changes in the CLI that allows it to run pipelines locally. After that, all that was needed was to create a pipeline definition that we can use together with a bunch of configuration files that define all aspects of Jenkins X installation.
+
+As a result, now we can use Jenkins X Boot to run the first build of a pipeline defined specifically for installation and upgrades of Jenkins X and all its dependencies. To make things even more interesting, the same pipeline can (and should) be executed by Jenkins X inside a Kubernetes cluster. Finally, we can have the whole platform defined in a Git repository, let a pipeline run locally the first time and install Jenkins X, as well as configure webhooks in that repo so that each consecutive change to it triggers additional builds that will change the actual state of the platform into the desired one. There is no need to run the pipeline locally ever again after the initial run. From there on, it'll be handled by Jenkins X inside a Kubernetes cluster just like any other pipeline. Finally, we can treat Jenkins X just like any other application (platform) controlled by pipelines and defined as declarative files.
+
+Was all that confusing? If it was, we can summarize all that by saying that ad-hoc commands are bad, that GitOps principles backed by declarative files are good, and that Jenkins X can be installed and managed by pipelines, no matter whether they are run by a local CLI or through Jenkins X running inside a Kubernetes cluster. Running a pipeline from a local CLI allows us to install Jenkins X for the first time (when it's still not running inside the cluster). Once it's installed, we can let Jenkins X maintain itself by changing contents of an associated repository. As an added bonus, given that a pipeline can run both locally and inside a cluster, if there's something wrong with Jenkins X in Kubernetes, we can always repair it locally by re-running the pipeline. Neat, isn't it?
+
+Still confused? Let's see all that in practice.
+
+## Installing Jenkins X Using GitOps Principles
+
+How can we install Jenkins X in a better way than what we're used to? Jenkins X configuration should be defined as code and reside in a Git repository. That's precisely what the community created for us. It maintains a GitHub repository that contains up-to-date definition of the Jenkins X platform, together with a pipeline that will install it, as well as a requirements file that we can use to tweek it to our specific needs.
+
+Let's take a look at the repository.
 
 ```bash
-# https://jenkins-x.io/getting-started/boot/
-
-kubectl get nodes
-```
-
-```
-NAME                                     STATUS   ROLES    AGE   VERSION
-gke-jx-boot-default-pool-b09d9ef1-2588   Ready    <none>   39m   v1.13.7-gke.8
-gke-jx-boot-default-pool-f11b05ed-f16x   Ready    <none>   39m   v1.13.7-gke.8
-gke-jx-boot-default-pool-f93be13a-52x6   Ready    <none>   39m   v1.13.7-gke.8
-```
-
-```bash
-GH_USER=[...]
-
-hub delete -y \
-    $GH_USER/environment-$CLUSTER_NAME-staging
-
-hub delete -y \
-    $GH_USER/environment-$CLUSTER_NAME-production
-
 open "https://github.com/jenkins-x/jenkins-x-boot-config.git"
-
-# Fork it
 ```
 
-![Figure 18-TODO: TODO:](images/ch18/jx-boot-github.png)
+We'll explore the files in it a bit later. Or, to be more precise, we'll explore those that you are supposed to customize. For now, what matters is that you should fork the repository since we'll make some modificactions and use it as yet another environment repo firing webhooks to Jenkins X.
+
+![Figure 18-1: Forking Jenkins X Boot repository](images/ch18/jx-boot-github.png)
+
+Now that you forked the repository, we'll define a variable `CLUSTER_NAME` that will, as you can guess, hold the name of the cluster we created shortwhile ago.
+
+W> In the commands that follow, please replace the first occurance of `[...]` with the name of the cluster and the second with your GitHub user.
+
+```bash
+CLUSTER_NAME=[...]
+
+GH_USER=[...]
+```
+
+Now that we forked the Boot repo and we know how our cluster is called, we can clone the repository with a proper name that will reflect the naming scheme of our soon-to-be-installed Jenkins X.
 
 ```bash
 git clone \
     https://github.com/$GH_USER/jenkins-x-boot-config.git \
     environment-$CLUSTER_NAME-dev
+```
 
+The key file that contains (almost) all the parameters that can be used to customize the setup is `jx-requirements.yml`. Let's take a look at it.
+
+```bash
 cd environment-$CLUSTER_NAME-dev
 
 cat jx-requirements.yml
 ```
+
+The output is as follows.
 
 ```yaml
 cluster:
@@ -128,45 +175,57 @@ versionStream:
 webhook: prow
 ```
 
+As you can see, that file contains values in a format that resembles `requirements.yaml` file used with Helm charts. It is split into a few sections.
+
+I> The format of the `jx-requirements.yml` file might have changed since I wrote this section so your output might be different. Nevertheless, what I'm describing should give you a good enough grip over the values you can tweak and you should be able to extend that knowledge to those not represented here.
+
+First, there is a group of values that define our `cluster`. You should be able to figure out what it defines by looking at the variables inside it. It probably won't take you more than a few moments to see that we have to change at least some of those values, so that's what we'll do next.
+
+Please open `jx-requirements.yml` in your favorite editor and change the following values.
+
+* Set `cluster.clusterName` to the name of your cluster. It should be the same as the name of the environment variable `CLUSTER_NAME`. If you already forgot it, execute `echo $CLUSTER_NAME`.
+* Set `cluster.environmentGitOwner` to your GitHub user. It should be the same as the one we previous declared as the environment variable `$GH_USER`.
+* Set `cluster.project` to the name of your GKE project, only if that's where your Kubernetes cluster is running. Otherwise, leave that value intact (empty). If you used one my Gist to create a GKE cluster, the name of the project should be in the environment variable `PROJECT`, so feel free to output it with `echo $PROJECT` if you are forgetful.
+* Set `cluster.provider` to `gke` or to `eks` or to any other provider if you decided that you are brave and want to try currently unsupported platforms. Or, the things might have changed since I wrote this chapter and your provider is indeed supported now.
+* Set `cluster.zone` to whichever zone your cluster is running in. If you're running a regional cluster (as your should), than the value should be the region, not the zone. If, for example, you used my Gist to create a GKE cluster, the value should be `us-east1`.
+
+We're finished with the `cluster` section and the next in line is the `gitops` value. It instructs the system how to treat the Boot process. I don't believe it makes sense to change it to `false`, so we'll leave it as-is (`true`).
+
+The next section contains the list of the `environments` that we're already familiar with. The keys are the suffixes, and the final names will be a combination of `environment-` with the name of the cluster followed by the `key`. We'll leave them intact.
+
+The `ingress` section defines the parameters related to external access to the cluster (`domain`, TLS, etc). We won't dive into it just yet. That will be left for later (probably the next chapter).
+
+The `kaniko` value should be self-explanatory. When set to `true`, the system will build container images using Kaniko instead of, let's say, Docker. That is a much better choice since Docker cannot run in a container and, as such, poses a big security risk (mounted sockets are evil) and it messes with Kubernetes scheduler given that it bypasses its API. In any case, Kaniko is the only supported way to build container images when using Tekton, so we'll leave it as-is (`true`).
+
+Next, we have `secretStorage` currently set to `local`. The whole platform will be defined in this repository, except for secrets (e.g., passwords). Pushing them to Git would be childlish, so Jenkins X can store the secrets in different locations. If kept to `local`, that location is your laptop. While that is better than a Git repository, you can probably imagine why that is not a good solution. Keeping them locally complicates cooperation (they exist only on your laptop), is volatile, and is only slightly more secure than Git. A much better place for secrets is [HashiCorp Vault](https://www.vaultproject.io). It is the most commonly used solution for secrets management in Kubernetes (and beynod), and Jenkins X supports it out of the box.
+
+All in all, secrets storage is an easy choice.
+
+* Set the value of `secretStorage` to `vault`.
+
+Below the `secretStorage` value is the whole section that defines `storage` for `logs`, `reports`, and `repository`. If enabled, those artifacts will be stored on a network drive. As you already know, containers and nodes are short-lived and if we want to preserve any of those, we need to store them elsewhere. That does not necessarily mean that network drives are the best place, but rather that's what comes out of the box. Later on, you might choose to change that and, let's say, ship logs to a central database like ElasticSearch, PaperTrail, CloudWatch, StackDriver, etc.
+
+For now we'll keep it simple and enable network storage for all three types of artifacts.
+
+* Set the value of `storage.logs.enabled` to `true`
+* Set the value of `storage.reports.enabled` to `true`
+* Set the value of `storage.repository.enabled` to `true`
+
+The `versionsStream` section defines the repository that contains versions of all the packages (charts) used by Jenkins X. You might choose to fork that repository and control versions yourself. Before you jump into doing just that, please note that Jenkins X versioning is quite complex given that many packages are involved. Leave it be unless you have a very good reason to take over the control and you're ready to maintain it.
+
+Finally, at the time of this writing (October 2019), `webhook` is set to `prow`. It defines the end-point that receives webhooks and forwards them to the rest of the system, or back to Git. As you already know, Prow supports only GitHub. If that's not your Git provider, Prow is a no-go. As an alternative, we could set it to `jenkins`, but that's not a good solution either. Jenkins (without X) is not going to be supported for long given that the future is in Tekton. It was used in the first generation of Jenkins X only because it was a good starting point and because it supports almost anything we can imagine. But, the community embraced Tekton as the only pipeline engine and that means that static Jenkins X is fading away and used mostly as a transition solution for those accostumed to the "traditional" Jenkins.
+
+So, what can we do if `prow` is not a choice if you do not use GitHub, and `jenkins` days are numbered. To make things more complicated, even Prow will be deprecated sometime in the future (or past depending when you read this). It will be replaced with *Lighthouse* which, at least at the beginning, will provide similar functionality as Prow. It's main advantage when compared with Prow is that Lighthouse will (or already does) support all major Git providers (e.g., GitHub, GitHub Enterprise, BitBucket Server, BitBucket Cloud, GitLab, etc.). At some moment, the default value of `webhook` will be `lighthouse`. But, at the time of this writing (October 2019) that's not the case since `Lighthouse` is not yet stable and production-ready. It will be soon. Or, maybe it already is and I did not yet rewrite this chapter to reflect that.
+
+In any case, we'll keep `prow` as our `webhook` (for now).
+
+Let's take a peek at how `jx-requirements.yml` looks like now.
+
 ```bash
-cat jx-requirements.yml \
-    | sed -e \
-    "s@clusterName: \"\"@clusterName: \"$CLUSTER_NAME\"@g" \
-    | tee jx-requirements.yml
-
-cat jx-requirements.yml \
-    | sed -e \
-    "s@nvironmentGitOwner: \"\"@nvironmentGitOwner: \"$GH_USER\"@g" \
-    | tee jx-requirements.yml
-
-cat jx-requirements.yml \
-    | sed -e \
-    "s@project: \"\"@project: \"$PROJECT\"@g" \
-    | tee jx-requirements.yml
-
-cat jx-requirements.yml \
-    | sed -e \
-    "s@secretStorage: local@secretStorage: vault@g" \
-    | tee jx-requirements.yml
-
-# TODO: Change storage to `enabled: true`
-
-# PROVIDER=[...] # e.g., gke
-
-# cat jx-requirements.yml \
-#     | sed -e \
-#     "s@provider: gke@provider: $PROVIDER@g" \
-#     | tee jx-requirements.yml
-
-ZONE=[...] # e.g., us-east1
-
-cat jx-requirements.yml \
-    | sed -e \
-    "s@zone: \"\"@zone: \"$ZONE\"@g" \
-    | tee jx-requirements.yml
-
 cat jx-requirements.yml
 ```
+
+In my case, the output is as follows (yours is likely going to be different).
 
 ```yaml
 cluster:
@@ -205,1641 +264,74 @@ versionStream:
 webhook: prow
 ```
 
+I> Feel free to further modify some values or to add those that we skipped. If you used my Gist to create a cluster, the current setup will work. On the other hand, if you created a cluster on your own, you will likely need to change some values.
+
+Now, you might be worried that we missed some of the values. For example, we did not specify a domain. Does that mean that our cluster will not be accessible from outside? We also did not specify `url` for storage. Will Jenkins X ignore it in that case?
+
+The truth is that we specified only the things we know. For example, if you created a cluster using my Gist, there is no Ingress, so there is no external load balancer that it was supposed to create. As a result, we do not yet know the IP through which we can access the cluster and we cannot generate a `.nip.io` domain. Similarly, we did not create storage. If we did, we could have entered addresses into `url` fields.
+
+Those are only a few examples of the unknowns. We specified what we know, and we'll let Jenkins X Boot figure out the unknowns. Or, to be more precise, we'll let the Boot create the resources that are missing and thus convert the unknowns into knowns.
+
+Off we go. Let's install Jenkins X.
+
 ```bash
 jx boot
-
-# Questions:
-# ? Do you wish to continue? [? for help] (y/N)
-# y
-# ? Would you like to upgrade to the jx version? [? for help] (Y/n)
-# n
-# ? Long term log storage bucket URL. Press enter to create and use a new bucket [? for help]
-# enter
-# ? Long term report storage bucket URL. Press enter to create and use a new bucket [? for help]
-# enter
-# ? Chart repository bucket URL. Press enter to create and use a new bucket [? for help]
-# enter
-# ? Jenkins X Admin Username [? for help] (admin)
-# enter
-# ? Jenkins X Admin Password [? for help]
-# anything
-# ? Pipeline bot Git username [? for help]
-# vfarcic
-# ? Pipeline bot Git email address [? for help]
-# viktor@farcic.com
-# ? Pipeline bot Git token [? for help]
-# anything
-# ? HMAC token, used to validate incoming webhooks. Press enter to use the generated token [? for help]
-# enter
-# ? Do you want to configure an external Docker Registry? [? for help] (y/N)
-# enter
 ```
 
+Now we need to answer quite a few questions. In the past, we tried to avoid answering questions by specifying all answers as arguments to commands we were executing. That way, we had a documented method for doing things that do not end up in a Git repository. Someone else could reproduce what we did by running the same commands. This time, however, there is no need to avoid questions since everything we'll do will be stored in a Git repository. Later on, we'll see where exactly will Jenkins X Boot store the answers. For now, we'll do our best to provide the information is needs.
+
+I> The Boot process might change by the time you read this. If that happens, do your best to answer by yourself the additional questions that are not covered here.
+
+The first question we're asked for a simple confirmation whether we `want to jx boot the _____ cluster?`. Don't be afraid. Press the enter key and the pipeline will activity will start.
+
+We can see that after a while we were presented with two warnings stating that TLS is not enabled for `Vault` and `webhooks`. If we specified a "real" domain, Boot would install Let's Encrypt and generate certificates. But, since I couldn't be sure that you have a domain at hand, we did not specify it and, as a result, we will not get certificates. While that would be unacceptable in production, it is quite OK as an exercise.
+
+As a result of those warnings, the Boot is asking us whether we `wish to continue`. Type `y` and press the enter key to continue.
+
+Given that Jenkins X creates multiple releases a day, the chances are that you do not have the latest version of `jx`. If that's the case, the Boot will ask `would you like to upgrade to the jx version?`. Press the enter key to use the default answer `Y`. As a result, the Boot will upgrade the CLI, but that will abort the pipeline. That's OK. No harm done. All we have to do is repeat the process but, this time, with the latest version of `jx`.
+
+
+```bash
+jx boot
 ```
-booting up Jenkins X
 
-STEP: validate-git command: /bin/sh -c jx step git validate in dir: env
+The process started again. We'll skip commenting on the first few questions to `jx boot the cluster` and to `continue` without TLS. Answers are the same as before (`y` in both cases).
 
-Git configured for user: Viktor Farcic and email vfarcic@farcic.com
+The next set of questions is related to `long term storage` for logs, reports, and repository. Press the enter key to all three questions and the Boot will create buckets with auto-generated unique names.
 
-STEP: verify-preinstall command: /bin/sh -c jx step verify preinstall in dir: env
+From now on, the process will create the secrets and install CRDs (Custom Resource Definitions) that provide custom resources specific to Jenkins X. Then, it'll install nginx Ingress (unless your cluster already has one) and set the domain to `.nip.io` since we did not specify one. Further on, it will install CertManager which will provide Let's Encrypt certificates. Or, to be more precise, it would provide the certificates if we specified a domain. Nevertheless, it's installed just in case we change our mind and choose to update the platform by changing the domain and enabling TLS later on.
 
-Connecting to cluster jx-boot
-Will create public environment repos, if you want to create private environment repos, please set environmentGitPrivate to true jx-requirements.yaml
-WARNING: Vault is enabled and TLS is not enabled. This means your secrets will be sent to and from your cluster in the clear. See https://jenkins-x.io/architecture/tls for more information
-WARNING: TLS is not enabled so your webhooks will be called using HTTP. This means your webhook secret will be sent to your cluster in the clear. See https://jenkins-x.io/architecture/tls for more information
-? Do you wish to continue? Yes
+The next in line is Vault. The Boot will install it and attempt to populate it with the secrets. But, since it does not know them just yet, the process will ask us another round of questions. The first one in this group is the `Admin Username`. Feel free to press the enter key to accept the default value `admin`. After that comes `Admin Password`. Type whatever you'd like to use (we won't need it today).
 
-verifying the kubernetes cluster before we try to boot Jenkins X in namespace: jx
-we will try to lazily create any missing resources to get the current cluster ready to boot Jenkins X
-setting the local kubernetes context to the deploy namespace jx
-Now using namespace 'jx' on server 'https://35.229.123.189'.
-verifying the CLI packages
-verifying the CLI package using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-using version 2.0.695 of jx
-the CLI packages seem to be setup correctly kubectl, git, helm
+The process will need to know how to access our GitHub repositories so the process asks us for the Git `username`, `email address`, and `token`. I'm sure that you know the answers to the first two questions. As for the token, if you did not save the one we created before, you'll need to create a new one. Do that, if you must, and feed it to the Boot. Finally, the last question related to secrets is `HMAC token`. Feel free to press the enter key and the process will create it for you.
 
-NAME               VERSION
-jx                 2.0.695
-Kubernetes cluster v1.13.7-gke.8
-kubectl            v1.15.3
-helm client        v2.14.1+g5270352
-git                2.20.1 (Apple Git-117)
-? Long term log storage bucket URL. Press enter to create and use a new bucket
-The bucket gs://jx-boot-logs-997b82a1-d879-49d1-9b71-b8b71fcf0ee5 does not exist so lets create it
-? Long term report storage bucket URL. Press enter to create and use a new bucket
-The bucket gs://jx-boot-reports-c9ff9c06-5513-42b8-b1ea-feb0488d99d0 does not exist so lets create it
-? Chart repository bucket URL. Press enter to create and use a new bucket
-The bucket gs://jx-boot-repository-32bcf1a7-1479-4ab4-ac89-ff4450e940ad does not exist so lets create it
-the storage looks good
-helm installed and configured
-helm client is setup
-ensure we have the helm repository https://storage.googleapis.com/chartmuseum.jenkins-x.io
-validating the kaniko secret in namespace jx
-attempting to lazily create the deploy namespace jx
-Configuring Kaniko service account jx-boot-ko for project devops-26
-Service Account exists
-Downloading service account key
-created kaniko Secret: kaniko-secret in namespace: jx
-valid: there is a Secret: kaniko-secret in namespace: jx
-the cluster looks good, you are ready to 'jx boot' now!
+Finally comes the last question. `Do you want to configure an external Docker Registry?` Press the enter key to use the default answer (`N`) and the Boot will create it inside the cluster or, as in case of most cloud providers, use the registry provided as a service. In case of GKE that would be GCR, for EKS that's ECR, and if you're using AKS that would be ACR. In any case, by not configuring an external Docker Registry, the Boot will use whatever makes most sense for a given provider.
 
+The rest of the process will install and configure all the components of the platform. We won't go into all of them since they are the same as those we used before. What matters is that the system will be fully operational a while later.
 
-STEP: install-jx-crds command: /bin/sh -c jx upgrade crd in dir: .
+The last step will verify the installation. You might see a few warnings during this last step of the process. Don't be alarmed. The Boot is most likely impatient. Over time, you'll see the number of `running` Pods increasing and those that are `pending` decreasing, until all the Pods are `running`.
 
-Jenkins X CRDs upgraded with success
+That's it. Jenkins X is now up-and-running. On the surface, the end result is the same as if we used the `jx install` command but, this time we have the whole definition of the platform with whole configuration (except for secrets) stored in a Git repository. That's a huge improvement by itself. Later on, we'll see additional benefits like upgrades performed by changing any of the configuration files and pushing those changes to the repository. But, for now, what matters is that Jenkins X is up-and-running. Or, at least, that's what we're hoping for.
 
-STEP: install-nginx command: /bin/sh -c jx step helm apply --boot --remote --no-vault --name jxing in dir: systems/jxing
+## Exploring The Changes Done By The Boot
 
-Modified file /Users/vfarcic/code/environment-jx-boot-dev/systems/jxing/Chart.yaml to set the chart to version 1
-Copying the helm source directory /Users/vfarcic/code/environment-jx-boot-dev/systems/jxing to a temporary location for building and applying /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing
-Applying helm chart at /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing as release name jxing to namespace kube-system
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-Wrote chart values.yaml /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing/values.yaml generated from directory tree
-generated helm /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing/values.yaml
-
-nginx-ingress:
-  controller:
-    extraArgs:
-      publish-service: kube-system/jxing-nginx-ingress-controller
-    replicaCount: 3
-    service:
-      omitClusterIP: true
-  defaultBackend:
-    service:
-      omitClusterIP: true
-  rbac:
-    create: true
-
-Using values files: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing/values.yaml
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-adding version 1.19.1 to dependency nginx-ingress in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing/requirements.yaml
-adding dependency versions to file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-060840734/jxing/requirements.yaml
-Applying Apps chart overrides
-Applying chart overrides
-
-
-STEP: create-install-values command: /bin/sh -c jx step create install values -b in dir: env
-
-
-Waiting to find the external host name of the ingress controller Service in namespace kube-system with name jxing-nginx-ingress-controller
-No domain flag provided so using default  to generate Ingress rules
-waiting for external Host on the ingress service jxing-nginx-ingress-controller in namespace kube-system ...
-
-Waiting to find the external host name of the ingress controller Service in namespace kube-system with name jxing-nginx-ingress-controller
-No domain flag provided so using default 35.229.50.53.nip.io to generate Ingress rules
-defaulting the domain to 35.229.50.53.nip.io and modified /Users/vfarcic/code/environment-jx-boot-dev/jx-requirements.yml
-Disabling using external-dns as it currently only works on GKE and not nip.io domains
-
-STEP: install-external-dns command: /bin/sh -c jx step helm apply --boot --remote --no-vault --name jx in dir: systems/external-dns
-
-Modified file /Users/vfarcic/code/environment-jx-boot-dev/systems/external-dns/Chart.yaml to set the chart to version 1
-Copying the helm source directory /Users/vfarcic/code/environment-jx-boot-dev/systems/external-dns to a temporary location for building and applying /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-950112292/external-dns
-Applying helm chart at /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-950112292/external-dns as release name jx to namespace jx
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-Wrote chart values.yaml /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-950112292/external-dns/values.yaml generated from directory tree
-generated helm /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-950112292/external-dns/values.yaml
-
-external-dns:
-  domainFilters:
-  - 35.229.50.53.nip.io
-  enabled: false
-  google:
-    serviceAccountSecret: external-dns-gcp-sa
-  provider: google
-  rbac:
-    create: true
-  sources:
-  - ingress
-
-Using values files:
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-adding version 2.6.0 to dependency external-dns in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-950112292/external-dns/requirements.yaml
-adding dependency versions to file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-950112292/external-dns/requirements.yaml
-Applying Apps chart overrides
-Applying chart overrides
-
-STEP: install-cert-manager-crds command: /bin/sh -c kubectl apply --wait --validate=true -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml in dir: .
-
-customresourcedefinition.apiextensions.k8s.io/certificates.certmanager.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/challenges.certmanager.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/clusterissuers.certmanager.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/issuers.certmanager.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/orders.certmanager.k8s.io created
-
-STEP: install-cert-manager command: /bin/sh -c jx step helm apply --boot --remote --no-vault --name jx in dir: systems/cm
-
-Modified file /Users/vfarcic/code/environment-jx-boot-dev/systems/cm/Chart.yaml to set the chart to version 1
-Namespace cert-manager created
-Copying the helm source directory /Users/vfarcic/code/environment-jx-boot-dev/systems/cm to a temporary location for building and applying /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-336692860/cm
-Applying helm chart at /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-336692860/cm as release name jx to namespace cert-manager
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-Wrote chart values.yaml /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-336692860/cm/values.yaml generated from directory tree
-generated helm /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-336692860/cm/values.yaml
-
-cert-manager:
-  enabled: false
-  rbac:
-    create: true
-  webhook:
-    enabled: false
-webhook:
-  enabled: false
-
-Using values files:
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-adding version v0.9.1 to dependency cert-manager in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-336692860/cm/requirements.yaml
-adding dependency versions to file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-336692860/cm/requirements.yaml
-Applying Apps chart overrides
-Applying chart overrides
-
-STEP: install-acme-issuer-and-certificate command: /bin/sh -c jx step helm apply --boot --remote --no-vault --name jx in dir: systems/acme
-
-Modified file /Users/vfarcic/code/environment-jx-boot-dev/systems/acme/Chart.yaml to set the chart to version 1
-Copying the helm source directory /Users/vfarcic/code/environment-jx-boot-dev/systems/acme to a temporary location for building and applying /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-328799391/acme
-Applying helm chart at /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-328799391/acme as release name jx to namespace jx
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-Ignoring templates/cert-manager-prod-certificate.yaml
-Ignoring templates/cert-manager-prod-issuer.yaml
-Ignoring templates/cert-manager-staging-certificate.yaml
-Ignoring templates/cert-manager-staging-issuer.yaml
-Wrote chart values.yaml /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-328799391/acme/values.yaml generated from directory tree
-generated helm /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-328799391/acme/values.yaml
-
-certmanager:
-  email: ""
-  enabled: false
-  production: "false"
-cluster:
-  domain: 35.229.50.53.nip.io
-  projectID: devops-26
-
-Using values files:
-no requirements file: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-328799391/acme/requirements.yaml so not checking for missing versions
-Applying Apps chart overrides
-Applying chart overrides
-
-STEP: install-vault command: /bin/sh -c jx step boot vault in dir: systems/vault
-
-applying vault ingress in namespace jx for vault name jx-vault-jx-boot
-ingress.extensions/jx-vault-jx-boot created
-Installing vault-operator...
-
-vault-operator addon succesfully installed.
-vault operator installed in namespace jx
-finding vault in namespace jx
-Creating new system vault
-Updated property [core/project].
-Service Account exists
-Downloading service account key
-GCS bucket jx-vault-jx-boot-bucket was created for Vault backend
-Creating Vault...
-Vault jx-vault-jx-boot created in cluster jx-boot
-not exposing vault jx-vault-jx-boot exposed
-System vault created named jx-vault-jx-boot in namespace jx.
-
-STEP: helm-populate-params command: /bin/sh -c jx step create values --name parameters in dir: env
-
-defaulting to secret storage scheme vault found from requirements file at /Users/vfarcic/code/environment-jx-boot-dev/jx-requirements.yml
-defaulting to secret base path to the cluster name jx-boot found from requirements file at /Users/vfarcic/code/environment-jx-boot-dev/jx-requirements.yml
-generated schema file /Users/vfarcic/code/environment-jx-boot-dev/env/parameters.schema.json from template /Users/vfarcic/code/environment-jx-boot-dev/env/parameters.tmpl.schema.json
-
-Waiting for vault to be initialized and unsealed...
-? Jenkins X Admin Username admin
-? Jenkins X Admin Password [? for help] ***********
-? Pipeline bot Git username vfarcic
-? Pipeline bot Git email address viktor@farcic.com
-? Pipeline bot Git token [? for help] ****************************************
-Generated token 6cd94240f40cecf8d4f3ff091505c8aac1ac7e2fb, to use it press enter.
-This is the only time you will be shown it so remember to save it
-? HMAC token, used to validate incoming webhooks. Press enter to use the generated token [? for help]
-? Do you want to configure an external Docker Registry? No
-
-
-STEP: install-env command: /bin/sh -c jx step helm apply --boot --remote --name jenkins-x --provider-values-dir ../kubeProviders in dir: env
-
-Modified file /Users/vfarcic/code/environment-jx-boot-dev/env/Chart.yaml to set the chart to version 1
-Copying the helm source directory /Users/vfarcic/code/environment-jx-boot-dev/env to a temporary location for building and applying /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env
-Applying helm chart at /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env as release name jenkins-x to namespace jx
-Fetching secrets from vault into directory "/var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env"
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-Ignoring templates/.gitignore
-Applying the kubernetes overrides at ../kubeProviders/gke/values.tmpl.yaml
-Wrote chart values.yaml /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/values.yaml generated from directory tree
-generated helm /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/values.yaml
-
-controllerbuild:
-  enabled: true
-controllerteam:
-  enabled: false
-controllerworkflow:
-  enabled: false
-docker-registry:
-  enabled: false
-jenkins:
-  enabled: false
-jenkins-x-platform:
-  JXBasicAuth: *****:{SHA}d6gizhGQ4kEhON/O57h9tQXnH0A=
-  PipelineSecrets:
-    DockerConfig: |-
-      {
-          "credHelpers": {
-              "gcr.io": "gcr",
-              "us.gcr.io": "gcr",
-              "eu.gcr.io": "gcr",
-              "asia.gcr.io": "gcr",
-              "staging-k8s.gcr.io": "gcr"
-          }
-      }
-    GitCreds: https://*******:****************************************@github.com
-    GithubToken: ****************************************
-    MavenSettingsXML: |-
-      <settings>
-          <localRepository>/home/jenkins/.mvnrepository</localRepository>
-          <!--This sends everything else to /public -->
-          <mirrors>
-              <mirror>
-                  <id>nexus</id>
-                  <mirrorOf>external:*</mirrorOf>
-                  <url>http://nexus/repository/maven-group/</url>
-              </mirror>
-          </mirrors>
-
-          <!-- lets disable the download progress indicator that fills up logs -->
-          <interactiveMode>false</interactiveMode>
-
-          <servers>
-              <server>
-                  <id>local-nexus</id>
-                  <username>*****</username>
-                  <password>***********</password>
-              </server>
-              <server>
-                  <id>nexus</id>
-                  <username>*****</username>
-                  <password>***********</password>
-              </server>
-              <server>
-                  <id>docker.io</id>
-              </server>
-          </servers>
-
-          <profiles>
-              <profile>
-                  <id>nexus</id>
-                  <properties>
-                      <altDeploymentRepository>local-nexus::default::http://nexus/repository/maven-snapshots/</altDeploymentRepository>
-                      <altReleaseDeploymentRepository>local-nexus::default::http://nexus/repository/maven-releases/</altReleaseDeploymentRepository>
-                      <altSnapshotDeploymentRepository>local-nexus::default::http://nexus/repository/maven-snapshots/</altSnapshotDeploymentRepository>
-                  </properties>
-
-                  <repositories>
-                      <repository>
-                          <id>central</id>
-                          <url>http://central</url>
-                          <releases><enabled>true</enabled></releases>
-                          <snapshots><enabled>true</enabled></snapshots>
-                      </repository>
-                  </repositories>
-                  <pluginRepositories>
-                      <pluginRepository>
-                          <id>central</id>
-                          <url>http://central</url>
-                          <releases><enabled>true</enabled></releases>
-                          <snapshots><enabled>true</enabled></snapshots>
-                      </pluginRepository>
-                  </pluginRepositories>
-              </profile>
-              <profile>
-                  <id>repo.jenkins-ci.org</id>
-                  <properties>
-                      <altDeploymentRepository>repo.jenkins-ci.org::default::https://repo.jenkins-ci.org/releases/</altDeploymentRepository>
-                      <altReleaseDeploymentRepository>repo.jenkins-ci.org::default::https://repo.jenkins-ci.org/releases/</altReleaseDeploymentRepository>
-                      <altSnapshotDeploymentRepository>repo.jenkins-ci.org::default::https://repo.jenkins-ci.org/snapshots/</altSnapshotDeploymentRepository>
-                  </properties>
-
-              </profile>
-              <profile>
-                  <id>maven.jenkins-ci.org</id>
-                  <properties>
-                      <altDeploymentRepository>maven.jenkins-ci.org::default::https://maven.jenkins-ci.org/releases/</altDeploymentRepository>
-                      <altReleaseDeploymentRepository>maven.jenkins-ci.org::default::https://maven.jenkins-ci.org/releases/</altReleaseDeploymentRepository>
-                      <altSnapshotDeploymentRepository>maven.jenkins-ci.org::default::https://maven.jenkins-ci.org/snapshots/</altSnapshotDeploymentRepository>
-                  </properties>
-
-              </profile>
-              <profile>
-                  <id>release</id>
-                  <properties>
-                      <gpg.executable>gpg</gpg.executable>
-                      <!-- TODO use: .Parameters.gpg.passphrase when it is always populated -->
-                      <gpg.passphrase></gpg.passphrase>
-                  </properties>
-              </profile>
-          </profiles>
-
-          <activeProfiles>
-              <activeProfile>nexus</activeProfile>
-          </activeProfiles>
-      </settings>
-    SSHConfig: |-
-      Host github.com
-          User git
-          IdentityFile /root/.ssh-git/ssh-key
-          StrictHostKeyChecking no
-  chartmuseum:
-    env:
-      secret:
-        BASIC_AUTH_PASS: ***********
-        BASIC_AUTH_USER: *****
-  cleanup:
-    enabled: false
-  dockerRegistry: gcr.io
-  expose:
-    enabled: false
-  gcactivities:
-    args:
-    - gc
-    - activities
-    - --batch-mode
-    - --pr-history-limit=30
-    cronjob:
-      enabled: true
-      schedule: 0/30 * * * *
-    image:
-      repository: gcr.io/jenkinsxio/builder-jx
-      tag: 0.1.658
-  gcpods:
-    cronjob:
-      enabled: true
-      schedule: 0/30 * * * *
-  jenkins:
-    Master:
-      AdminPassword: ***********
-  nexus:
-    defaultAdminPassword: ***********
-jxboot-resources:
-  JenkinsXGitHub:
-    password: ****************************************
-    username: *******
-  certmanager:
-    enabled: false
-    production: "false"
-  cleanup:
-    enabled: false
-  cluster:
-    domain: 35.229.50.53.nip.io
-    name: ""
-    namespace: jx
-    namespaceSubDomain: -jx.
-    projectID: devops-26
-    serverUrl: ""
-    zone: us-east1
-  controllerbuild:
-    enabled: true
-  controllerteam:
-    enabled: false
-  controllerworkflow:
-    enabled: false
-  expose:
-    enabled: false
-  gitops:
-    dev:
-      dockerRegistryOrg: devops-26
-      envOrganisation: *******
-      owner: *******
-      repo: environment-jx-boot-dev
-      server: ""
-    gitKind: github
-    gitName: github
-    gitUrlPathPrefix: ""
-    owner: *******
-    production:
-      owner: *******
-      repo: environment-jx-boot-production
-      server: ""
-    server: https://github.com
-    staging:
-      owner: *******
-      repo: environment-jx-boot-staging
-      server: ""
-    versionStreamRef: master
-    versionStreamUrl: https://github.com/jenkins-x/jenkins-x-versions.git
-    webhook: prow
-  jenkins:
-    enabled: false
-  jenkins-x-platform:
-    chartmuseum:
-      enabled: true
-      env:
-        open:
-          AUTH_ANONYMOUS_GET: true
-          DISABLE_API: false
-      image:
-        tag: v0.7.1
-    controllerbuild:
-      enabled: true
-    jenkins:
-      Agent:
-        PodTemplates:
-          Go:
-            Containers:
-              Go:
-                Image: jenkinsxio/builder-go:latest
-          Maven:
-            Containers:
-              Maven:
-                Image: jenkinsxio/builder-maven:latest
-            volumes:
-            - mountPath: /root/.m2/
-              secretName: jenkins-maven-settings
-              type: Secret
-            - mountPath: /home/jenkins/.docker
-              secretName: jenkins-docker-cfg
-              type: Secret
-          Nodejs:
-            Containers:
-              Nodejs:
-                Image: jenkinsxio/builder-nodejs:latest
-    monocular:
-      api:
-        livenessProbe:
-          initialDelaySeconds: 1000
-    nexus:
-      persistence:
-        size: 100Gi
-    postinstalljob:
-      enabled: "true"
-  lighthouse:
-    enabled: false
-  prow:
-    enabled: true
-  storage:
-    logs:
-      url: gs://jx-boot-logs-997b82a1-d879-49d1-9b71-b8b71fcf0ee5
-    reports:
-      url: gs://jx-boot-reports-c9ff9c06-5513-42b8-b1ea-feb0488d99d0
-    repository:
-      url: gs://jx-boot-repository-32bcf1a7-1479-4ab4-ac89-ff4450e940ad
-  tekton:
-    webhook:
-      enabled: false
-lighthouse:
-  enabled: false
-  git:
-    kind: github
-    name: github
-    server: https://github.com
-  hmacToken: *****************************************
-  image:
-    repository: gcr.io/jenkinsxio/lighthouse
-  replicaCount: 1
-  service:
-    name: hook
-nexus:
-  enabled: true
-prow:
-  buildnum:
-    enabled: false
-  enabled: true
-  hmacToken: *****************************************
-  oauthToken: ****************************************
-  pipelinerunner:
-    args:
-    - controller
-    - pipelinerunner
-    - --use-meta-pipeline=false
-    enabled: "true"
-  sinker:
-    replicaCount: 0
-  tillerNamespace: ""
-  user: *******
-tekton:
-  auth:
-    git:
-      password: ****************************************
-      url: https://github.com
-      username: *******
-  enabled: true
-  tillerNamespace: ""
-  webhook:
-    enabled: false
-
-Using values files:
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-adding version 0.0.6 to dependency jxboot-resources in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/requirements.yaml
-adding version 0.0.42 to dependency tekton in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/requirements.yaml
-adding version 0.0.1164 to dependency prow in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/requirements.yaml
-adding version 0.0.82 to dependency lighthouse in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/requirements.yaml
-adding version 2.0.1119 to dependency jenkins-x-platform in file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/requirements.yaml
-adding dependency versions to file /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-253488004/env/requirements.yaml
-Applying Apps chart overrides
-Applying chart overrides
-
-
-
-STEP: verify-env command: /bin/sh -c jx step verify env in dir: .
-
-validating git repository for dev at URL https://github.com/vfarcic/environment-jx-boot-dev.git
-creating environment dev git repository for URL: https://github.com/vfarcic/environment-jx-boot-dev.git to namespace jx
-Duplicated Git repository https://github.com/vfarcic/jenkins-x-boot-config to https://github.com/vfarcic/environment-jx-boot-dev
-Setting upstream to https://github.com/vfarcic/environment-jx-boot-dev
-Created Pull Request: https://github.com/vfarcic/environment-jx-boot-dev/pull/1
-Added label jx/boot to Pull Request https://github.com/vfarcic/environment-jx-boot-dev/pull/1
-validating git repository for production at URL https://github.com/vfarcic/environment-jx-boot-production.git
-creating environment production git repository for URL: https://github.com/vfarcic/environment-jx-boot-production.git to namespace jx-production
-Using Git provider github at https://github.com
-? Using Git user name: vfarcic
-? Using organisation: vfarcic
-Creating repository vfarcic/environment-jx-boot-production
-Creating Git repository vfarcic/environment-jx-boot-production
-Pushed Git repository to https://github.com/vfarcic/environment-jx-boot-production
-
-validating git repository for staging at URL https://github.com/vfarcic/environment-jx-boot-staging.git
-creating environment staging git repository for URL: https://github.com/vfarcic/environment-jx-boot-staging.git to namespace jx-staging
-Using Git provider github at https://github.com
-? Using Git user name: vfarcic
-? Using organisation: vfarcic
-Creating repository vfarcic/environment-jx-boot-staging
-Creating Git repository vfarcic/environment-jx-boot-staging
-Pushed Git repository to https://github.com/vfarcic/environment-jx-boot-staging
-
-the git repositories for the environments look good
-
-
-STEP: log-repos command: /bin/sh -c echo   now populating projects....   in dir: repositories
-
-now populating projects....
-
-STEP: apply-repositories command: /bin/sh -c jx step helm apply --boot --name repos in dir: repositories
-
-Modified file /Users/vfarcic/code/environment-jx-boot-dev/repositories/Chart.yaml to set the chart to version 1
-Copying the helm source directory /Users/vfarcic/code/environment-jx-boot-dev/repositories to a temporary location for building and applying /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-993141947/repositories
-Applying helm chart at /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-993141947/repositories as release name repos to namespace jx
-Fetching secrets from vault into directory "/var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-993141947/repositories"
-verifying the helm requirements versions in dir: . using version stream URL: https://github.com/jenkins-x/jenkins-x-versions.git and git ref: master
-Ignoring templates/default-group.yaml
-Wrote chart values.yaml /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-993141947/repositories/values.yaml generated from directory tree
-generated helm /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-993141947/repositories/values.yaml
-
-{}
-
-Using values files:
-no requirements file: /var/folders/73/94ypm_917397bvg1y3f7phkc0000gn/T/jx-helm-apply-993141947/repositories/requirements.yaml so not checking for missing versions
-Applying Apps chart overrides
-Applying chart overrides
-
-
-STEP: apply-pipeline-schedulers command: /bin/sh -c jx step scheduler config apply --direct=true in dir: prowConfig
-
-
-STEP: update-webhooks command: /bin/sh -c jx update webhooks --verbose --warn-on-fail in dir: repositories
-
-DEBUG: finding service url for hook in namespace jx
-DEBUG: couldn't find service url, attempting to look up via ingress
-DEBUG: found service url http://hook-jx.35.229.50.53.nip.io
-DEBUG: getting vault name for namespace jx
-DEBUG: system vault name from config jx-vault-jx-boot
-DEBUG: finding service url for jx-vault-jx-boot in namespace jx
-DEBUG: couldn't find service url, attempting to look up via ingress
-DEBUG: found service url http://vault-jx.35.229.50.53.nip.io
-DEBUG: Connecting to vault on http://vault-jx.35.229.50.53.nip.io
-DEBUG: merging pipeline secrets with local secrets
-Updating webhooks for Owner: vfarcic and Repository: environment-jx-boot-dev in git server: https://github.com
-Checking hooks for repository vfarcic/environment-jx-boot-dev with user vfarcic
-Creating GitHub webhook for vfarcic/environment-jx-boot-dev for url http://hook-jx.35.229.50.53.nip.io/hook
-DEBUG: getting vault name for namespace jx
-DEBUG: system vault name from config jx-vault-jx-boot
-DEBUG: finding service url for jx-vault-jx-boot in namespace jx
-DEBUG: couldn't find service url, attempting to look up via ingress
-DEBUG: found service url http://vault-jx.35.229.50.53.nip.io
-DEBUG: Connecting to vault on http://vault-jx.35.229.50.53.nip.io
-DEBUG: merging pipeline secrets with local secrets
-Updating webhooks for Owner: vfarcic and Repository: environment-jx-boot-production in git server: https://github.com
-Checking hooks for repository vfarcic/environment-jx-boot-production with user vfarcic
-Creating GitHub webhook for vfarcic/environment-jx-boot-production for url http://hook-jx.35.229.50.53.nip.io/hook
-DEBUG: getting vault name for namespace jx
-DEBUG: system vault name from config jx-vault-jx-boot
-DEBUG: finding service url for jx-vault-jx-boot in namespace jx
-DEBUG: couldn't find service url, attempting to look up via ingress
-DEBUG: found service url http://vault-jx.35.229.50.53.nip.io
-DEBUG: Connecting to vault on http://vault-jx.35.229.50.53.nip.io
-DEBUG: merging pipeline secrets with local secrets
-Updating webhooks for Owner: vfarcic and Repository: environment-jx-boot-staging in git server: https://github.com
-Checking hooks for repository vfarcic/environment-jx-boot-staging with user vfarcic
-Creating GitHub webhook for vfarcic/environment-jx-boot-staging for url http://hook-jx.35.229.50.53.nip.io/hook
-
-STEP: verify-install command: /bin/sh -c jx step verify install --pod-wait-time 30m in dir: env
-
-verifying the Jenkins X installation in namespace jx
-verifying pods
-Checking pod statuses
-POD                                          STATUS
-crier-bdf994874-vtxck                        Pending
-deck-8b49bcfc6-g9mcl                         Pending
-deck-8b49bcfc6-qprn4                         Pending
-hook-787c4d8fb8-5q5zz                        Pending
-hook-787c4d8fb8-fk8c4                        Pending
-horologium-5bdb48d8f9-jd7gk                  Pending
-jenkins-x-chartmuseum-67f75c4884-crcsr       Running
-jenkins-x-controllerbuild-647dd5f44-zlgt2    Running
-jenkins-x-controllerrole-7b8fc6d89b-5pb72    Running
-jenkins-x-heapster-66754b8fc5-pdj2s          Running
-jenkins-x-nexus-57c8447c4-gdk7l              Running
-jx-vault-jx-boot-0                           Running
-jx-vault-jx-boot-configurer-7d9d646dd5-2qflf Running
-pipeline-cc8cb56db-zcdkl                     Pending
-pipelinerunner-5474fdd88-qmhxk               Running
-plank-5cd9f95df7-4v8hp                       Pending
-prow-build-6b7dfcb76b-qf2vh                  Pending
-tekton-pipelines-controller-65fff67458-zfjst Running
-tide-9ddfd58f9-98cqh                         Pending
-vault-operator-798dccf8fc-7cgxg              Running
-WARNING: the following pods are not Ready:
-Running: jenkins-x-nexus-57c8447c4-gdk7l
-Pending: crier-bdf994874-vtxck, deck-8b49bcfc6-g9mcl, deck-8b49bcfc6-qprn4, hook-787c4d8fb8-5q5zz, hook-787c4d8fb8-fk8c4, horologium-5bdb48d8f9-jd7gk, pipeline-cc8cb56db-zcdkl, plank-5cd9f95df7-4v8hp, prow-build-6b7dfcb76b-qf2vh, tide-9ddfd58f9-98cqh
-
-Waiting 30m0s for the pods to become Ready...
-
-WARNING: retrying after error: the following pods are not Ready:
-Pending: crier-bdf994874-vtxck, deck-8b49bcfc6-g9mcl, deck-8b49bcfc6-qprn4, hook-787c4d8fb8-5q5zz, hook-787c4d8fb8-fk8c4, horologium-5bdb48d8f9-jd7gk, pipeline-cc8cb56db-zcdkl, plank-5cd9f95df7-4v8hp, prow-build-6b7dfcb76b-qf2vh, tide-9ddfd58f9-98cqh
-Running: jenkins-x-nexus-57c8447c4-gdk7l
-WARNING: retrying after error: the following pods are not Ready:
-Pending: crier-bdf994874-vtxck, deck-8b49bcfc6-g9mcl, deck-8b49bcfc6-qprn4, hook-787c4d8fb8-5q5zz, hook-787c4d8fb8-fk8c4, horologium-5bdb48d8f9-jd7gk, pipeline-cc8cb56db-zcdkl, plank-5cd9f95df7-4v8hp, prow-build-6b7dfcb76b-qf2vh, tide-9ddfd58f9-98cqh
-.
-
-WARNING: retrying after error: the following pods are not Ready:
-Running: deck-8b49bcfc6-g9mcl, deck-8b49bcfc6-qprn4, hook-787c4d8fb8-fk8c4
-Pending: hook-787c4d8fb8-5q5zz, horologium-5bdb48d8f9-jd7gk, pipeline-cc8cb56db-zcdkl, plank-5cd9f95df7-4v8hp, tide-9ddfd58f9-98cqh
-WARNING: retrying after error: the following pods are not Ready:
-Running: deck-8b49bcfc6-g9mcl, deck-8b49bcfc6-qprn4
-Pending: tide-9ddfd58f9-98cqh
-WARNING: retrying after error: the following pods are not Ready:
-Running: deck-8b49bcfc6-g9mcl, deck-8b49bcfc6-qprn4, tide-9ddfd58f9-98cqh
-WARNING: retrying after error: the following pods are not Ready:
-Running: deck-8b49bcfc6-qprn4
-.
-.
-.
-.
-.
-.
-.
-
-POD                                          STATUS
-crier-bdf994874-vtxck                        Running
-deck-8b49bcfc6-g9mcl                         Running
-deck-8b49bcfc6-qprn4                         Running
-hook-787c4d8fb8-5q5zz                        Running
-hook-787c4d8fb8-fk8c4                        Running
-horologium-5bdb48d8f9-jd7gk                  Running
-jenkins-x-chartmuseum-67f75c4884-crcsr       Running
-jenkins-x-controllerbuild-647dd5f44-zlgt2    Running
-jenkins-x-controllerrole-7b8fc6d89b-5pb72    Running
-jenkins-x-heapster-66754b8fc5-pdj2s          Running
-jenkins-x-nexus-57c8447c4-gdk7l              Running
-jx-vault-jx-boot-0                           Running
-jx-vault-jx-boot-configurer-7d9d646dd5-2qflf Running
-pipeline-cc8cb56db-zcdkl                     Running
-pipelinerunner-5474fdd88-qmhxk               Running
-plank-5cd9f95df7-4v8hp                       Running
-prow-build-6b7dfcb76b-qf2vh                  Running
-tekton-pipelines-controller-65fff67458-zfjst Running
-tide-9ddfd58f9-98cqh                         Running
-vault-operator-798dccf8fc-7cgxg              Running
-verifying the git Secrets
-verifying git Secret jx-pipeline-git-github-github
-verifying username vfarcic at git server github at https://github.com
-found 11 organisations in git server https://github.com: TechnologyConversations, cloudbees, docker-captains, docker-flow, jenkins-x, jenkins-x-buildpacks, jenkins-x-quickstarts, jenkinsci, nuxeo, scbcn, serverless-quickstarts
-Validated pipeline user vfarcic on git server https://github.com
-git tokens seem to be setup correctly
-valid: there is a Secret: kaniko-secret in namespace: jx
-installation is currently looking: GOOD
-switching to the namespace jx so that you can use jx commands on the installation
-Using namespace 'jx' from context named 'gke_devops-26_us-east1_jx-boot' on server 'https://35.229.123.189'.
-```
+Now, let's take a look at the changes Jenkins X Boot did to the local copy of the repository.
 
 ```bash
 git --no-pager diff origin/master..HEAD
 ```
 
-```
-diff --git a/env/parameters.yaml b/env/parameters.yaml
-new file mode 100644
-index 0000000..3a3a1ef
---- /dev/null
-+++ b/env/parameters.yaml
-@@ -0,0 +1,10 @@
-+adminUser:
-+  password: vault:jx-boot/adminUser:password
-+  username: admin
-+enableDocker: false
-+pipelineUser:
-+  email: viktor@farcic.com
-+  token: vault:jx-boot/pipelineUser:token
-+  username: vfarcic
-+prow:
-+  hmacToken: vault:jx-boot/prow:hmacToken
-diff --git a/jenkins-x.yml b/jenkins-x.yml
-index dbf2cd8..171d6bb 100644
---- a/jenkins-x.yml
-+++ b/jenkins-x.yml
-@@ -1,110 +1,204 @@
- buildPack: none
- pipelineConfig:
-   pipelines:
--    release:
-+    pullRequest:
-       pipeline:
-         agent:
-           image: gcr.io/jenkinsxio/builder-go:0.1.686
--        environment:
--          - name: DEPLOY_NAMESPACE
--            value: jx
-         stages:
--          - name: release
--            steps:
--              - name: validate-git
--                dir: /workspace/source/env
--                command: jx
--                args: ['step','git','validate']
--              - name: verify-preinstall
--                dir: /workspace/source/env
--                command: jx
--                args: ['step','verify','preinstall']
--              - name: install-jx-crds
--                command: jx
--                args: ['upgrade','crd']
--              - name: install-nginx
--                dir: /workspace/source/systems/jxing
--                command: jx
--                args: ['step','helm','apply', '--boot', '--remote', '--no-vault', '--name', 'jxing']
--                env:
--                  - name: DEPLOY_NAMESPACE
--                    value: kube-system
--              - name: create-install-values
--                dir: /workspace/source/env
--                command: jx
--                args: ['step','create','install', 'values', '-b']
--              - name: install-external-dns
--                dir: /workspace/source/systems/external-dns
--                command: jx
--                args: ['step','helm','apply', '--boot', '--remote', '--no-vault', '--name', 'jx']
--              - name: install-cert-manager-crds
--                dir: /workspace/source
--                command: kubectl
--                args: ['apply', '--wait', '--validate=true', '-f', 'https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml']
--                env:
--                  - name: DEPLOY_NAMESPACE
--                    value: cert-manager
--              - name: install-cert-manager
--                dir: /workspace/source/systems/cm
--                command: jx
--                args: ['step','helm','apply', '--boot', '--remote', '--no-vault', '--name', 'jx']
--                env:
--                  - name: DEPLOY_NAMESPACE
--                    value: cert-manager
--              - name: install-acme-issuer-and-certificate
--                dir: /workspace/source/systems/acme
--                command: jx
--                args: ['step','helm','apply', '--boot', '--remote', '--no-vault', '--name', 'jx']
--              - name: install-vault
--                dir: /workspace/source/systems/vault
--                command: jx
--                args: ['step', 'boot','vault']
--              - name: helm-populate-params
--                dir: /workspace/source/env
--                command: jx
--                args: ['step', 'create', 'values', '--name', 'parameters']
--              - name: install-env 
--                dir: /workspace/source/env
--                command: jx
--                args: ['step','helm','apply', '--boot', '--remote', '--name', 'jenkins-x', '--provider-values-dir', '../kubeProviders']
--              - name: verify-env
--                dir: /workspace/source
--                command: jx
--                args: ['step','verify','env']
--              - name: log-repos
--                dir: /workspace/source/repositories
--                command: echo
--                args:
--                  - ""
--                  - ""
--                  - "now populating projects...."
--                  - ""
--                  - ""
--              - name: apply-repositories
--                dir: /workspace/source/repositories
--                command: jx
--                args: ['step','helm','apply', '--boot', '--name', 'repos']
--              - name: apply-pipeline-schedulers
--                dir: /workspace/source/prowConfig
--                command: jx
--                args: ['step','scheduler','config', 'apply', '--direct=true']
--              - name: update-webhooks
--                dir: /workspace/source/repositories
--                command: jx
--                args: ['update','webhooks','--verbose', '--warn-on-fail']
--              - name: verify-install
--                dir: /workspace/source/env
--                command: jx
--                args: ['step','verify','install', '--pod-wait-time', '30m']
--    pullRequest:
-+        - name: pr
-+          steps:
-+          - args:
-+            - build
-+            command: make
-+            dir: /workspace/source/env
-+            name: helm-build
-+    release:
-       pipeline:
-         agent:
-           image: gcr.io/jenkinsxio/builder-go:0.1.686
-+        environment:
-+        - name: DEPLOY_NAMESPACE
-+          value: jx
-+        - name: GIT_AUTHOR_NAME
-+          value: vfarcic
-+        - name: GIT_AUTHOR_EMAIL
-+          value: viktor@farcic.com
-         stages:
--          - name: pr
--            steps:
--              - name: helm-build
--                dir: /workspace/source/env
--                command: make
--                args: ['build']
--
-+        - name: release
-+          steps:
-+          - args:
-+            - step
-+            - git
-+            - validate
-+            command: jx
-+            dir: /workspace/source/env
-+            name: validate-git
-+          - args:
-+            - step
-+            - verify
-+            - preinstall
-+            command: jx
-+            dir: /workspace/source/env
-+            name: verify-preinstall
-+          - args:
-+            - upgrade
-+            - crd
-+            command: jx
-+            name: install-jx-crds
-+          - args:
-+            - step
-+            - helm
-+            - apply
-+            - --boot
-+            - --remote
-+            - --no-vault
-+            - --name
-+            - jxing
-+            command: jx
-+            dir: /workspace/source/systems/jxing
-+            env:
-+            - name: DEPLOY_NAMESPACE
-+              value: kube-system
-+            name: install-nginx
-+          - args:
-+            - step
-+            - create
-+            - install
-+            - values
-+            - -b
-+            command: jx
-+            dir: /workspace/source/env
-+            name: create-install-values
-+          - args:
-+            - step
-+            - helm
-+            - apply
-+            - --boot
-+            - --remote
-+            - --no-vault
-+            - --name
-+            - jx
-+            command: jx
-+            dir: /workspace/source/systems/external-dns
-+            name: install-external-dns
-+          - args:
-+            - apply
-+            - --wait
-+            - --validate=true
-+            - -f
-+            - https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
-+            command: kubectl
-+            dir: /workspace/source
-+            env:
-+            - name: DEPLOY_NAMESPACE
-+              value: cert-manager
-+            name: install-cert-manager-crds
-+          - args:
-+            - step
-+            - helm
-+            - apply
-+            - --boot
-+            - --remote
-+            - --no-vault
-+            - --name
-+            - jx
-+            command: jx
-+            dir: /workspace/source/systems/cm
-+            env:
-+            - name: DEPLOY_NAMESPACE
-+              value: cert-manager
-+            name: install-cert-manager
-+          - args:
-+            - step
-+            - helm
-+            - apply
-+            - --boot
-+            - --remote
-+            - --no-vault
-+            - --name
-+            - jx
-+            command: jx
-+            dir: /workspace/source/systems/acme
-+            name: install-acme-issuer-and-certificate
-+          - args:
-+            - step
-+            - boot
-+            - vault
-+            command: jx
-+            dir: /workspace/source/systems/vault
-+            name: install-vault
-+          - args:
-+            - step
-+            - create
-+            - values
-+            - --name
-+            - parameters
-+            command: jx
-+            dir: /workspace/source/env
-+            name: helm-populate-params
-+          - args:
-+            - step
-+            - helm
-+            - apply
-+            - --boot
-+            - --remote
-+            - --name
-+            - jenkins-x
-+            - --provider-values-dir
-+            - ../kubeProviders
-+            command: jx
-+            dir: /workspace/source/env
-+            name: install-env
-+          - args:
-+            - step
-+            - verify
-+            - env
-+            command: jx
-+            dir: /workspace/source
-+            name: verify-env
-+          - args:
-+            - ""
-+            - ""
-+            - now populating projects....
-+            - ""
-+            - ""
-+            command: echo
-+            dir: /workspace/source/repositories
-+            name: log-repos
-+          - args:
-+            - step
-+            - helm
-+            - apply
-+            - --boot
-+            - --name
-+            - repos
-+            command: jx
-+            dir: /workspace/source/repositories
-+            name: apply-repositories
-+          - args:
-+            - step
-+            - scheduler
-+            - config
-+            - apply
-+            - --direct=true
-+            command: jx
-+            dir: /workspace/source/prowConfig
-+            name: apply-pipeline-schedulers
-+          - args:
-+            - update
-+            - webhooks
-+            - --verbose
-+            - --warn-on-fail
-+            command: jx
-+            dir: /workspace/source/repositories
-+            name: update-webhooks
-+          - args:
-+            - step
-+            - verify
-+            - install
-+            - --pod-wait-time
-+            - 30m
-+            command: jx
-+            dir: /workspace/source/env
-+            name: verify-install
-diff --git a/jx-requirements.yml b/jx-requirements.yml
-index 269d0ad..5681b64 100644
---- a/jx-requirements.yml
-+++ b/jx-requirements.yml
-@@ -1,34 +1,63 @@
- cluster:
--  clusterName: ""
--  environmentGitOwner: ""
--  project: ""
-+  clusterName: jx-boot
-+  environmentGitOwner: vfarcic
-+  gitKind: github
-+  gitName: github
-+  gitServer: https://github.com
-+  namespace: jx
-+  project: devops-26
-   provider: gke
--  zone: ""
--gitops: true
-+  zone: us-east1
- environments:
--- key: dev
--- key: staging
--- key: production
-+- ingress:
-+    domain: ""
-+    externalDNS: false
-+    namespaceSubDomain: ""
-+    tls:
-+      email: ""
-+      enabled: false
-+      production: false
-+  key: dev
-+- ingress:
-+    domain: ""
-+    externalDNS: false
-+    namespaceSubDomain: ""
-+    tls:
-+      email: ""
-+      enabled: false
-+      production: false
-+  key: staging
-+- ingress:
-+    domain: ""
-+    externalDNS: false
-+    namespaceSubDomain: ""
-+    tls:
-+      email: ""
-+      enabled: false
-+      production: false
-+  key: production
-+gitops: true
- ingress:
--  domain: ""
-+  domain: 35.229.50.53.nip.io
-   externalDNS: false
-+  namespaceSubDomain: -jx.
-   tls:
-     email: ""
-     enabled: false
-     production: false
- kaniko: true
--secretStorage: local
-+secretStorage: vault
- storage:
-   logs:
--    enabled: false
--    url: ""
-+    enabled: true
-+    url: gs://jx-boot-logs-997b82a1-d879-49d1-9b71-b8b71fcf0ee5
-   reports:
--    enabled: false
--    url: ""
-+    enabled: true
-+    url: gs://jx-boot-reports-c9ff9c06-5513-42b8-b1ea-feb0488d99d0
-   repository:
--    enabled: false
--    url: ""
-+    enabled: true
-+    url: gs://jx-boot-repository-32bcf1a7-1479-4ab4-ac89-ff4450e940ad
- versionStream:
--  ref: "master"
-+  ref: master
-   url: https://github.com/jenkins-x/jenkins-x-versions.git
- webhook: prow
-```
+That's a long output, isn't it? Jenkins X Boot changed a few files. Some of those changes are based on our answers, while others are specific to the Kubernetes cluster and the vendor we're using.
+
+We won't comment on all the changes that were done, but rather on the important ones, especially those that we might choose to modify in the future.
+
+If you take a closer look at the output, you'll see that it created the `env/parameters.yaml` file. Let's take a closer look at it.
 
 ```bash
-git push
-
-jx get activities \
-  --filter environment-$CLUSTER_NAME-dev \
-  --watch
-```
-
-```
-STEP                                                 STARTED AGO DURATION STATUS
-vfarcic/environment-jx-boot-dev/master #1                  15m4s    1m53s Failed
-  release                                                  15m4s    1m53s Failed
-    Credential Initializer Gjl8q                           15m4s       0s Succeeded
-    Working Dir Initializer 6nqj9                          15m4s       1s Succeeded
-    Place Tools                                            15m3s       2s Succeeded
-    Git Source Vfarcic Environment Jx Boot Dev Dzndj       15m1s    1m42s Succeeded https://github.com/vfarcic/environment-jx-boot-dev.git
-    Git Merge                                             13m19s       1s Succeeded
-    Validate Git                                          13m18s       1s Succeeded
-    Verify Preinstall                                     13m17s       1s Failed
-    Install Jx Crds                                       13m16s       0s Succeeded
-    Install Nginx                                         13m16s       0s Succeeded
-    Create Install Values                                 13m16s       0s Succeeded
-    Install External Dns                                  13m16s       1s Succeeded
-    Install Cert Manager Crds                             13m15s       0s Succeeded
-    Install Cert Manager                                  13m15s       0s Succeeded
-    Install Acme Issuer And Certificate                   13m15s       1s Succeeded
-    Install Vault                                         13m14s       0s Succeeded
-    Helm Populate Params                                  13m14s       0s Succeeded
-    Install Env                                           13m14s       1s Succeeded
-    Verify Env                                            13m13s       0s Succeeded
-    Log Repos                                             13m13s       1s Succeeded
-    Apply Repositories                                    13m12s       0s Succeeded
-    Apply Pipeline Schedulers                             13m12s       0s Succeeded
-    Update Webhooks                                       13m12s       1s Succeeded
-    Verify Install                                        13m11s       0s Succeeded
-```
-
-```bash
-# ctrl+c
-
-# https://github.com/jenkins-x/jx/issues/5279
-
-kubectl get pods
-```
-
-```
-NAME                                                         READY   STATUS      RESTARTS   AGE
-crier-bdf994874-vtxck                                        1/1     Running     0          24m
-deck-8b49bcfc6-g9mcl                                         1/1     Running     0          24m
-deck-8b49bcfc6-qprn4                                         1/1     Running     0          24m
-hook-787c4d8fb8-5q5zz                                        1/1     Running     0          24m
-hook-787c4d8fb8-fk8c4                                        1/1     Running     0          24m
-horologium-5bdb48d8f9-jd7gk                                  1/1     Running     0          24m
-jenkins-x-chartmuseum-67f75c4884-crcsr                       1/1     Running     0          25m
-jenkins-x-controllerbuild-647dd5f44-zlgt2                    1/1     Running     0          25m
-jenkins-x-controllerrole-7b8fc6d89b-5pb72                    1/1     Running     0          25m
-jenkins-x-heapster-66754b8fc5-pdj2s                          2/2     Running     0          22m
-jenkins-x-nexus-57c8447c4-gdk7l                              1/1     Running     0          25m
-jx-vault-jx-boot-0                                           3/3     Running     0          45m
-jx-vault-jx-boot-configurer-7d9d646dd5-2qflf                 1/1     Running     0          45m
-pipeline-cc8cb56db-zcdkl                                     1/1     Running     0          24m
-pipelinerunner-5474fdd88-qmhxk                               1/1     Running     0          24m
-plank-5cd9f95df7-4v8hp                                       1/1     Running     0          24m
-prow-build-6b7dfcb76b-qf2vh                                  1/1     Running     0          24m
-tekton-pipelines-controller-65fff67458-zfjst                 1/1     Running     0          24m
-tide-9ddfd58f9-98cqh                                         1/1     Running     0          24m
-vault-operator-798dccf8fc-7cgxg                              1/1     Running     0          46m
-vfarcic-environment-jx-boot-dev-1-release-q666j-pod-9e21be   0/20    Completed   0          15m
-```
-
-```bash
-cat jenkins-x.yml
-```
-
-```yaml
-buildPack: none
-pipelineConfig:
-  pipelines:
-    pullRequest:
-      pipeline:
-        agent:
-          image: gcr.io/jenkinsxio/builder-go:0.1.686
-        stages:
-        - name: pr
-          steps:
-          - args:
-            - build
-            command: make
-            dir: /workspace/source/env
-            name: helm-build
-    release:
-      pipeline:
-        agent:
-          image: gcr.io/jenkinsxio/builder-go:0.1.686
-        environment:
-        - name: DEPLOY_NAMESPACE
-          value: jx
-        - name: GIT_AUTHOR_NAME
-          value: vfarcic
-        - name: GIT_AUTHOR_EMAIL
-          value: viktor@farcic.com
-        stages:
-        - name: release
-          steps:
-          - args:
-            - step
-            - git
-            - validate
-            command: jx
-            dir: /workspace/source/env
-            name: validate-git
-          - args:
-            - step
-            - verify
-            - preinstall
-            command: jx
-            dir: /workspace/source/env
-            name: verify-preinstall
-          - args:
-            - upgrade
-            - crd
-            command: jx
-            name: install-jx-crds
-          - args:
-            - step
-            - helm
-            - apply
-            - --boot
-            - --remote
-            - --no-vault
-            - --name
-            - jxing
-            command: jx
-            dir: /workspace/source/systems/jxing
-            env:
-            - name: DEPLOY_NAMESPACE
-              value: kube-system
-            name: install-nginx
-          - args:
-            - step
-            - create
-            - install
-            - values
-            - -b
-            command: jx
-            dir: /workspace/source/env
-            name: create-install-values
-          - args:
-            - step
-            - helm
-            - apply
-            - --boot
-            - --remote
-            - --no-vault
-            - --name
-            - jx
-            command: jx
-            dir: /workspace/source/systems/external-dns
-            name: install-external-dns
-          - args:
-            - apply
-            - --wait
-            - --validate=true
-            - -f
-            - https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
-            command: kubectl
-            dir: /workspace/source
-            env:
-            - name: DEPLOY_NAMESPACE
-              value: cert-manager
-            name: install-cert-manager-crds
-          - args:
-            - step
-            - helm
-            - apply
-            - --boot
-            - --remote
-            - --no-vault
-            - --name
-            - jx
-            command: jx
-            dir: /workspace/source/systems/cm
-            env:
-            - name: DEPLOY_NAMESPACE
-              value: cert-manager
-            name: install-cert-manager
-          - args:
-            - step
-            - helm
-            - apply
-            - --boot
-            - --remote
-            - --no-vault
-            - --name
-            - jx
-            command: jx
-            dir: /workspace/source/systems/acme
-            name: install-acme-issuer-and-certificate
-          - args:
-            - step
-            - boot
-            - vault
-            command: jx
-            dir: /workspace/source/systems/vault
-            name: install-vault
-          - args:
-            - step
-            - create
-            - values
-            - --name
-            - parameters
-            command: jx
-            dir: /workspace/source/env
-            name: helm-populate-params
-          - args:
-            - step
-            - helm
-            - apply
-            - --boot
-            - --remote
-            - --name
-            - jenkins-x
-            - --provider-values-dir
-            - ../kubeProviders
-            command: jx
-            dir: /workspace/source/env
-            name: install-env
-          - args:
-            - step
-            - verify
-            - env
-            command: jx
-            dir: /workspace/source
-            name: verify-env
-          - args:
-            - ""
-            - ""
-            - now populating projects....
-            - ""
-            - ""
-            command: echo
-            dir: /workspace/source/repositories
-            name: log-repos
-          - args:
-            - step
-            - helm
-            - apply
-            - --boot
-            - --name
-            - repos
-            command: jx
-            dir: /workspace/source/repositories
-            name: apply-repositories
-          - args:
-            - step
-            - scheduler
-            - config
-            - apply
-            - --direct=true
-            command: jx
-            dir: /workspace/source/prowConfig
-            name: apply-pipeline-schedulers
-          - args:
-            - update
-            - webhooks
-            - --verbose
-            - --warn-on-fail
-            command: jx
-            dir: /workspace/source/repositories
-            name: update-webhooks
-          - args:
-            - step
-            - verify
-            - install
-            - --pod-wait-time
-            - 30m
-            command: jx
-            dir: /workspace/source/env
-            name: verify-install
-```
-
-```bash
-kubectl get ns
-```
-
-```
-NAME           STATUS   AGE
-cert-manager   Active   50m
-default        Active   109m
-jx             Active   57m
-kube-public    Active   109m
-kube-system    Active   109m
-```
-
-```bash
-jx get env
-```
-
-```
-NAME       LABEL       KIND        PROMOTE NAMESPACE     ORDER CLUSTER SOURCE                                                        REF    PR
-dev        Development Development Never   jx            0             https://github.com/vfarcic/environment-jx-boot-dev.git        master 
-staging    Staging     Permanent   Auto    jx-staging    100           https://github.com/vfarcic/environment-jx-boot-staging.git    master 
-production Production  Permanent   Manual  jx-production 200           https://github.com/vfarcic/environment-jx-boot-production.git master 
-```
-
-```bash
-cd ..
-
-jx create quickstart \
-    --filter golang-http \
-    --project-name jx-boot \
-    --batch-mode
-```
-
-```
-error: failed to load quickstarts: failed to load quickstarts: Running in batch mode and no default Git username found
-```
-
-```bash
-# https://github.com/jenkins-x/jx/issues/5380
-
-jx create quickstart \
-    --filter golang-http
-
-# ? github username:
-# vfarcic
-# ? API Token:
-# SOMETHING
-# ? Do you wish to use vfarcic as the Git user name? (Y/n)
-# enter
-# ? Which organisation do you want to use?  [Use arrows to move, space to select, type to filter]
-# select the org
-# ? Enter the new repository name:
-# jx-boot
-# ? Would you like to initialise git now? (Y/n)
-# enter
-# ? Commit message:  (Initial import)
-# enter
-```
-
-```
-? github username: vfarcic
-To be able to create a repository on github we need an API Token
-Please click this URL and generate a token
-https://github.com/settings/tokens/new?scopes=repo,read:user,read:org,user:email,write:repo_hook,delete_repo
-
-Then COPY the token and enter it below:
-
-? API Token: ****************************************
-
-Using Git provider github at https://github.com
-? Do you wish to use vfarcic as the Git user name? Yes
-? Which organisation do you want to use? vfarcic
-? Enter the new repository name:  jx-boot
-Creating repository vfarcic/jx-boot
-Generated quickstart at /Users/vfarcic/code/jx-boot
-### NO charts folder /Users/vfarcic/code/jx-boot/charts/golang-http
-Created project at /Users/vfarcic/code/jx-boot
-The directory /Users/vfarcic/code/jx-boot is not yet using git
-? Would you like to initialise git now? Yes
-? Commit message:  Initial import
-
-Git repository created
-performing pack detection in folder /Users/vfarcic/code/jx-boot
---> Draft detected Go (65.746753%)
-selected pack: /Users/vfarcic/.jx/draft/packs/github.com/jenkins-x-buildpacks/jenkins-x-kubernetes/packs/go
-replacing placeholders in directory /Users/vfarcic/code/jx-boot
-app name: jx-boot, git server: github.com, org: vfarcic, Docker registry org: devops-26
-skipping directory "/Users/vfarcic/code/jx-boot/.git"
-Pushed Git repository to https://github.com/vfarcic/jx-boot
-Creating GitHub webhook for vfarcic/jx-boot for url http://hook-jx.35.229.50.53.nip.io/hook
-regenerated Prow configuration
-WARNING: No author for commit: a44e9e973df6f966ef8dc9f8e78875b5107cfbd9
-WARNING: No author for commit: a44e9e973df6f966ef8dc9f8e78875b5107cfbd9
-
-Watch pipeline activity via:    jx get activity -f jx-boot -w
-Browse the pipeline log via:    jx get build logs vfarcic/jx-boot/master
-You can list the pipelines via: jx get pipelines
-When the pipeline is complete:  jx get applications
-
-For more help on available commands see: https://jenkins-x.io/developing/browsing/
-```
-
-```bash
-jx get activity \
-    --filter jx-boot/master \
-    --watch
-```
-
-```
-STEP                                        STARTED AGO DURATION STATUS
-vfarcic/jx-boot/master #1                          4m6s    3m58s Succeeded Version: 0.0.1
-  from build pack                                  4m6s    3m58s Succeeded
-    Credential Initializer Rdf44                   4m6s       0s Succeeded
-    Working Dir Initializer M48hd                  4m6s       1s Succeeded
-    Place Tools                                    4m5s       2s Succeeded
-    Git Source Vfarcic Jx Boot Master Mbct2        4m3s    1m27s Succeeded https://github.com/vfarcic/jx-boot.git
-    Git Merge                                     2m36s       0s Succeeded
-    Setup Jx Git Credentials                      2m36s       1s Succeeded
-    Build Make Build                              2m35s      35s Succeeded
-    Build Container Build                          2m0s       4s Succeeded
-    Build Post Build                              1m56s       1s Succeeded
-    Promote Changelog                             1m55s       5s Succeeded
-    Promote Helm Release                          1m50s       8s Succeeded
-    Promote Jx Promote                            1m42s    1m34s Succeeded
-  Promote: staging                                1m34s    1m26s Succeeded
-    PullRequest                                   1m34s    1m26s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-boot-staging/pull/1 Merge SHA: 05080b127abdd1e3b22d79c7e74933e9f6727f78
-    Update                                           8s       0s Succeeded
-```
-
-```bash
-# ctrl+c
-
-jx get activity \
-    --filter environment-$CLUSTER_NAME-staging/master \
-    --watch
-```
-
-```
-STEP                                                 STARTED AGO DURATION STATUS
-vfarcic/environment-jx-boot-staging/master #1              1m12s     1m3s Succeeded
-  from build pack                                          1m12s     1m3s Succeeded
-    Credential Initializer W4kk6                           1m12s       0s Succeeded
-    Working Dir Initializer Tsnlf                          1m12s       1s Succeeded
-    Place Tools                                            1m11s       1s Succeeded
-    Git Source Vfarcic Environment Jx Boot Sta Pl4lm       1m10s       7s Succeeded https://github.com/vfarcic/environment-jx-boot-staging.git
-    Git Merge                                               1m3s       1s Succeeded
-    Setup Jx Git Credentials                                1m2s       1s Succeeded
-    Build Helm Apply                                        1m1s      52s Succeeded
-```
-
-```bash
-# ctrl+c
-
-kubectl get namespaces
-```
-
-```
-NAME           STATUS   AGE
-cert-manager   Active   94m
-default        Active   152m
-jx             Active   100m
-jx-staging     Active   91s
-kube-public    Active   152m
-kube-system    Active   152m
-```
-
-```bash
-jx get applications --env staging
-```
-
-```
-APPLICATION STAGING PODS URL
-jx-boot     0.0.1   1/1  http://jx-boot.jx-staging.35.229.50.53.nip.io
-```
-
-```bash
-STAGING_ADDR=[...]
-
-curl $STAGING_ADDR
-
-cd environment-$CLUSTER_NAME-dev
-
 cat env/parameters.yaml
 ```
+
+The output is as follows.
 
 ```yaml
 adminUser:
@@ -1854,108 +346,350 @@ prow:
   hmacToken: vault:jx-boot/prow:hmacToken
 ```
 
+The `parameters.yaml` file contains the data required for Jenkins X to operate correctly. There is the administrative `username` and `username` and the information that Docker is not enabled (`enableDocker`). The latter is not really Docker but rather that the system is not using an internal Docker Registry but rather an external service. Further on, we can see the `email`, the `token`, and the `username` pipeline needs for accessing our GitHub account. Finally, we can see the `hmacToken` required for the handshake between GitHub webhooks and `prow`.
+
+As you can see, the confidential information is not available in plan-text format. Since we are using Vault to store secrets, some values are references to the Vault storage. That way, it is safe for us to keep that file in a Git repository without fear that sensitive information will be reveal to prying eyes.
+
+We can also see from the `git diff` output that the `parameters.yaml` did not exist before. Unlike `requirements.yml` that existed from the start (and we modified it), that one was created by `jx boot`.
+
+Which other file did the Boot process create or modify?
+
+We can see that it made some modifications to the `jenkins-x.yml` file. We did not explore it just yet, so let's take a look at what we have right now.
+
 ```bash
-# It should do nothing
-
-kubectl get pods | grep docker
-
-# It's empty
-
-cat env/parameters.yaml \
-    | sed -e \
-    "s@enableDocker: false@enableDocker: true@g" \
-    | tee env/parameters.yaml
+cat jenkins-x.yml
 ```
+
+The output is too long to be presented in a book, and you can see it on your screen anyway.
+
+That is a `jenkins-x.yml` file like any other Jenkins X pipeline. The format is the same but the content is tailor made for the Boot process. It contains everything it needs to install or, later on, upgrade the platform.
+
+What makes this pipeline unique, when compared with those we explored earlier, is that the `buildPack` is set to `none`. Instead of relying on a buildpack, the whole pipeline is defined in that `jenkins-x.yml` file. Whether that's a good thing or bad depends on the context. On one hand, we will not benefit from future changes the community might make to the Boot proocess. On the other hand, those changes are likely going to require quite a few other supporting files. So, the community decided not to use the buildpack. Instead, if you'd like to update the Boot process, you'll have to merge the repository you forked with the upstream.
+
+Now, let's get to business and take a closer look at what's inside `jenkins-x.yml`.
+
+We can see that it is split into two pipelines; `pullRequest` and  `release`.
+
+The `pullRequest` is simple and it consists of a single `stage` with only one `step`. It executes `make build`. If you take a look at `env/Makefile` you'll see that it builds the charts in the `kubeProviders` directory and afterwards it lints it. The real purpose of the `pullRequest` pipeline is only to validate that the formatting of the charts involved in the Boot process is correct. It is very similar to what's being done with pull requests to the repositories associated with permanent environments like staging and production.
+
+The "real" action is happening in the `release` pipeline which, as you already know, is triggered when we make changes to the master branch.
+
+The `release` pipeline contains a single stage with the same name. What makes is special is that there are quite a few steps inside it and we might already be familiar with them from the output of the `jx boot` command.
+
+We'll go through the steps very briefly. All but one of those are based on `jx` commands which you can explore in more depth on your own.
+
+The list of the steps, sorted by the order of execution, is as follows.
+
+|Step                       |Command                         |Description|
+|---------------------------|--------------------------------|-----------|
+|`validate-git`             |`jx step git validate`          |Makes sure that the `.gitconfig` file is configured correctly so that Jenkins X can interact with our repositories|
+|`verify-preinstall`        |`jx step verify preinstall`     |Validates that our infrastructure is set up correctly before the process installs or upgrades Jenkins X|
+|`install-jx-crds`          |`jx upgrade crd`                |Installs or upgrades Custom Resource Definitions required by Jenkins X|
+|`install-velero`           |`jx step help apply`            |Installs or upgrades [Velero](https://velero.io) used for creating backups of the system|
+|`install-velero`           |`jx step help apply`            |Installs or upgrades Jenkins X nginx Ingress implementation|
+|`create-install-values`    |`jx step create install values` |Adds missing values (if there are any) to the `cluster/values.yaml` file used to install cluster-specific charts|
+|`install-external-dns`     |`jx step helm apply`            |Installs or upgrades the support for external DNSes|
+|`install-cert-manager-crds`|`kubectl apply`                 |Installs or upgrades CertManager CRDs|
+|`install-cert-manager`     |`jx step helm apply`            |Installs or upgrades CertManager in charge of creating Let's Encrypt certificates|
+|`install-acme-issuer-and-certificate`|`jx step helm apply`  |Installs or upgrades CertManager issuer|
+|`install-vault`            |`jx step boot vault`            |Installs or upgrades HashiCorp Vault|
+|`helm-populate-params`     |`jx step create values`         |Creates or updates the `values.yaml` file used by Charts specific to the selected Kubernetes provider|
+|`install-env`              |`jx step helm apply`            |Installs or upgrades Jenkins X environments (e.g., `dev`, `staging`, `production`)|
+|`apply-repositories`       |`jx step helm apply`            |Makes changes to the repositories associated with environments (e.g., webhooks)|
+|`apply-pipeline-schedulers`|`jx step scheduler config apply`|Configures the webhooks gateway (e.g., `prow`)|
+|`update-webhooks`          |`jx update webhooks`            |Updates webhooks for all resitories associated with applications managed by Jenkins X|
+|`verify-install`           |`jx step verify install`        |Validates Jenkins X setup|
+
+Please note that some of the components (e.g., Vault) are installed, upgraded, or deleted depending on whether they are enabled or disabled in `jx-requirements.yml`.
+
+As you can see, the process consists of the following major groups of steps.
+
+* Validate requirements
+* Define values used to apply Helm charts
+* Apply Helm charts
+* Validate the setup
+
+The Helm charts used to set up the system are stored in `systems` and `env` directories. They do not contain templates, but rather only `values.yaml` and `requirements.yaml` files. If you open any of those you'll see that the `requirements.yaml` file is referencing one or more Charts stored in remote Helm registries.
+
+That's all we should know about the `jenkins-x.yml` file, at least for now. The only thing left to say is that you might choose to extend it by adding steps specific to your setup or you might even choose to add those unrelated with Jenkins X. For now, I will caution against such actions. If you do choose to modify the pipeline, you might have a hard time merging it with upstream. That, by itself, shouldn't be a big deal, but there is a more important reason to exercise caution. I did not yet explain everything there is to know about Jenkins X Boot. Specifically, we are yet to explore Jenkins X Apps (not to be confused with Applications). They allow us to add additional capabilities (components, applications) to our cluster and manage them through Jenkins X Boot. We'll get there in due time. For now, we'll move to yet another file that was modified by the process.
+
+Another file that changed is `jx-requirements.yml`. Part of the changes are those we entered, like `clusterName`, `environmentGitOwner`, and quite a few others. But, some of the moodifications were done by `jx boot` as well. Let's take a closer look at what we got.
+
+```bash
+cat jx-requirements.yml
+```
+
+The output is as follows.
 
 ```yaml
-adminUser:
-  password: vault:jx-boot/adminUser:password
-  username: admin
-enableDocker: true
-pipelineUser:
-  email: viktor@farcic.com
-  token: vault:jx-boot/pipelineUser:token
-  username: vfarcic
-prow:
-  hmacToken: vault:jx-boot/prow:hmacToken
+autoUpdate:
+  enabled: false
+  schedule: ""
+cluster:
+  clusterName: viktor
+  environmentGitOwner: vfarcic
+  gitKind: github
+  gitName: github
+  gitServer: https://github.com
+  namespace: jx
+  project: viktor-2019
+  provider: gke
+  zone: us-east1
+environments:
+- ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  key: dev
+- ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  key: staging
+- ingress:
+    domain: ""
+    externalDNS: false
+    namespaceSubDomain: ""
+    tls:
+      email: ""
+      enabled: false
+      production: false
+  key: production
+gitops: true
+ingress:
+  domain: 35.185.107.243.nip.io
+  externalDNS: false
+  namespaceSubDomain: -jx.
+  tls:
+    email: ""
+    enabled: false
+    production: false
+kaniko: true
+secretStorage: vault
+storage:
+  backup:
+    enabled: false
+    url: ""
+  logs:
+    enabled: true
+    url: gs://viktor-logs-...
+  reports:
+    enabled: true
+    url: gs://viktor-reports-...
+  repository:
+    enabled: true
+    url: gs://viktor-repository-...
+vault: {}
+velero: {}
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
+webhook: prow
 ```
 
+As you can see both from `git diff` and directly from `jx-requirements.yml`, the file does not contain only the changes we made initially. The `jx boot` command modified it as well by adding some additional information. I'll assume that you do remember which changes you made, so we'll comment only on those done by Jenkins X Boot.
+
+I> My output might not be the same as the one you're seeing on the screen. Jenkins X Boot might have features that did not exist at the time I wrote this chapter (October 2019). If you see changes that I am not commenting, you'll have to consult the documentation to get more information.
+
+TODO: Continue review
+
+At the very top we can see that `jx boot` added the `autoUpdate` section which did not even exist in the repository we forked. That's normal since that repo does not necessarily contain all the entries of the currently available Boot schema. So, some might be added even if they are empty.
+
+We won't go into `autoUpdate` just yet. For now, we're interested only in installation. Updates and upgrades are coming later.
+
+Inside the `cluster` section, we can see that it set `gitKind` and `gitName` to `github`, and `gitServer` to `https://github.com`. Jenkins X's default assumption is that you're using GitHub. If that's not the case, you can change it to some other Git provider but, as I alrady mentioned, we'll explore that together with Lighthouse later. It also set the `namespace` to `jx` which, if you remember, is the default Namespace for Jenkins X.
+
+The `environments` section is new as well. We can use one of its sub-entries to change Ingress used for a specific environment (e.g., `production`). Otherwise, the `ingress` entries (at the root) are applied to the whole cluster (to all the environments).
+
+Speaking of `ingress`, you'll notice that the `domain` entry inside it was auto-generated. Since we did not specify a domain ourselves, it used `.nip.io` in the same way we were using it so far. Ingress, both on the cluster and on the environment level, is a separate topic that we'll explore later.
+
+Finally, we can see that it added values to `url` entries in `storage`. We could have created storage and set those values ourselves. But we didn't. We let Jenkins X Boot create it for us and update those entries with the URLs. We'll explore in more detail what we can do (if anything) with those storages. For now, just note that the Boot created them for us.
+
+That's it. Those are all the files that were changed.
+
+As you already saw, Jenkins X Boot run a pipeline that installed the whole platform. Given that we did not have Jenkins X running inside the cluster, that pipeline was executed locally. But, we are not expected to keep maintaing our setup by running pipelines ourselves. If, for example, we'd like to upgrade some aspect of the plaform, we should be able to push changes to the repository and let the system run the pipeline for us, even if that pipeline will affect Jenkins X itself. The first step towards confirming that is to check which pipelines we currently have in the cluster.
+
+## Verrifying Jenkins X Boot Installation
+
+Let's take a quick look at the pipelines currently active in our cluster.
+
 ```bash
-git status
+jx get pipelines -o yaml
+```
 
-git add .
+The output is as follows.
 
-git commit -m "Initial setup"
+```
+- vfarcic/environment-jx-boot-dev/master
+- vfarcic/environment-jx-boot-production/master
+- vfarcic/environment-jx-boot-staging/master
+```
 
+We are already used to working with `production` and `staging` pipelines. What is new is the `dev` pipeline. That is the one we just executed locally. It is now available in the cluster as well and we should be able to trigger it by pushing a change to the associated repository. Let's test that.
+
+Currently, we have quite a few changes to the local copy of the `dev` repository associated with the Jenkins X Boot. We also have the corresponding pipeline available inside the cluster. Let's see what happens if we push the changes to GitHub.
+
+```bash
 git push
 
 jx get activities \
     --filter environment-$CLUSTER_NAME-dev \
     --watch
-
-# TODO: Continue when https://github.com/jenkins-x/jx/issues/5381 is fixed
-
-
-kubectl get pods | grep docker
-
-cd ../jx-boot
-
-echo "Testing Docker Hub" \
-    | tee README.md
-
-git add .
-
-git commit -m "A silly change"
-
-git push --set-upstream origin master
-
-jx get activity \
-    --filter jx-boot/master \
-    --watch
-
-# ctrl+c
-
-jx get activity \
-    --filter environment-$CLUSTER_NAME-staging/master \
-    --watch
-
-# ctrl+c
-
-# TODO: `ingress` section in `jx-requirements.yml`
-
-# TODO: Change to external Docker registry
-
-# TODO: Explore the files
-
-# TODO: Destroy the cluster, create a new one, and re-run `jx boot`
-
-# TODO: Explore storage
-
-# TODO: Extend the pipeline
-
-# TODO: jx profile cloudbees
-
-# TODO: jx profile oss
-
-# TODO: Add gloo, istio, flagger
-
-# TODO: CB distribution
-
-# TODO: Backup buckets
-
-# TODO: Destroy the cluster and create a new using the same `jx-boot` repository
-
-# TODO: `jx add app` (https://jenkins-x.io/apps/)
 ```
 
-## What Now?
+We pushed the changes to GitHub and started watching the activities of the `dev` pipeline. The output, when the activity is finished, should be as follows.
+
+```
+STEP                                      STARTED AGO DURATION STATUS
+vfarcic/environment-jx-boot-dev/master #1       3m26s    2m36s Succeeded
+  release                                       3m26s    2m36s Succeeded
+    Credential Initializer Hzqfm                3m26s       0s Succeeded
+    Working Dir Initializer Wcggn               3m26s       1s Succeeded
+    Place Tools                                 3m25s       2s Succeeded
+    Git Source Vfarcic Environment Jx...        3m23s      12s Succeeded https://github.com/vfarcic/environment-jx-boot-dev.git
+    Git Merge                                   3m11s       0s Succeeded
+    Validate Git                                3m11s       1s Succeeded
+    Verify Preinstall                           3m10s      12s Succeeded
+    Install Jx Crds                             2m58s      10s Succeeded
+    Install Nginx                               2m48s      11s Succeeded
+    Create Install Values                       2m37s       1s Succeeded
+    Install External Dns                        2m36s      13s Succeeded
+    Install Cert Manager Crds                   2m23s       1s Succeeded
+    Install Cert Manager                        2m22s      13s Succeeded
+    Install Acme Issuer And Certificate          2m9s       2s Succeeded
+    Install Vault                                2m7s       5s Succeeded
+    Helm Populate Params                         2m2s       3s Succeeded
+    Install Env                                 1m59s      52s Succeeded
+    Verify Env                                   1m7s       6s Succeeded
+    Log Repos                                    1m1s       0s Succeeded
+    Apply Repositories                           1m1s       4s Succeeded
+    Apply Pipeline Schedulers                     57s       1s Succeeded
+    Update Webhooks                               56s       5s Succeeded
+    Verify Install                                51s       1s Succeeded
+```
+
+That's the first activity (`#1`) of the `dev` pipeline. To be more precise, it is the second one (the first was executed locally) but, from the point of view of Jenkins X inside the cluster, which did not exist at the time, that is the first activity. Those are the steps of Jenkins X Boot running inside our cluster.
+
+We won't go through the changes that were created by that activity since there are none. We did not modify any of the files. We already used those same files when we executed Jenkins X Boot locally. All we did was to push the changes from the local repository to GitHub. That triggered a webhook that notified the cluster that there are some changes to the remote repo and, as a result, the first in-cluster activity was executed.
+
+The reason I showed you that activity was not due to an expectation to see some change applied to the cluster (there were none), but to demonstrate that, from now on, we should let Jenkins X running inside our Kubernetes cluster handle changes to the `dev` repository, instead of running `jx boot` locally. That will come in handy later on when we explore how to upgrade or change our Jenkins X setup.
+
+Please press *ctrl+c* to stop watching the activity.
+
+Let's take a look at the Namespaces we have in our cluster.
+
+```bash
+kubectl get namespaces
+```
+
+The output is as follows.
+
+```
+NAME         STATUS AGE
+cert-manager Active 50m
+default      Active 109m
+jx           Active 57m
+kube-public  Active 109m
+kube-system  Active 109m
+```
+
+As you can see, there are no Namespaces for staging and production environments. Does that mean that we do not get them with Jenkins X Boot?
+
+Unlike other types of setup, the Boot creates environments lazily. That means that they are not created in advance, but rather when used for the first time. In other words, the `jx-staging` Namespace will be created the first time we deploy something to the staging environment. The same logic is applied to any other environment, production included.
+
+To put your mind at ease, we can output the environments and confirm that staging and production were indeed created.
+
+```bash
+jx get env
+```
+
+The output is as follows.
+
+```
+NAME       LABEL       KIND        PROMOTE NAMESPACE     ORDER CLUSTER SOURCE                                                        REF    PR
+dev        Development Development Never   jx            0             https://github.com/vfarcic/environment-jx-boot-dev.git        master 
+staging    Staging     Permanent   Auto    jx-staging    100           https://github.com/vfarcic/environment-jx-boot-staging.git    master 
+production Production  Permanent   Manual  jx-production 200           https://github.com/vfarcic/environment-jx-boot-production.git master 
+```
+
+`Staging` and `production` environments do indeed exist and they are associated with corresponding Git repositories, even though Kubernetes Namespaces were not yet created. 
+
+While we're in the subject of environments, we can see something that did not exist in the previous setups. What's new, in this output, is that the `dev` environment also has a repo set as the source. That was not the case when we were creating cluster with `jx create cluster` or installing Jenkins X with `jx install`. In the past, the `dev` environment was not managed by GitOps principles. Now it is.
+
+The associated `source` is the repository we forked and it contains the specification of the whole `dev` environment, and a few other things. From now on, if we need to modify Jenkins X or any other component of the platform, all we have to do is push a change to the associated repository and a pipeline will take care of converging the actual with the desired state. From this moment onwart, everything except infrastructure is managed throough GitOps. I intentionally said "except infrastructure" because I did not show you explicitely how to create a pipeline that will execute Terraform or whichever tool you're using to manage your infra. However, that is not an excuse for you not to do it. By now, you should have enugh knowledge to automate that last piece of the puzzle by creating a Git Repository with `jenkins-x.yml` and importing it into Jenkins X. If you do that, everything will be using GitOps and everything will be automated, escept writing code and pushing it to Git. Do not take my unwilingness to force a certain tool (e.g., Terraform) as a sign that you shouldn't walk that last mile.
+
+To be on the safe side, we'll create a new quickstart project and confirm that the system is behaving correctly. If for no other reason, we still need to confirm that lazy creation of environments works as expected.
 
 ```bash
 cd ..
 
-hub delete -y \
-    $GH_USER/environment-$CLUSTER_NAME-dev
+jx create quickstart \
+    --filter golang-http
+```
 
+We went back from the local copy of the `dev` repository and started the process of creating a new `quickstart`.
+
+You might be wondering why we didn't use the `--batch-mode` as we did countless times before. This time, we installed Jenkins X using a different method and the local cache does not have the information it needs to create a `quickstart` automatically. So, we'll need to answer a series of questions, just as we did at the beginning of the book. That is only a temporary issue. The moment we create the first quickstart manually, the information will be stored locally and every consecutive attempt to create new quickstarts can be done with the `--batch-mode`, as long as we're using the same laptop.
+
+Please answer to all the questions any way you like. Just bear in mind that I expect you to name the repository `jx-boot`. If you call it differently, you'll have to modify the commands that follow.
+
+All that's left now is to wait until the activity of the pipeline created by the quickstart process is finished.
+
+```bash
+jx get activity \
+    --filter jx-boot \
+    --watch
+```
+
+Please press *ctrl+c* to stop watching the activity once its finished.
+
+We'll also confirm that the activity of the staging environment is finished as well.
+
+```bash
+jx get activity \
+    --filter environment-$CLUSTER_NAME-staging/master \
+    --watch
+```
+
+You know what to do. Wait until the newly span activity is finised and press *ctrl+c* to stop watching.
+
+Let's retrieve the Namespaces again.
+
+```bash
+kubectl get namespaces
+```
+
+The output is as follows.
+
+```
+NAME         STATUS AGE
+cert-manager Active 94m
+default      Active 152m
+jx           Active 100m
+jx-staging   Active 91s
+kube-public  Active 152m
+kube-system  Active 152m
+```
+
+As you can see, the `jx-staging` Namespace was created the first time an application was deplyed to the associated environment, not when we installed the platform. The `jx-production` Namespace is still missing since we did not yet promote anything to production. Once we do, that Namespace will be created as well.
+
+I won't bother you with the commands that would confirm that the application is accessible from outside the cluster, that we can create preview (pull request) environments, and that we can promote releases to production. I'm sure that, by now, you know how to do all that by yourself.
+
+## What Now?
+
+We did not dive into everything Jenkins X Boot offers. We still need to discuss how to use it to update or upgrade Jenkins X and the related components. There are also a few other features that we skipped. For now, I wanted you to get a taste of what can be done with it. We'll discuss it in more detail in the next chapter. Right now, you should have at least the basic understanding how to install the platform using Jenkins X Boot. More will come soon.
+
+Just like in the previous chapters, now you need to choose whether you want to move to the next chapter right away or you'd like to have a break. If you choose the latter, the Gists we used to create the cluster contain the instructions how to destroy it as well. Once the cluster is no more, use the commands that follow to delete (m)ost of) the repositories. The next chapter will contains the instructions how to create everything we need from scratch.
+
+```bash
 hub delete -y \
     $GH_USER/environment-$CLUSTER_NAME-staging
 
@@ -1965,9 +699,7 @@ hub delete -y \
 hub delete -y \
     $GH_USER/jx-boot
 
-rm -rf environment-$CLUSTER_NAME-dev
-
 rm -rf jx-boot
-
-# Delete storage
 ```
+
+You'll notice that we did NOT delete the `dev` repository used with Jenkins X Boot. We'll keep it because that'll simplify the installation in the next chapter. That's the beauty of GitOps. The Jenkins X definition is in Git and it can be used or reused whenever we need it.

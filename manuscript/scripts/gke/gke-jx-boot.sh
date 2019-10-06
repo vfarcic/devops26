@@ -1,15 +1,11 @@
-##############
-# Upgrade jx #
-##############
-
-jx version
-
 ####################
 # Create a cluster #
 ####################
 
+# Use the same `PROJECT` as when you created the `dev` repository with `jx boot`
 PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
+# Use the same `CLUSTER_NAME` as when you created the `dev` repository with `jx boot`
 CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-boot)
 
 gcloud auth login
@@ -28,6 +24,14 @@ kubectl create clusterrolebinding \
     cluster-admin-binding \
     --clusterrole cluster-admin \
     --user $(gcloud config get-value account)
+
+#####################
+# Install Jenkins X #
+#####################
+
+cd environment-$CLUSTER_NAME-dev
+
+jx boot
 
 #######################
 # Destroy the cluster #
@@ -54,14 +58,3 @@ gcloud compute disks delete \
     $(gcloud compute disks list \
     --filter="zone:us-east1-d AND -users:*" \
     --format="value(id)") --quiet
-
-# Remove container images from GCR
-IMAGE=go-demo-6
-for TAG in $(gcloud container images \
-    list-tags gcr.io/$PROJECT/$IMAGE \
-    --format='get(tags)')
-do
-	gcloud container images \
-        delete gcr.io/$PROJECT/$IMAGE:$TAG \
-        --quiet
-done

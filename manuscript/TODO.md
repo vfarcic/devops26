@@ -19,29 +19,25 @@
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
 - [ ] 18-boot.md
-- [ ] Amazon.com
-- [ ] devopstoolkitseries.com
-- [ ] jenkins-x.io
-- [ ] "Book is out" to TechnologyConversations.com
-- [ ] "Book is out" to MailChimp
-- [ ] Preface to TechnologyConversations.com
-- [ ] Cover to TechnologyConversations.com
-- [ ] Amazon marketing
-- [ ] Check whether the book was added to Amazon's author page
-- [ ] Check whether the two formats are presented together in Amazon
-- [ ] Packt
-- [ ] 99-boot-update.md
 - [ ] Create a course on [udemy.com](https://www.udemy.com/)
-- [ ] 99-ui.md
+- [ ] 19-boot-upgrade.md
+- [ ] Remove 14-upgrade.md
+- [ ] Packt
+- [ ] 99-add-app.md (gloo, istio, flagger)
 - [ ] 99-storage-and-vault.md
-- [ ] Switch from `jx create addon` to `jx create app`
-- [ ] Update the personal cluster
+- [ ] 99-cjxd.md
+- [ ] 99-lighthouse.md
+- [ ] 99-multi-cluster.md
+- [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
+- [ ] jenkins-x.io
+- [ ] 99-ui.md
 - [ ] 99-aws-lambda-pipeline.md
 - [ ] 99-distribution.md
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
 - [ ] 99-feature-flags-rollout.md
+- [ ] Replace prow with lighthouse across the book
 - [ ] Remove *At the time of this writing (August 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -52,6 +48,11 @@
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
 - [ ] Change *At the time of this writing (August 2019)...* to the "real" month in 99-the-end.md
+- [ ] Remove *At the time of this writing (October 2019)...*
+- [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
+- [ ] Rewrite *But, at the time of this writing (October 2019)...*
+- [ ] Rewrite *As mentioned at the beginning of this chapter...*
+- [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
@@ -62,8 +63,6 @@
 - [ ] 99-env-in-separate-cluster.md
 - [ ] 99-gitops.md
 - [ ] 99-ui.md
-- [ ] 99-teams-and-multi-cluster.md
-- [ ] 99-add-app.md
 - [ ] 99-build-notifications.md
 - [ ] 99-vault.md
 - [ ] 99-ng-arg.md
@@ -111,6 +110,10 @@
 ## The DevOps 2.X Toolkit
 
 - [ ] Service mesh ([Istio](https://istio.io/), [Gloo](https://gloo.solo.io), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali), [Vistio](https://github.com/nmnellis/vistio))
+- [ ] https://github.com/weaveworks/wksctl 
+- [ ] https://github.com/Comcast/kuberhealthy
+- [ ] https://www.getambassador.io
+- [ ] kustomize
 - [ ] Serverless
 - [ ] Build images (kaniko, https://go.cloudbees.com/docs/cloudbees-core/cloud-install-guide/kubernetes-using-kaniko/, buildah)
 - [ ] Monitoring alternatives (Splunk, DataDog, New Relic)
