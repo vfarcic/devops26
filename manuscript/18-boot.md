@@ -373,7 +373,7 @@ The list of the steps, sorted by order of execution, is as follows.
 |`install-external-dns`     |`jx step helm apply`            |Installs or upgrades the support for external DNSes|
 |`install-cert-manager-crds`|`kubectl apply`                 |Installs or upgrades CertManager CRDs|
 |`install-cert-manager`     |`jx step helm apply`            |Installs or upgrades CertManager in charge of creating Let's Encrypt certificates|
-|`install-acme-issuer-and-certificate`|`jx step helm apply`  |Installs or upgrades CertManager issuer|
+|`install-acme-issuer...`   |`jx step helm apply`  |Installs or upgrades CertManager issuer|
 |`install-vault`            |`jx step boot vault`            |Installs or upgrades HashiCorp Vault|
 |`helm-populate-params`     |`jx step create values`         |Creates or updates the `values.yaml` file used by Charts specific to the selected Kubernetes provider|
 |`install-env`              |`jx step helm apply`            |Installs or upgrades Jenkins X environments (e.g., `dev`, `staging`, `production`)|

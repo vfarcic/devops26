@@ -231,8 +231,6 @@ Next up: EKS.
 
 ## Creating An Amazon Elastic Container Service for Kubernetes (EKS) Cluster With jx {#jx-create-cluster-eks}
 
-W> At the time of this writing (August 2019), there is an open [issue 5000](https://github.com/jenkins-x/jx/issues/5000) that might prevent you from using Jenkins X (static flavor) in EKS. If you experience the same problem, you can either wait until it is resolved or temporarily switch to a different Cloud provider. If you choose the latter, I strongly recommend Google Cloud Platform given that its Google Kubernetes Engine is the most stable and advanced managed Kubernetes at this moment. While temporarily changing the cloud provider might be an inconvenience, it might also be a good experience. After all, we are currently in the "learning" mode, and you are not yet using Jenkins X in production. So, a temporary move away from EKS should not be such a bad thing.
-
 To interact with AWS through its CLI, we need environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION` (there are other ways, but I'll ignore them).
 
 ```bash

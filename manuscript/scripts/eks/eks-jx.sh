@@ -32,7 +32,7 @@ jx create cluster eks \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --static-jenkins true
+    --static-jenkins
 
 # When in doubt, use the default answers, except in the cases listed below
 # Answer with `n` to `Would you like to register a wildcard DNS ALIAS to point at this ELB address?`

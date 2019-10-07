@@ -19,12 +19,13 @@
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
 - [X] 18-boot.md
-- [ ] Remove *At the time of this writing (August 2019),...* warning
+- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
+
+- [ ] Remove *At the time of this writing (September 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
 - [ ] Remove *For now (April 2019)* paragraph
 - [ ] Rewrite the *Due to the current limitation...* warning
-- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
