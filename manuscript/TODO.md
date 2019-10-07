@@ -18,9 +18,26 @@
 - [X] 16-serverless-apps.md
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
-- [ ] 18-boot.md
+- [X] 18-boot.md
+- [ ] Remove *At the time of this writing (August 2019),...* warning
+- [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
+- [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
+- [ ] Remove *For now (April 2019)* paragraph
+- [ ] Rewrite the *Due to the current limitation...* warning
+- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
+- [ ] Remove *There is a bug (undocumented feature) in...* warning
+- [ ] Remove *If you do see the new domain...* warning
+- [ ] Rewrite *At the time of this writing (July 2019)...*
+- [ ] Change *At the time of this writing (August 2019)...* to the "real" month in 99-the-end.md
+- [ ] Remove *At the time of this writing (October 2019)...*
+- [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
+- [ ] Rewrite *But, at the time of this writing (October 2019)...*
+- [ ] Rewrite *As mentioned at the beginning of this chapter...*
+- [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
+- [ ] Replace `jx create cluster` with `jx boot` in the workshop
 - [ ] Create a course on [udemy.com](https://www.udemy.com/)
 - [ ] 19-boot-upgrade.md
+- [ ] Replace prow with lighthouse across the book
 - [ ] Remove 14-upgrade.md
 - [ ] Packt
 - [ ] 99-add-app.md (gloo, istio, flagger)
@@ -37,22 +54,6 @@
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
 - [ ] 99-feature-flags-rollout.md
-- [ ] Replace prow with lighthouse across the book
-- [ ] Remove *At the time of this writing (August 2019),...* warning
-- [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
-- [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
-- [ ] Remove *For now (April 2019)* paragraph
-- [ ] Rewrite the *Due to the current limitation...* warning
-- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
-- [ ] Remove *There is a bug (undocumented feature) in...* warning
-- [ ] Remove *If you do see the new domain...* warning
-- [ ] Rewrite *At the time of this writing (July 2019)...*
-- [ ] Change *At the time of this writing (August 2019)...* to the "real" month in 99-the-end.md
-- [ ] Remove *At the time of this writing (October 2019)...*
-- [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
-- [ ] Rewrite *But, at the time of this writing (October 2019)...*
-- [ ] Rewrite *As mentioned at the beginning of this chapter...*
-- [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
 - [ ] Convert https://www.devopstoolkitseries.com to Knative
 - [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
