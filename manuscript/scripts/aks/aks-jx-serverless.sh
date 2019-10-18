@@ -1,9 +1,3 @@
-##############
-# Upgrade jx #
-##############
-
-jx version
-
 ####################
 # Create a cluster #
 ####################
@@ -15,6 +9,7 @@ echo "nexus:
 " | tee myvalues.yaml
 
 # Please replace [...] with a unique name (e.g., your GitHub user and a day and month).
+# The name of the cluster must conform to the following pattern: '^[a-zA-Z0-9]*$'.
 # Otherwise, it might fail to create a registry.
 CLUSTER_NAME=[...]
 

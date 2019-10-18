@@ -271,9 +271,9 @@ Next, the installation of Jenkins X itself and a few other applications (e.g., C
 
 The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
 
-Jenkins X recommends using a custom DNS name to access services in your Kubernetes cluster. However, there is no way for me to know if you have a domain available for use or not. Instead, we'll use the [nip.io](http://nip.io/) service to create a fully qualified domain. To do that, we'll have to answer with `n` to the question *"would you like to register a wildcard DNS ALIAS to point at this ELB address?"*. As a result, we'll be presented with another question. *"Would you like to wait and resolve this address to an IP address and use it for the domain?"*. Answer with `y` (or press the enter key since that is the default answer). The process will wait until Elastic Load Balancer (ELB) is created and use its hostname to deduce its IP.
+Jenkins X recommends using a custom DNS name to access services in your Kubernetes cluster. However, there is no way for me to know if you have a domain available for use or not. Instead, we'll use the [nip.io](http://nip.io/) service to create a fully qualified domain. To do that, we'll have to answer with `n` to the question `"would you like to register a wildcard DNS ALIAS to point at this ELB address?"`. As a result, we'll be presented with another question. `"Would you like to wait and resolve this address to an IP address and use it for the domain?"`. Answer with `y` (or press the enter key since that is the default answer). The process will wait until Elastic Load Balancer (ELB) is created and use its hostname to deduce its IP.
 
-You might be asked *to enable long-term logs storage*. Make sure to answer with *n*. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
+You might be asked *to enable long-term logs storage*. Make sure to answer with `n`. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
@@ -394,6 +394,7 @@ Feel free to change any of the values in the command that follows to suit your n
 ```bash
 # Please replace [...] with a unique name (e.g., your GitHub user and a day and month).
 # Otherwise, it might fail to create a registry.
+# The name of the cluster must conform to the following pattern: '^[a-zA-Z0-9]*$'.
 CLUSTER_NAME=[...]
 
 jx create cluster aks \
@@ -778,23 +779,6 @@ W> You will likely see an error stating that a disk cannot be deleted. That's be
 That command listed all disks that do not have a user assigned (not used). The list of those disks is then passed to the `disks delete` command that removed them one by one if you confirmed the action.
 
 ## Deleting EKS Cluster And Related Resources
-
-If we try to delete our EKS cluster right away, the process will fail due to dependencies between the Elastic Load Balancer (ELB) created by Ingress, and the resources of the cluster. Therefore, the first thing we need to do is to remove the ELB.
-
-W> The commands that follow will remove the first ELB in the region specified through the environment variable `AWS_DEFAULT_REGION`. Execute them only if the EKS cluster used for the exercises is the only thing running in that region. Otherwise, open AWS console (Web UI) and remove the ELB manually.
-
-```bash
-LB_ARN=$(aws elbv2 \
-    describe-load-balancers | jq -r \
-    ".LoadBalancers[0].LoadBalancerArn")
-
-echo $LB_ARN
-
-aws elbv2 delete-load-balancer \
-    --load-balancer-arn $LB_ARN
-```
-
-We described the load balancers and filtered the output so that ARN of the first load balancer is retrieved. Further on, we used the ARN to delete the ELB.
 
 When we created Cluster Autoscaler, we had to add a policy that will allow it to manipulate AWS Auto-Scaling Groups. Just as with the ELB, we need to delete that policy before we delete the EKS cluster. Otherwise, cluster removal would fail.
 

@@ -26,137 +26,6 @@
 
 * Create new **GKE** cluster with Jenkins X: [gke-jx-boot.sh](TODO:)
 
-## Apps
-
-```bash
-# the ability to interactively ask questions to generate values.yaml based on JSON Schema
-# the ability to create pull requests against the GitOps repo that manages your team/cluster
-# the ability to store secrets in vault
-# the ability to upgrade all apps to the latest version
-
-# Planned features include:
-
-# integrating kustomize to allow existing charts to be modified
-# storing Helm repository credentials in vault
-# taking existing values.yaml as defaults when asking questions based on JSON Schema during app upgrade
-# only asking new questions during app upgrade
-# jx get apps - the ability to list all apps that can be installed
-# integration for bash completion
-
-open "https://github.com/jenkins-x-apps"
-
-# jx-app-statusbadge
-# jx-app-sso
-# jx-app-kuberhealthy
-# jx-app-datadog
-# jx-app-jacoco
-# jx-app-cheese
-# jx-app-athens
-# jx-app-buildalerts
-# jx-app-cert-manager
-# jx-app-replicator
-# jx-app-grafana
-# jx-app-prometheus
-# jx-app-istio
-# jx-app-gke
-# jx-app-test-lifecycle
-# jx-app-ambassador
-# jx-app-jenkins
-# jx-app-anchore
-# jx-app-gitea
-# jx-app-sonarqube
-
-# TODO: Change to something else (that works)
-jx add app jx-app-istio
-
-# Explore the PR
-# Merge the PR
-
-jx get activity \
-    --filter environment-$CLUSTER_NAME-dev/master \
-    --watch
-
-# *ctrl+c*
-
-# TODO: Confirm that the app works
-
-helm repo add istio.io \
-    https://storage.googleapis.com/istio-release/releases/1.3.1/charts/
-
-jx add app istio-init \
-    --repository istio.io \
-    --auto-merge
-
-jx get activity \
-    --filter environment-$CLUSTER_NAME-dev/master \
-    --watch
-
-# *ctrl+c*
-
-kubectl get crds | grep 'istio.io'
-
-# There should be 23 CRDs
-
-git pull
-
-cp -r env/istio-init env/istio
-
-cat env/istio/templates/app.yaml
-
-# We should create a branch
-
-cat env/istio/templates/app.yaml \
-    | sed -e \
-    's@istio-init@istio@g' \
-    | tee env/istio/templates/app.yaml
-
-# Might want to change `jenkins.io/chart-description` as well
-
-cat env/requirements.yaml
-
-echo "- name: istio
-  repository: https://storage.googleapis.com/istio-release/releases/1.3.1/charts/
-  version: 1.3.1" | tee -a env/requirements.yaml
-
-git add .
-
-git commit -m "Added Istio"
-
-git push
-
-jx get activity \
-    --filter environment-$CLUSTER_NAME-dev/master \
-    --namespace istio-system \
-    --watch
-
-kubectl get namespaces
-
-kubectl --namespace istio-system \
-    get services
-
-jx get apps
-
-jx delete app istio
-
-jx delete app istio-init
-```
-
-## Update
-
-TODO: `jx add app` (e.g., prometheus)
-
-TODO: Remove Nexus in `env/nexus/values.yaml`
-
-TODO: Enable `backup` in `jx-requirements.yml`
-
-TODO: Explore the `prowConfig` directory
-
-TODO: Enable `autoUpdate` in `jx-requirements.yml`
-
-TODO: Change `ingress` in `jx-requirements.yml` (including TLS)
-
-TODO: Change `environments.ingress` in `jx-requirements.yml`
-
 ## Upgrade
 
 ```bash
@@ -184,8 +53,6 @@ prow:
 ```
 
 ```bash
-# With local secrets we'd need to run `jx boot` locally
-
 # If there's something wrong with Jenkins X inside the cluster, we can also run `jx boot` locally.
 
 git status
@@ -227,6 +94,8 @@ jx get activity \
     --watch
 
 # ctrl+c
+
+# TODO: Remove Nexus in `env/nexus/values.yaml`
 
 # TODO: Upgrade Jenkins X version
 
@@ -280,9 +149,110 @@ jx get activities \
     --watch
 ```
 
+## Storage
+
+TODO: Code
+
 ## Extending The Boot Pipeline
 
 TODO: Code
+
+## Manual and Auto Upgrades
+
+```
+ jx step boot upgrade
+```
+
+TODO: Enable `autoUpdate` in `jx-requirements.yml`
+
+## Domain & TLS
+
+```bash
+# https://github.com/jenkins-x/jx/issues/5715
+# https://github.com/jenkins-x/jx/issues/5763
+
+# TODO: Remove
+# kubectl --namespace kube-system \
+#     get service jxing-nginx-ingress-controller \
+#     --output jsonpath="{.status.loadBalancer.ingress[0].ip}"
+
+# TODO: Remove
+# Change the DNS in your domain registrar
+
+# TODO: Remove
+# DOMAIN=[...]
+
+# TODO: Remove
+# ping $DOMAIN
+
+# TODO: Explain how to create a domain in GCP or somewhere
+
+git pull
+
+# Open `jx-requirements.yml` in an editor
+
+# Set `ingress.domain` to the new domain
+# Set `ingress.externalDNS` to `true`
+# Set `ingress.tls.email` to your email
+# Set `ingress.tls.enabled` to `true`
+# Set `ingress.tls.production` to `true`
+
+git add .
+
+git commit -m "Changed the domain"
+
+git push
+
+jx get activity \
+    --filter environment-$CLUSTER_NAME-dev/master \
+    --watch
+
+# *ctrl+c*
+
+# TODO: Confirm that it works
+
+# TODO: Change `environments.ingress` in `jx-requirements.yml`
+```
+
+## Backup
+
+```bash
+# Open `jx-requirements.yml` in an editor
+
+# Create a GCP bucket with the name `jx-backup`
+
+# Set `storage.backup.enabled` to `true`
+
+# Change `velero: {}` to 
+# ```yaml
+# velero:
+#   namespace: velero
+# ```
+
+ls -1 systems
+
+ls -1 systems/velero-backups
+
+ls -1 systems/velero-backups/templates
+
+cat systems/velero-backups/templates/default-backup.yaml
+
+# TODO: Modify spec.schedule
+
+git pull
+
+git add .
+
+git commit -m "Added backups"
+
+git push
+
+jx get activity \
+    --filter environment-$CLUSTER_NAME-dev/master \
+    --watch
+
+# TODO: Validate that the backups are being created
+```
 
 ## What Now?
 

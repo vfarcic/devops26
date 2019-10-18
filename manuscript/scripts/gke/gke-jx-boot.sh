@@ -31,7 +31,25 @@ kubectl create clusterrolebinding \
 
 cd environment-$CLUSTER_NAME-dev
 
+git pull
+
 jx boot
+
+# Repeat the `jx boot` command if the process is aborted because of upgrading the `jx` CLI
+
+git --no-pager diff origin/master..HEAD
+
+# It likely modified the IP to match the one of the LB of the new cluster
+
+git push
+
+jx get activity \
+    --filter environment-$CLUSTER_NAME-dev/master \
+    --watch
+
+# Stop with *ctrl+c* when finished
+
+cd ..
 
 #######################
 # Destroy the cluster #

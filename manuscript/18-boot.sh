@@ -1,4 +1,4 @@
-# Links to gists for creating a Kubernetes X cluster
+# Links to gists for creating a Kubernetes cluster
 # gke.sh: https://gist.github.com/1b7a1c833bae1d5da02f4fd7b3cd3c17
 
 open "https://github.com/jenkins-x/jenkins-x-boot-config.git"

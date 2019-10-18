@@ -19,8 +19,8 @@
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
 - [X] 18-boot.md
+- [ ] 19-apps.md
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
-
 - [ ] Remove *At the time of this writing (September 2019),...* warning
 - [ ] Remove *At the time of this writing, serverless Jenkins X works only...* warning and the information below it
 - [ ] Remove *Today (April 2019), serverless Jenkins X...* paragraph
@@ -29,34 +29,32 @@
 - [ ] Remove *There is a bug (undocumented feature) in...* warning
 - [ ] Remove *If you do see the new domain...* warning
 - [ ] Rewrite *At the time of this writing (July 2019)...*
-- [ ] Change *At the time of this writing (August 2019)...* to the "real" month in 99-the-end.md
+- [ ] Change *At the time of this writing (October 2019)...* to the "real" month in 99-the-end.md
 - [ ] Remove *At the time of this writing (October 2019)...*
 - [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
 - [ ] Rewrite *But, at the time of this writing (October 2019)...*
 - [ ] Rewrite *As mentioned at the beginning of this chapter...*
 - [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
 - [ ] Replace `jx create cluster` with `jx boot` in the workshop
+- [ ] Monitor [https://github.com/jenkins-x/jx/issues/5782](https://github.com/jenkins-x/jx/issues/5782)
+- [ ] Remove *The `--auto-merge` argument might not work due to the...*
 - [ ] Create a course on [udemy.com](https://www.udemy.com/)
-- [ ] 19-boot-upgrade.md
+- [ ] Add EKS to 18-boot.md
+- [ ] 20-boot-upgrade.md
+- [ ] 99-lighthouse.md
 - [ ] Replace prow with lighthouse across the book
 - [ ] Remove 14-upgrade.md
-- [ ] Packt
-- [ ] 99-add-app.md (gloo, istio, flagger)
-- [ ] 99-storage-and-vault.md
-- [ ] 99-cjxd.md
-- [ ] 99-lighthouse.md
-- [ ] 99-multi-cluster.md
 - [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
+- [ ] Packt
+- [ ] 99-cjxd.md
+- [ ] 99-multi-cluster.md
 - [ ] jenkins-x.io
 - [ ] 99-ui.md
-- [ ] 99-aws-lambda-pipeline.md
 - [ ] 99-distribution.md
 - [ ] 99-contributors.md (Joost, Darin, Carlos)
 - [ ] 99-monitoring-with-prometheus.md
 - [ ] 99-logging.md
 - [ ] 99-feature-flags-rollout.md
-- [ ] Convert https://www.devopstoolkitseries.com to Knative
-- [ ] 99-3rd-party-apps.md
 - [ ] 99-container-registry.md
 - [ ] 99-other-quickstart-buildpacks.md
 - [ ] 99-nexus-integration.md
@@ -111,7 +109,10 @@
 
 ## The DevOps 2.X Toolkit
 
+- [ ] Vault
+- [ ] Velero
 - [ ] Service mesh ([Istio](https://istio.io/), [Gloo](https://gloo.solo.io), [Envoy](https://www.envoyproxy.io/), [Kiali](https://github.com/kiali/kiali), [Vistio](https://github.com/nmnellis/vistio))
+- [ ] https://github.com/rancher/rio
 - [ ] https://github.com/weaveworks/wksctl 
 - [ ] https://github.com/Comcast/kuberhealthy
 - [ ] https://www.getambassador.io

@@ -2,7 +2,9 @@
 # Create a cluster #
 ####################
 
-# Follow the instructions from https://github.com/weaveworks/eksctl to intall eksctl if you do not have it already
+# Follow the instructions from https://github.com/weaveworks/eksctl to intall eksctl if you do not have it already.
+
+# If you already have eksctl, please make sure that you are running the latest version
 
 export AWS_ACCESS_KEY_ID=[...] # Replace [...] with the AWS Access Key ID
 
@@ -76,15 +78,6 @@ kubectl apply \
 #######################
 # Destroy the cluster #
 #######################
-
-# Only if there are no other ELBs in that region. Otherwise, remove the LB manually.
-# LB_ARN=$(aws elbv2 describe-load-balancers | jq -r \
-#     ".LoadBalancers[0].LoadBalancerArn")
-
-# echo $LB_ARN
-
-# aws elbv2 delete-load-balancer \
-#     --load-balancer-arn $LB_ARN
 
 IAM_ROLE=$(aws iam list-roles \
     | jq -r ".Roles[] \

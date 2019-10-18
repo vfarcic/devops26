@@ -1,9 +1,3 @@
-##############
-# Upgrade jx #
-##############
-
-jx version
-
 ####################
 # Create a cluster #
 ####################
@@ -16,6 +10,7 @@ echo "nexus:
 
 # Please replace [...] with a unique name (e.g., your GitHub user and a day and month).
 # Otherwise, it might fail to create a registry.
+# The name of the cluster must conform to the following pattern: '^[a-zA-Z0-9]*$'.
 CLUSTER_NAME=[...]
 
 jx create cluster aks \
