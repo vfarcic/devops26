@@ -26,80 +26,59 @@
 
 * Create new **GKE** cluster with Jenkins X: [gke-jx-boot.sh](TODO:)
 
-## Upgrade
+## Backup
 
 ```bash
-kubectl get pods | grep docker
+CLUSTER_NAME=[...]
 
-# It's empty
+cd environment-$CLUSTER_NAME-dev
 
-cat env/parameters.yaml \
-    | sed -e \
-    "s@enableDocker: false@enableDocker: true@g" \
-    | tee env/parameters.yaml
-```
+# Open `jx-requirements.yml` in an editor
 
-```yaml
-adminUser:
-  password: vault:jx-boot/adminUser:password
-  username: admin
-enableDocker: true
-pipelineUser:
-  email: viktor@farcic.com
-  token: vault:jx-boot/pipelineUser:token
-  username: vfarcic
-prow:
-  hmacToken: vault:jx-boot/prow:hmacToken
-```
+# Change `storage.backup.enabled` to `true`
 
-```bash
-# If there's something wrong with Jenkins X inside the cluster, we can also run `jx boot` locally.
+# Create a GCP bucket with the name `jx-backup`
 
-git status
+# Change `velero: {}` to 
+# ```yaml
+# velero:
+#   namespace: velero
+# ```
+
+ls -1 systems
+
+ls -1 systems/velero-backups
+
+ls -1 systems/velero-backups/templates
+
+cat systems/velero-backups/templates/default-backup.yaml
+
+# TODO: Modify spec.schedule
+
+git pull
 
 git add .
 
-git commit -m "Initial setup"
+git commit -m "Added backups"
 
 git push
 
-jx get activities \
-    --filter environment-$CLUSTER_NAME-dev \
-    --watch
-
-# TODO: Continue when https://github.com/jenkins-x/jx/issues/5381 is fixed
-
-
-kubectl get pods | grep docker
-
-cd ../jx-boot
-
-echo "Testing Docker Hub" \
-    | tee README.md
-
-git add .
-
-git commit -m "A silly change"
-
-git push --set-upstream origin master
-
 jx get activity \
-    --filter jx-boot/master \
+    --filter environment-$CLUSTER_NAME-dev/master \
     --watch
 
-# ctrl+c
+jx get build logs
 
-jx get activity \
-    --filter environment-$CLUSTER_NAME-staging/master \
-    --watch
+kubectl --namespace velero \
+    get all
 
-# ctrl+c
+# TODO: Validate that the backups are being created
+```
 
-# TODO: Remove Nexus in `env/nexus/values.yaml`
+## Update
 
+```bash
 # TODO: Upgrade Jenkins X version
-
-# TODO: Velero
 
 # TODO: `autoUpdate` in `jx-requirements.yml`
 ```
@@ -214,44 +193,76 @@ jx get activity \
 # TODO: Change `environments.ingress` in `jx-requirements.yml`
 ```
 
-## Backup
+## Update
 
 ```bash
-# Open `jx-requirements.yml` in an editor
+kubectl get pods | grep docker
 
-# Create a GCP bucket with the name `jx-backup`
+# It's empty
 
-# Set `storage.backup.enabled` to `true`
+cat env/parameters.yaml
 
-# Change `velero: {}` to 
-# ```yaml
-# velero:
-#   namespace: velero
-# ```
+cat env/parameters.yaml \
+    | sed -e \
+    "s@enableDocker: false@enableDocker: true@g" \
+    | tee env/parameters.yaml
+```
 
-ls -1 systems
+```yaml
+adminUser:
+  password: vault:jx-boot/adminUser:password
+  username: admin
+enableDocker: true
+pipelineUser:
+  email: viktor@farcic.com
+  token: vault:jx-boot/pipelineUser:token
+  username: vfarcic
+prow:
+  hmacToken: vault:jx-boot/prow:hmacToken
+```
 
-ls -1 systems/velero-backups
+```bash
+# If there's something wrong with Jenkins X inside the cluster, we can also run `jx boot` locally.
 
-ls -1 systems/velero-backups/templates
-
-cat systems/velero-backups/templates/default-backup.yaml
-
-# TODO: Modify spec.schedule
-
-git pull
+git status
 
 git add .
 
-git commit -m "Added backups"
+git commit -m "Initial setup"
 
 git push
 
-jx get activity \
-    --filter environment-$CLUSTER_NAME-dev/master \
+jx get activities \
+    --filter environment-$CLUSTER_NAME-dev \
     --watch
 
-# TODO: Validate that the backups are being created
+# TODO: Continue when https://github.com/jenkins-x/jx/issues/5381 is fixed
+
+
+kubectl get pods | grep docker
+
+cd ../jx-boot
+
+echo "Testing Docker Hub" \
+    | tee README.md
+
+git add .
+
+git commit -m "A silly change"
+
+git push --set-upstream origin master
+
+jx get activity \
+    --filter jx-boot/master \
+    --watch
+
+# ctrl+c
+
+jx get activity \
+    --filter environment-$CLUSTER_NAME-staging/master \
+    --watch
+
+# ctrl+c
 ```
 
 ## What Now?

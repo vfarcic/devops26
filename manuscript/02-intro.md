@@ -760,12 +760,12 @@ With the cluster gone, there are still some resources that were not removed. Nam
 gcloud compute disks delete \
     --zone us-east1-b \
     $(gcloud compute disks list \
-    --filter="zone:us-east1-d AND -users:*" \
+    --filter="zone:us-east1-b AND -users:*" \
     --format="value(id)")
 gcloud compute disks delete \
     --zone us-east1-c \
     $(gcloud compute disks list \
-    --filter="zone:us-east1-d AND -users:*" \
+    --filter="zone:us-east1-c AND -users:*" \
     --format="value(id)")
 gcloud compute disks delete \
     --zone us-east1-d \

@@ -43,12 +43,6 @@ git --no-pager diff origin/master..HEAD
 
 git push
 
-jx get activity \
-    --filter environment-$CLUSTER_NAME-dev/master \
-    --watch
-
-# Stop with *ctrl+c* when finished
-
 cd ..
 
 #######################
