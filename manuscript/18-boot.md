@@ -282,6 +282,14 @@ The truth is that we specified only the things we know. For example, if you crea
 
 Those are only a few examples of the unknowns. We specified what we know, and we'll let Jenkins X Boot figure out the unknowns. Or, to be more precise, we'll let the Boot create the resources that are missing and thus convert the unknowns into knowns.
 
+Before we install Jenkins X using the Boot, we should change the profile to `cloudbees`. That will be an indication to the CLI that we do want to use the Distribution.
+
+W> Please skip executing the command that follows if you are NOT using CloudBees Jenkins X Distribution.
+
+```bash
+jx profile cloudbees
+```
+
 W> In some cases, Jenkins X Boot might get confused with the cache from the previous Jenkins X installations. To be on the safe side, delete the `.jx` directory by executing `rm -rf ~/.jx`.
 
 Off we go. Let's install Jenkins X.
