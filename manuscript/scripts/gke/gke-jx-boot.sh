@@ -41,8 +41,6 @@ git --no-pager diff origin/master..HEAD
 
 # It likely modified the IP to match the one of the LB of the new cluster
 
-git push
-
 cd ..
 
 #######################
