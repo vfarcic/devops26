@@ -74,27 +74,7 @@ As a result, now we can use Jenkins X Boot to run the first build of a pipeline 
 
 We could summarize all that by saying that ad-hoc commands are bad, that GitOps principles backed by declarative files are good, and that Jenkins X can be installed and managed by pipelines, no matter whether they are run by a local CLI or through Jenkins X running inside a Kubernetes cluster. Running a pipeline from a local CLI allows us to install Jenkins X for the first time (when it's still not running inside the cluster). Once it's installed, we can let Jenkins X maintain itself by changing the content of the associated repository. As an added bonus, given that a pipeline can run both locally and inside a cluster, if there's something wrong with Jenkins X in Kubernetes, we can always repair it locally by re-running the pipeline. Neat, isn't it?
 
-Still confused? Let's we'll see it in practice soon and clarify the doubts. But, for now, there is one more subject we should discuss.
-
-## Using Stable Releases Of Jenkins X
-
-Jenkins X is a fast-paced project. The community is making multiple releases a day. It is not uncommon to have ten or even more releases within 24 hours. That is great because it fosters innovation. With such a speed, the community can experiment, get feedback, and adapt fast. However, that also comes at a cost. You cannot be sure that the latest release is stable. So, we decided to create *CloudBees Jenkins X Distribution*.
-
-The major difference between open source Jenkins X and CloudBees Jenkins X Distribution is stability. Instead of making multiple releases a day, the distribution is released once a month. It does not have all the features that Jenkins X has. Instead, the Distribution contains only a subset of those that are validated. For production usage, the Distribution is, without a doubt, a much better option than open-source Jenkins X.
-
-Now, at this point, you are probably thinking that CloudBees Jenkins X Distribution costs money, but that's not the case. It is free, just as the open-source version is free. The only question is whether the reduced number of features fit your use case. If they do, using the Distribution is a no-brainer.
-
-Since the list of what Distribution supports is changing all the time, I will not list them here but, instead, redirect you to the [What is CloudBees Jenkins X Distribution?](https://docs.cloudbees.com/docs/cloudbees-jenkins-x-distribution/latest/install-guide/#_what_is_cloudbees_jenkins_x_distribution) section of the documentation. Please note that the list does not mean that you cannot use the other features, but rather that only those have been validated.
-
-From now on, I will be using the Distribution for all the examples running in Jenkins X installed using Jenkins X Boot. However, you do not need to do the same. You can just as well use the open-source version if, for one reason or another, it fits better your situation. There will be some features that are available only in the Distribution, and I'll do my best to say in advance what those features are.
-
-If you do choose to use the Distribution, and I strongly suggest that you do, you'll need to replace your current `jx` binary with the latest release of the Distribution. Apart from having a different binary, all the commands will be the same between open-source and the Distribution.
-
-You can find the instruction for installing the `jx` release of the Distribution in the [CloudBees Jenkins X Distribution installation guide](https://docs.cloudbees.com/docs/cloudbees-jenkins-x-distribution/latest/install-guide/) page. Please go there and follow the instructions to replace your current `jx` binary.
-
-W> At the time of this writing (November 2019), there is no Windows version of the binary. If you do prefer Windows, you have two options. You can create a Linux-based VM and use it to run the commands, or you might choose to fall back to the open-source version of Jenkins X.
-
-Now that we clarified the differences between the open-source version and the Distribution, and I hopefully convinced you to use the latter, we can proceed and install Jenkins X in a very different way than what we're used to.
+Still confused? Let's see all that in practice.
 
 ## Installing Jenkins X Using GitOps Principles
 
@@ -103,10 +83,8 @@ How can we install Jenkins X in a better way than what we're used to? Jenkins X 
 Let's take a look at the repository.
 
 ```bash
-open "https://github.com/cloudbees/cloudbees-jenkins-x-boot-config"
+open "https://github.com/jenkins-x/jenkins-x-boot-config.git"
 ```
-
-I> If you chose to use the open-source version (not the Distribution), the repository is [jenkins-x/jenkins-x-boot-config](https://github.com/jenkins-x/jenkins-x-boot-config).
 
 We'll explore the files in it a bit later. Or, to be more precise, we'll explore those that you are supposed to customize. For now, what matters is that you should fork the repository since we'll make some modifications and use it as yet another environment repo firing webhooks to Jenkins X.
 
@@ -124,11 +102,9 @@ GH_USER=[...]
 
 Now that we forked the Boot repo and we know how our cluster is called, we can clone the repository with a proper name that will reflect the naming scheme of our soon-to-be-installed Jenkins X.
 
-W> If you are NOT using the Distribution (if you're using the open-source version), the name of the repository is `jenkins-x-boot-config`, NOT `cloudbees-jenkins-x-boot-config`. Please adapt the command that follows to reflect that.
-
 ```bash
 git clone \
-    https://github.com/$GH_USER/cloudbees-jenkins-x-boot-config.git \
+    https://github.com/$GH_USER/jenkins-x-boot-config.git \
     environment-$CLUSTER_NAME-dev
 ```
 
@@ -143,15 +119,10 @@ cat jx-requirements.yml
 The output is as follows.
 
 ```yaml
-autoUpdate:
-  enabled: false
-  schedule: ""
 cluster:
   clusterName: ""
   environmentGitOwner: ""
-  environmentGitPublic: true
   project: ""
-  azure: {}
   provider: gke
   zone: ""
 gitops: true
@@ -167,20 +138,20 @@ ingress:
     enabled: false
     production: false
 kaniko: true
-secretStorage: vault
+secretStorage: local
 storage:
   logs:
-    enabled: true
+    enabled: false
     url: ""
   reports:
-    enabled: true
+    enabled: false
     url: ""
   repository:
-    enabled: true
+    enabled: false
     url: ""
 versionStream:
-  ref: b335faf15fddb5863a7b5360b03f48b72fe69340 
-  url: https://github.com/cloudbees/cloudbees-jenkins-x-versions.git
+  ref: "master"
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
 webhook: prow
 ```
 
@@ -208,9 +179,17 @@ The `kaniko` value should be self-explanatory. When set to `true`, the system wi
 
 Next, we have `secretStorage` currently set to `vault`. The whole platform will be defined in this repository, except for secrets (e.g., passwords). Pushing them to Git would be childish, so Jenkins X can store the secrets in different locations. If we'd change it to `local`, that location is your laptop. While that is better than a Git repository, you can probably imagine why that is not the right solution. Keeping them locally complicates cooperation (they exist only on your laptop), is volatile, and is only slightly more secure than Git. A much better place for secrets is [HashiCorp Vault](https://www.vaultproject.io). It is the most commonly used solution for secrets management in Kubernetes (and beyond), and Jenkins X supports it out of the box.
 
-All in all, secrets storage is an easy choice, and we'll keep it to its default value `vault`.
+All in all, secrets storage is an easy choice.
+
+* Set the value of `secretStorage` to `vault`.
 
 Below the `secretStorage` value is the whole section that defines `storage` for `logs`, `reports`, and `repository`. If enabled, those artifacts will be stored on a network drive. As you already know, containers and nodes are short-lived, and if we want to preserve any of those, we need to store them elsewhere. That does not necessarily mean that network drives are the best place, but rather that's what comes out of the box. Later on, you might choose to change that and, let's say, ship logs to a central database like ElasticSearch, PaperTrail, CloudWatch, StackDriver, etc.
+
+For now, we'll keep it simple and enable network storage for all three types of artifacts.
+
+* Set the value of `storage.logs.enabled` to `true`
+* Set the value of `storage.reports.enabled` to `true`
+* Set the value of `storage.repository.enabled` to `true`
 
 For now, we'll keep it simple and keep the default values (`true`) that enable network storage for all three types of artifacts.
 
@@ -233,15 +212,10 @@ cat jx-requirements.yml
 In my case, the output is as follows (yours is likely going to be different).
 
 ```yaml
-autoUpdate:
-  enabled: false
-  schedule: ""
 cluster:
   clusterName: "jx-boot"
   environmentGitOwner: "vfarcic"
-  environmentGitPublic: true
   project: "devops-26"
-  azure: {}
   provider: gke
   zone: "us-east1"
 gitops: true
@@ -269,8 +243,8 @@ storage:
     enabled: true
     url: ""
 versionStream:
-  ref: b335faf15fddb5863a7b5360b03f48b72fe69340 
-  url: https://github.com/cloudbees/cloudbees-jenkins-x-versions.git
+  ref: "master"
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
 webhook: prow
 ```
 
@@ -281,14 +255,6 @@ Now, you might be worried that we missed some of the values. For example, we did
 The truth is that we specified only the things we know. For example, if you created a cluster using my Gist, there is no Ingress, so there is no external load balancer that it was supposed to create. As a result, we do not yet know the IP through which we can access the cluster, and we cannot generate a `.nip.io` domain. Similarly, we did not create storage. If we did, we could have entered addresses into `url` fields.
 
 Those are only a few examples of the unknowns. We specified what we know, and we'll let Jenkins X Boot figure out the unknowns. Or, to be more precise, we'll let the Boot create the resources that are missing and thus convert the unknowns into knowns.
-
-Before we install Jenkins X using the Boot, we should change the profile to `cloudbees`. That will be an indication to the CLI that we do want to use the Distribution.
-
-W> Please skip executing the command that follows if you are NOT using CloudBees Jenkins X Distribution.
-
-```bash
-jx profile cloudbees
-```
 
 W> In some cases, Jenkins X Boot might get confused with the cache from the previous Jenkins X installations. To be on the safe side, delete the `.jx` directory by executing `rm -rf ~/.jx`.
 
@@ -415,7 +381,8 @@ The list of the steps, sorted by order of execution, is as follows.
 |`install-jenkins-x`        |`jx step helm apply`            |Installs Jenkins X|
 |`verify-jenkins-x-env...`  |`jx step verify`                |Verifies the Jenkins X environment|
 |`install-repositories`     |`jx step helm apply`            |Makes changes to the repositories associated with environments (e.g., webhooks)|
-|`install-pipelines`        |`jx update webhooks`            |Updates webhooks for all repositories associated with applications managed by Jenkins X|
+|`install-pipelines`        |`jx step scheduler`             |Creates Jenkins X pipelines in charge of environments|
+|`update-webhooks`          |`jx update webhooks`            |Updates webhooks for all repositories associated with applications managed by Jenkins X|
 |`verify-installation`      |`jx step verify install`        |Validates Jenkins X setup|
 
 Please note that some of the components (e.g., Vault) are installed, upgraded, or deleted depending on whether they are enabled or disabled in `jx-requirements.yml`.
@@ -443,12 +410,10 @@ The output is as follows.
 autoUpdate:
   enabled: false
   schedule: ""
-bootConfigURL: https://github.com/cloudbees/cloudbees-jenkins-x-boot-config.git
+bootConfigURL: https://github.com/vfarcic/jenkins-x-boot-config
 cluster:
-  azure: {}
   clusterName: jx-boot
   environmentGitOwner: vfarcic
-  environmentGitPublic: true
   gitKind: github
   gitName: github
   gitServer: https://github.com
@@ -459,7 +424,7 @@ cluster:
   zone: us-east1
 environments:
 - ingress:
-    domain: 35.185.53.115.nip.io
+    domain: 34.74.196.229.nip.io
     externalDNS: false
     namespaceSubDomain: -jx.
     tls:
@@ -487,7 +452,7 @@ environments:
   key: production
 gitops: true
 ingress:
-  domain: 35.185.53.115.nip.io
+  domain: 34.74.196.229.nip.io
   externalDNS: false
   namespaceSubDomain: -jx.
   tls:
@@ -495,6 +460,7 @@ ingress:
     enabled: false
     production: false
 kaniko: true
+repository: nexus
 secretStorage: vault
 storage:
   backup:
@@ -502,18 +468,18 @@ storage:
     url: ""
   logs:
     enabled: true
-    url: gs://jx-boot-logs-...
+    url: gs://jx-boot-logs-0976f0fd-80d0-4c02-b694-3896337e6c15
   reports:
     enabled: true
-    url: gs://jx-boot-reports-...
+    url: gs://jx-boot-reports-8c2a58cc-6bcd-47aa-95c6-8868af848c9e
   repository:
     enabled: true
-    url: gs://jx-boot-repository-...
+    url: gs://jx-boot-repository-2b84c8d7-b13e-444e-aa40-cce739e77028
 vault: {}
 velero: {}
 versionStream:
-  ref: b335faf15fddb5863a7b5360b03f48b72fe69340
-  url: https://github.com/cloudbees/cloudbees-jenkins-x-versions.git
+  ref: v1.0.214
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
 webhook: prow
 ```
 
@@ -542,7 +508,7 @@ As you already saw, Jenkins X Boot run a pipeline that installed the whole platf
 Let's take a quick look at the pipelines currently active in our cluster.
 
 ```bash
-jx get pipelines -o yaml
+jx get pipelines --output yaml
 ```
 
 The output is as follows.

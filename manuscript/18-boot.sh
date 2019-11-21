@@ -1,14 +1,15 @@
 # Links to gists for creating a Kubernetes cluster
 # gke.sh: https://gist.github.com/1b7a1c833bae1d5da02f4fd7b3cd3c17
 
-open "https://github.com/cloudbees/cloudbees-jenkins-x-boot-config"
+open "https://github.com/jenkins-x/jenkins-x-boot-config"
 
 CLUSTER_NAME=[...]
 
 GH_USER=[...]
 
 git clone \
-    https://github.com/$GH_USER/cloudbees-jenkins-x-boot-config.git \
+    https://github.com/$GH_USER/jenkins-x-boot-config.git
+ \
     environment-$CLUSTER_NAME-dev
 
 cd environment-$CLUSTER_NAME-dev

@@ -29,9 +29,14 @@ kubectl create clusterrolebinding \
 # Install Jenkins X #
 #####################
 
+# To avoid potential conflicts with the previous installation
+rm -rf ~/.jx
+
 cd environment-$CLUSTER_NAME-dev
 
 git pull
+
+jx profile cloudbees
 
 jx boot
 

@@ -22,6 +22,10 @@
 
 # Upgrading The Cluster With JX Boot
 
+https://github.com/jenkins-x/jx/issues/6067
+https://github.com/jenkins-x/jx/issues/6066
+https://github.com/jenkins-x/jx/issues/6132
+
 ## Cluster
 
 * Create new **GKE** cluster with Jenkins X: [gke-jx-boot.sh](TODO:)

@@ -1,4 +1,4 @@
-# Managing Third-Party Applications
+# Managing Third-Party Applications {#apps}
 
 W> The examples in this chapter should work with any Jenkins X (static and serverless), installed in any way (`jx create cluster`, `jx install`, Boot), and inside any Kubernetes flavor. That being said, as you will see later, some of the commands and instructions will be different depending on the installation type. More importantly, the outcome will differ significantly depending on whether you installed Jenkins X using the Boot or through `jx create cluster` or `jx install` commands.
 
