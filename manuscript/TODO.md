@@ -20,6 +20,7 @@
 - [X] 99-the-end.md
 - [X] 18-boot.md
 - [X] 19-apps.md
+- [ ] Replace `environment-jx-rocks*` with `environment-tekton*`
 - [ ] 20-cjxd.md
 - [ ] Add EKS to 18-boot.md
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*

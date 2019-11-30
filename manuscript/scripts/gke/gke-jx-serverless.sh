@@ -24,9 +24,9 @@ jx create cluster gke \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password=admin \
-    --default-environment-prefix tekton \
+    --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --namespace cd \
+    --namespace jx \
     --prow \
     --tekton \
     --batch-mode

@@ -43,9 +43,9 @@ jx install \
     --default-admin-password=admin \
     --ingress-namespace $INGRESS_NS \
     --ingress-deployment $INGRESS_DEP \
-    --default-environment-prefix tekton \
+    --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --namespace cd \
+    --namespace jx \
     --prow \
     --tekton \
     --batch-mode

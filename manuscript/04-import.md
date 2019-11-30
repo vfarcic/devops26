@@ -16,14 +16,14 @@ For now, we'll focus on importing a project and solving potential problems we mi
 
 We'll start from the beginning. We need a Kubernetes cluster with Jenkins X up-and-running. You can continue using the cluster from the previous chapter if you did not destroy it. Otherwise, you'll need to create a new cluster or install Jenkins X if you already have one. 
 
-I> All the commands from this chapter are available in the [04-import.sh](https://gist.github.com/c9f0b67b1f3c77c08b05eaa3d1ccfc7a) Gist.
+I> All the commands from this chapter are available in the [04-import.sh](https://gist.github.com/dd8f7315d213819155c44687d5c45af0) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 Without further ado, we are about to import a project into Jenkins X.
 
@@ -72,7 +72,7 @@ git push
 
 Now you should have the intended code in the master branch of the repository you forked. Feel free to take a look at what we have by opening the repository in a browser. Fortunately, there is a `jx` command that does just that.
 
-```
+```bash
 jx repo --batch-mode
 ```
 
@@ -144,13 +144,14 @@ The output is as follows.
 
 ```
 Dockerfile
-Jenkinsfile
 Makefile
 OWNERS
 OWNERS_ALIASES
 README.md
 charts
 functional_test.go
+go.mod
+jenkins-x.yml
 main.go
 main_test.go
 production_test.go
@@ -159,13 +160,13 @@ vendor
 watch.sh
 ```
 
-We can see that quite a few new files were added to the project through the import process. We got `Dockerfile` that will be used to build container images and got `Jenkinsfile` that defines all the steps of our pipeline.
+We can see that quite a few new files were added to the project through the import process. We got `Dockerfile` that will be used to build container images and we got `jenkins-x.yml` that defines all the steps of our pipeline.
 
 Further on, `Makefile` is new as well. It, among others, defines targets to build, test, and install the application. Then, there is now the `charts` directory that contains files in Helm format. We'll use it to package, install, and upgrade our application. Then, there is `skaffold.yaml` that contains instructions on how to build container images. Finally, we got `watch.sh`. It allows us to compile the binary and create a container image every time we change a file in that project. It is a handy script for local development. There are a few other new files (e.g., `OWNERS`) added to the mix.
 
 Do not think that is the only explanation you'll get about those files. We'll explore them in much more detail later in one of the follow-up chapters. For now, what matters is that we imported our project into Jenkins X and that it should contain everything the project needs both for local development as well as for continuous delivery pipeline.
 
-Now that the project is in Jenkins X, we should see it as one of the activities and observe the first build in action. You already know that we can limit the retrieval of Jenkins X activities to a specific project and that we can use `-w` to watch the progress.
+Now that the project is in Jenkins X, we should see it as one of the activities and observe the first build in action. You already know that we can limit the retrieval of Jenkins X activities to a specific project and that we can use `--watch` to watch the progress.
 
 ```bash
 jx get activities \
@@ -176,33 +177,59 @@ jx get activities \
 By the time the build is finished, the output, without the entries repeated due to changes in statuses, should be as follows.
 
 ```
-STEP                         STARTED AGO DURATION STATUS
-vfarcic/go-demo-6/master #1        6m46s    5m44s Succeeded Version: 0.0.80
-  Checkout Source                  6m20s       5s Succeeded
-  CI Build and push snapshot       6m14s          NotExecuted
-  Build Release                    6m14s      53s Succeeded
-  Promote to Environments          5m21s    4m18s Succeeded
-  Promote: staging                 4m59s    3m48s Succeeded
-    PullRequest                    4m59s     2m9s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/5 Merge SHA: af9a841ba4ec59c6e90e972115d34779c3dd4481
-    Update                         2m50s    1m39s Succeeded  Status: Success at: http://jenkins.jx.34.73.73.222.nip.io/job/vfarcic/job/environment-jx-rocks-staging/job/master/2/display/redirect
-    Promoted                       2m50s    1m39s Succeeded  Application is at: http://go-demo-6.jx-staging.34.73.73.222.nip.io
+STEP                                            STARTED AGO DURATION STATUS
+vfarcic/go-demo-6/master #1                           3m46s     3m6s Succeeded Version: 1.0.420
+  meta pipeline                                       3m46s      30s Succeeded 
+    Credential Initializer Dkm8m                      3m46s       0s Succeeded 
+    Working Dir Initializer Gbv2k                     3m46s       1s Succeeded 
+    Place Tools                                       3m45s       1s Succeeded 
+    Git Source Meta Vfarcic Go Demo 6 Master ...      3m44s      15s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                         3m29s       1s Succeeded 
+    Merge Pull Refs                                   3m28s       1s Succeeded 
+    Create Effective Pipeline                         3m27s       2s Succeeded 
+    Create Tekton Crds                                3m25s       9s Succeeded 
+  from build pack                                     3m15s    2m35s Succeeded 
+    Credential Initializer D5fc9                      3m15s       0s Succeeded 
+    Working Dir Initializer 7rfg7                     3m15s       1s Succeeded 
+    Place Tools                                       3m14s       1s Succeeded 
+    Git Source Vfarcic Go Demo 6 Master ...           3m13s      25s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                         2m48s       1s Succeeded 
+    Setup Jx Git Credentials                          2m47s       0s Succeeded 
+    Build Make Build                                  2m47s      20s Succeeded 
+    Build Container Build                             2m27s       4s Succeeded 
+    Build Post Build                                  2m23s       1s Succeeded 
+    Promote Changelog                                 2m22s       6s Succeeded 
+    Promote Helm Release                              2m16s       5s Succeeded 
+    Promote Jx Promote                                2m11s    1m31s Succeeded 
+  Promote: staging                                     2m6s    1m26s Succeeded 
+    PullRequest                                        2m6s    1m26s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/2 Merge SHA: ...
+    Update                                              40s       0s Succeeded 
 ```
 
 Please stop watching the activities by pressing *ctrl+c*.
 
-So far, the end result looks similar to the one we got when we created a quickstart. Jenkins X created the files it needs, it created a GitHub webhook, it created a job in Jenkins, and it pushed changes to GitHub. As a result, we got our first build and, by the look of it, it was successful.
+So far, the end result looks similar to the one we got when we created a quickstart. Jenkins X created the files it needs, it created a GitHub webhook, it created a pipeline, and it pushed changes to GitHub. As a result, we got our first build and, by the look of it, it was successful.
 
 Since I have a paranoid nature, we'll double check whether everything indeed looks ok.
 
 Please open the `PullRequest` link from the activity output.
 
-So far so good. The *go-demo-6* job created a pull request to the *environment-jx-rocks-staging* repository. As a result, the webhook from that repository should have initiated a build in the related Jenkins job, and the result should be a new release of the application in the staging environment. We won't go through that part of the process just yet. For now, just note that the application should be running, and we'll check that soon.
+So far so good. The *go-demo-6* job created a pull request to the *environment-jx-rocks-staging* repository. As a result, the webhook from that repository should have initiated a pipeline activity, and the result should be a new release of the application in the staging environment. We won't go through that part of the process just yet. For now, just note that the application should be running, and we'll check that soon.
 
-If we click on the `Update` link from the activity output, we should see the build of the *environment-jx-rocks-staging* environment I just mentioned. The same comment stands. We'll explore environments in one of the next chapters. For now, think of it as "magic".
+The information we need to confirm that the application is indeed running is in the list of the `applications` running in the `staging` environment. We'll explore the environments later. For now, just run the command that follows.
 
-![Figure 4-2: Jenkins build of the staging environment](images/ch04/import-build-staging.png)
+```bash
+jx get applications
+```
 
-The information we need to confirm that the application is indeed running is in the `Promoted` link. That's the address through which our application should be accessible. Please copy it, and use it instead of `[...]` in the command that follows.
+The output is as follows.
+
+```
+APPLICATION STAGING PODS URL
+go-demo-6   1.0.420      http://go-demo-6.jx-staging.34.206.148.101.nip.io
+```
+
+We can see the address through which our application should be accessible in the `URL` column. Please copy it and use it instead of `[...]` in the command that follows.
 
 ```bash
 STAGING_ADDR=[...]
@@ -261,7 +288,7 @@ Please locate the code that follows.
 ```yaml
 ...
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        ports:
+        env:
 ...
 ```
 
@@ -273,7 +300,6 @@ Now, add the `env` section with the `name` set to `DB` and the value `{{ templat
         env:
         - name: DB
           value: {{ template "fullname" . }}-db
-        ports:
 ...
 ```
 
@@ -322,23 +348,43 @@ git push
 Next, we need to wait until the new release is deployed to the staging environment. We'll monitor the activity of the new build and wait until its finished.
 
 ```bash
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 The output, limited to the new build, is as follows:
 
 ```
-STEP                         STARTED AGO DURATION STATUS
+STEP                                          STARTED AGO DURATION STATUS
 ...
-vfarcic/go-demo-6/master #2         5m7s    4m40s Succeeded Version: 0.0.81
-  Checkout Source                  4m48s       5s Succeeded
-  CI Build and push snapshot       4m43s          NotExecuted
-  Build Release                    4m43s      54s Succeeded
-  Promote to Environments          3m49s    3m22s Succeeded
-  Promote: staging                 3m22s    2m46s Succeeded
-    PullRequest                    3m22s     1m5s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/6 Merge SHA: 71a5ca4ab2a3d139ec5ba471453c2457e86ec945
-    Update                         2m17s    1m41s Succeeded  Status: Success at: http://jenkins.jx.34.73.73.222.nip.io/job/vfarcic/job/environment-jx-rocks-staging/job/master/3/display/redirect
-    Promoted                       2m17s    1m41s Succeeded  Application is at: http://go-demo-6.jx-staging.34.73.73.222.nip.io
+vfarcic/go-demo-6/master #2                         2m51s    2m43s Succeeded Version: 1.0.421
+  meta pipeline                                     2m51s      20s Succeeded 
+    Credential Initializer Kh72n                    2m51s       0s Succeeded 
+    Working Dir Initializer Nlnj2                   2m51s       1s Succeeded 
+    Place Tools                                     2m50s       1s Succeeded 
+    Git Source Meta Vfarcic Go Demo 6 Master R ...  2m49s       4s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                       2m45s       1s Succeeded 
+    Merge Pull Refs                                 2m44s       0s Succeeded 
+    Create Effective Pipeline                       2m44s       2s Succeeded 
+    Create Tekton Crds                              2m42s      11s Succeeded 
+  from build pack                                   2m30s    2m22s Succeeded 
+    Credential Initializer Jk7k5                    2m30s       0s Succeeded 
+    Working Dir Initializer 4vrhr                   2m30s       1s Succeeded 
+    Place Tools                                     2m29s       1s Succeeded 
+    Git Source Vfarcic Go Demo 6 Master Releas ...  2m28s       4s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                       2m24s       1s Succeeded 
+    Setup Jx Git Credentials                        2m23s       0s Succeeded 
+    Build Make Build                                2m23s      20s Succeeded 
+    Build Container Build                            2m3s       3s Succeeded 
+    Build Post Build                                 2m0s       1s Succeeded 
+    Promote Changelog                               1m59s       6s Succeeded 
+    Promote Helm Release                            1m53s      14s Succeeded 
+    Promote Jx Promote                              1m39s    1m31s Succeeded 
+  Promote: staging                                  1m34s    1m26s Succeeded 
+    PullRequest                                     1m34s    1m25s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/3 Merge SHA: ...
+    Update                                             9s       1s Succeeded 
+    Promoted                                           9s       1s Succeeded  Application is at: http://go-demo-6.jx-staging.34.206.148.101.nip.io
 ```
 
 The `Promoted` step is the last one in that build. Once we reach it, we can stop monitoring the activity by pressing *ctrl+c*.
@@ -352,12 +398,14 @@ kubectl --namespace jx-staging get pods
 The output is as follows.
 
 ```
-NAME                                READY STATUS  RESTARTS AGE
+NAME                        READY STATUS  RESTARTS AGE
 jx-go-demo-6-...            0/1   Running 5        5m
 jx-go-demo-6-db-arbiter-0   1/1   Running 0        5m
 jx-go-demo-6-db-primary-0   1/1   Running 0        5m
 jx-go-demo-6-db-secondary-0 1/1   Running 0        5m
 ```
+
+W> Please note that it might take a minute or two after the application pipeline activity is finished for the application to be deployed to the staging environment. If the output lister below does not match what you see on the screen, you might need to wait for a few moments and re-run the previous command.
 
 The good news is that the database is indeed running. The bad news is that the application is still not operational. In my case, it already restarted five times, and `0` containers are available.
 
@@ -413,7 +461,9 @@ git push
 Now it's another round of waiting until the activity of the new build is finished.
 
 ```bash
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Once the new build is finished, we can stop watching the activity by pressing *ctrl+c*. You'll know its done when you see the `Promoted` entry in the `Succeeded` status or simply when there are no `Pending` and `Running` steps.
@@ -441,6 +491,12 @@ curl "$STAGING_ADDR/demo/hello"
 ```
 
 The output shows `hello, world`, thus confirming that the application is up-and-running and that we can reach it.
+
+Before we proceed, we'll go out of the `go-demo-6` directory.
+
+```bash
+cd ..
+```
 
 ## Why Did We Do All That?
 

@@ -18,14 +18,14 @@ To do all that, we'll continue using the *go-demo-6* application since we are al
 
 As in the previous chapters, we'll need a cluster with Jenkins X up-and-running. That means that you can continue using the cluster from the previous chapter if you did not destroy it. Otherwise, you'll need to create a new cluster or install Jenkins X if you already have one. 
 
-I> All the commands from this chapter are available in the [05-buildpacks.sh](https://gist.github.com/f95cfb9c5c5ea07dce684866ab3df665) Gist.
+I> All the commands from this chapter are available in the [05-buildpacks.sh](https://gist.github.com/358f417594c5f65da2e25f2f9a370746) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 Let's get started.
 
@@ -258,9 +258,9 @@ We can use `jx edit buildpack` to change the location of our `kubernetes-workloa
 
 ```bash
 jx edit buildpack \
-    -u https://github.com/$GH_USER/jenkins-x-kubernetes \
-    -r master \
-    -b
+    --url https://github.com/$GH_USER/jenkins-x-kubernetes \
+    --ref master \
+    --batch-mode
 ```
 
 From now on, whenever we decide to create a new quickstart or to import a project, Jenkins X will use the packs from the forked repository `jenkins-x-kubernetes`. 
@@ -288,9 +288,9 @@ jx delete application \
     $GH_USER/go-demo-6 \
     --batch-mode
 
-kubectl -n jx delete act \
-  -l owner=$GH_USER \
-  -l sourcerepository=go-demo-6
+kubectl --namespace jx delete act \
+    --selector owner=$GH_USER \
+    --selector sourcerepository=go-demo-6
 ```
 
 To make sure that our new build pack is indeed working as expected, we'll undo all the commits we made to the `master` branch in the previous chapter and start over.
@@ -343,25 +343,14 @@ We can see that the `go-mongo` pack is indeed there.
 Let's take a quick look at the activities and check whether everything works as expected.
 
 ```bash
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Once the build is finished, you should see the address of the *go-demo-6* application deployed to the staging environment from the `Promoted` entry (the last one).
 
 Remember to stop watching the activities by pressing *ctrl+c* when all the steps are executed.
-
-```
-STEP                         STARTED AGO DURATION STATUS
-vfarcic/go-demo-6/master #1        5m57s    5m47s Succeeded Version: 0.0.124
-  Checkout Source                  5m36s       5s Succeeded
-  CI Build and push snapshot       5m31s          NotExecuted
-  Build Release                    5m30s     1m0s Succeeded
-  Promote to Environments          4m30s    4m20s Succeeded
-  Promote: staging                  4m3s    3m48s Succeeded
-    PullRequest                     4m3s    1m11s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/3 Merge SHA: 1d8834cfb32e6d148f71cc107e41b7841e3c9db9
-    Update                         2m52s    2m37s Succeeded  Status: Success at: http://jenkins.jx.jenkinx.35.237.5.18.nip.io/job/vfarcic/job/environment-jx-rocks-staging/job/master/4/display/redirect
-    Promoted                       2m52s    2m37s Succeeded  Application is at: http://go-demo-6.jx-staging.jenkinx.35.237.5.18.nip.io
-```
 
 Let's take a look at the Pods that were created for us.
 
@@ -372,7 +361,7 @@ kubectl --namespace jx-staging get pods
 The output is as follows.
 
 ```
-NAME                                READY STATUS  RESTARTS AGE
+NAME                        READY STATUS  RESTARTS AGE
 jx-go-demo-6-...            0/1   Running 2        2m
 jx-go-demo-6-db-arbiter-0   1/1   Running 0        2m
 jx-go-demo-6-db-primary-0   1/1   Running 0        2m
@@ -384,7 +373,7 @@ The database Pods seem to be running correctly, so the new pack was indeed appli
 ```bash
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-go-demo-6
+    --selector app=jx-go-demo-6
 ```
 
 We can see from the events that the probes are failing. That was to be expected since we decided that hard-coding `probePath` to `/demo/hello?health=true` is likely not going to be useful to anyone but the *go-demo-6* application. So, we left it as `/` in our `go-mongo` build pack. Owners of the applications that will use our new build pack should change it if needed. Therefore, we'll need to modify the application to accommodate the "special" probe path.
@@ -432,17 +421,21 @@ git commit \
 
 git push
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Press *ctrl+c* when the new build is finished.
 
 All that's left is to check whether the application is now running correctly.
 
-W> Make sure to replace `[...]` with the address from the `Promoted` step before executing the commands that follow.
+W> Make sure to replace `[...]` with the address from the `URL` column of the `jx get application` command.
 
 ```bash
 kubectl --namespace jx-staging get pods
+
+jx get applications
 
 STAGING_ADDR=[...]
 
@@ -450,6 +443,12 @@ curl "$STAGING_ADDR/demo/hello"
 ```
 
 The first command should show that all the Pods are now running, while the last should output the familiar "hello, world" message.
+
+Before we proceed, we'll go out of the `go-demo-6` directory.
+
+```bash
+cd ..
+```
 
 ## Giving Back To The Community
 

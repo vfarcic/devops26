@@ -1,8 +1,8 @@
 # Links to gists for creating a cluster with jx
-# gke-jx.sh: https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18
-# eks-jx.sh: https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac
-# aks-jx.sh: https://gist.github.com/6e01717c398a5d034ebe05b195514060
-# install.sh: https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233
+# gke-jx-serverless.sh: https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8
+# eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
+# aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
+# install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 
 open "https://github.com/jenkins-x-buildpacks/jenkins-x-kubernetes"
 
@@ -59,28 +59,28 @@ echo '
 git add .
 
 git commit \
-    --message "Added go-mongo buildpack"
+    --message "Added go-mongo build pack"
 
 git push
 
 jx edit buildpack \
-    -u https://github.com/$GH_USER/jenkins-x-kubernetes \
-    -r master \
-    -b
+    --url https://github.com/$GH_USER/jenkins-x-kubernetes \
+    --ref master \
+    --batch-mode
 
 cd ..
 
 cd go-demo-6
 
-# Execute only if you retained the cluster and Jenkins X from the previous chapter.
 jx delete application \
     $GH_USER/go-demo-6 \
     --batch-mode
 
-# Execute only if you retained the cluster and Jenkins X from the previous chapter.
-kubectl -n jx delete act \
-  -l owner=$GH_USER \
-  -l sourcerepository=go-demo-6
+kubectl --namespace jx delete act \
+    --selector owner=$GH_USER \
+    --selector sourcerepository=go-demo-6
+
+git pull
 
 git checkout orig
 
@@ -98,13 +98,15 @@ jx import --pack go-mongo --batch-mode
 
 ls -1 ~/.jx/draft/packs/github.com/$GH_USER/jenkins-x-kubernetes/packs
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 
 kubectl --namespace jx-staging get pods
 
 kubectl --namespace jx-staging \
     describe pod \
-    -l app=jx-go-demo-6
+    --selector app=jx-go-demo-6
 
 cat charts/go-demo-6/values.yaml
 
@@ -124,13 +126,19 @@ git commit \
 
 git push
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 
 kubectl --namespace jx-staging get pods
+
+jx get applications
 
 STAGING_ADDR=[...]
 
 curl "$STAGING_ADDR/demo/hello"
+
+cd ..
 
 GH_USER=[...]
 

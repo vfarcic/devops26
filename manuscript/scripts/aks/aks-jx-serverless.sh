@@ -20,9 +20,9 @@ jx create cluster aks \
     --node-vm-size Standard_D2s_v3 \
     --nodes 3 \
     --default-admin-password=admin \
-    --default-environment-prefix tekton \
+    --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --namespace cd \
+    --namespace jx \
     --prow \
     --tekton \
     --batch-mode
