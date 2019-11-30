@@ -1,12 +1,14 @@
 # Links to gists for creating a cluster with jx
-# gke-jx.sh: https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18
-# eks-jx.sh: https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac
-# aks-jx.sh: https://gist.github.com/6e01717c398a5d034ebe05b195514060
-# install.sh: https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233
+# gke-jx-serverless.sh: https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8
+# eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
+# aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
+# install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 
 cd go-demo-6
 
-git checkout buildpack
+git pull
+
+git checkout buildpack-tekton
 
 git merge -s ours master --no-edit
 
@@ -36,11 +38,13 @@ cat skaffold.yaml \
 
 jx import --batch-mode
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 
 jx get env
 
-jx get env -p Auto
+jx get env --promote Auto
 
 GH_USER=[...]
 
@@ -53,45 +57,6 @@ ls -1
 
 cat Makefile
 
-echo 'test:
-	ADDRESS=`kubectl \
-	--namespace jx-staging \\
-	get ingress go-demo-6 \\
-	-o jsonpath="{.spec.rules[0].host}"` \\
-	go test -v' \
-    | tee -a Makefile
-
-curl -sSLo integration_test.go \
-    https://bit.ly/2Do5LRN
-
-cat integration_test.go
-
-cat Jenkinsfile
-
-curl -sSLo Jenkinsfile \
-    https://bit.ly/2Dr1Kfk
-
-ls -1 env
-
-cat env/requirements.yaml
-
-git add .
-
-git commit \
-    --message "Added tests"
-
-git push
-
-jx get activity \
-    -f environment-jx-rocks-staging
-
-jx get build logs \
-    $GH_USER/environment-jx-rocks-staging/master
-
-jx console
-
-kubectl --namespace jx-staging get pods
-
 cat env/requirements.yaml
 
 jx create env \
@@ -103,13 +68,7 @@ jx create env \
 
 jx get env
 
-jx edit env \
-    --name pre-production \
-    --promotion Auto
-
 jx delete env pre-production
-
-GH_USER=[...]
 
 hub delete -y \
   $GH_USER/environment-jx-pre-production

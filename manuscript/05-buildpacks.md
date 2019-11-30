@@ -57,8 +57,6 @@ Please fork the repository by clicking the *Fork* button located in the top-righ
 
 Next, we'll clone the newly forked repo.
 
-W> If you moved into this chapter straight after you finished reading the previous, you might still be in the local clone of the *go-demo-6* repository. If that's the case, please go one directory back before cloning `jenkins-x-kubernetes`. Please execute `cd ..` first.
-
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash

@@ -119,14 +119,14 @@ Were all those rules (commandments) confusing? Are you wondering whether they ma
 
 You know what comes next. We need a cluster with Jenkins X up-and-running unless you kept the one from before.
 
-I> All the commands from this chapter are available in the [06-env.sh](https://gist.github.com/3b45959216b0c04822eccebb31665705) Gist.
+I> All the commands from this chapter are available in the [06-env.sh](https://gist.github.com/bfac9a1397d7b61dcfc9ec9112d7e433) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
@@ -139,7 +139,7 @@ I> The commands that follow will reset your master branch with the contents of t
 ```bash
 git pull
 
-git checkout buildpack
+git checkout buildpack-tekton
 
 git merge -s ours master --no-edit
 
@@ -176,7 +176,9 @@ I> If you destroyed the cluster at the end of the previous chapter, we'll need t
 ```bash
 jx import --batch-mode
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
@@ -229,12 +231,12 @@ I> When running the commands that follow, please imagine that the size of our op
 Let's see which environments are configured to receive promotions automatically.
 
 ```bash
-jx get env -p Auto
+jx get env --promote Auto
 ```
 
 The output should show that we have only one environment (`staging`) with automatic promotion.
 
-Similarly, we could have used `Manual` or `Never` as the filters applied to the `promote` field (`-p`).
+Similarly, we could have used `Manual` or `Never` as the filters applied to the `promote` field (`--promote`).
 
 Before we move further, we'll have to go through a rapid discussion about the type of tests we might need to run. That will set the scene for the changes we'll apply to one of our environments.
 
@@ -285,6 +287,7 @@ LICENSE
 Makefile
 README.md
 env
+jenkins-x.yml
 ```
 
 As you can see, there aren't many files in that repository. So, we should be able to explore them all relatively fast. The first one in line is Makefile.
@@ -301,201 +304,7 @@ While you can run any type of tests when deploying to the staging environment, I
 
 To run our tests, we need to know the addresses of the applications deployed to staging. Usually, that would be an easy thing since we'd use "real" domains. Our *go-demo-6* application could have a hard-coded domain *go-demo-6.staging.acme.com*. But, that's not our case since we're relying on dynamic domains assembled through a combination of the load balancer IP and [nip.io](http://nip.io/). Fortunately, it is relatively easy to find out the address by querying the associated Ingress.
 
-Once we have the address, we can simply invoke `go test` command.
-
-I> I had to pick a language for the tests we are about to write, and since we're already using Go for *go-demo-6*, I thought it might make sense to stick with the same language. The tests will be fairly simple, and you should be able to understand how they work even if you never coded in Go. You should be able to apply the same logic to whichever language is your choice.
-
-W> Makefile insists on tabs, so the command that follows uses them instead of spaces for new lines. Please take that into account if you're typing the commands instead of copying and pasting from the Gist.
-
-```bash
-echo 'test:
-	ADDRESS=`kubectl \
-	--namespace jx-staging \\
-	get ingress go-demo-6 \\
-	-o jsonpath="{.spec.rules[0].host}"` \\
-	go test -v
-' | tee -a Makefile
-```
-
-We echoed the `test` target that contains the command that retrieves the host of the *go-demo-6* application and stores it in the `ADDRESS` variable. The rest of the command executes `go test`. The output of the `echo` was appended to `Makefile`.
-
-The fact that we just added a target that we can execute when we want to run our validations will do us no good if we do not have any tests.
-
-I will save you from writing the code, even though it's only around twenty lines, by downloading it from a Gist.
-
-```bash
-curl -sSLo integration_test.go \
-    https://bit.ly/2Do5LRN
-
-cat integration_test.go
-```
-
-As you can see, there's not much going on inside the single test. It just sends a request to the *go-demo-6* application and confirms that the response is `200`. Don't judge me for that. This is a demo application, and we needed a test to demonstrate how to run them whenever we deploy something to the staging environment. I expect you to write your tests more seriously. Also, your integration tests are likely not going to be tied to a specific application.
-
-Now that we have the Makefile target that will execute the tests we just downloaded, we should turn our attention to Jenkinsfile and try to add a step that will run the tests. But, before we do that, let's take a quick look at what we currently have.
-
-```bash
-cat Jenkinsfile
-```
-
-The output is as follows.
-
-```groovy
-pipeline {
-  options {
-    disableConcurrentBuilds()
-  }
-  agent {
-    label "jenkins-maven"
-  }
-  environment {
-    DEPLOY_NAMESPACE = "jx-staging"
-  }
-  stages {
-    stage('Validate Environment') {
-      steps {
-        container('maven') {
-          dir('env') {
-            sh 'jx step helm build'
-          }
-        }
-      }
-    }
-    stage('Update Environment') {
-      when {
-        branch 'master'
-      }
-      steps {
-        container('maven') {
-          dir('env') {
-            sh 'jx step helm apply'
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-Jenkinsfile contains two stages, with a single step in each. The `Validate Environment` builds the chart of the staging environment. There is actually no good reason to build the chart, so the real objective of that stage is to validate that the syntax used in the chart is correct.
-
-The `Update Environment` stage applies the definition of the environment chart. As a result, whenever that pipeline is executed, it will redeploy everything defined for the staging environment. Soon we'll see the chart in detail. For now, it is essential to know that Helm is idempotent. That means that even though we'll always apply the definition of the whole environment, only the parts that changed will result in new deployments or updates.
-
-But, that Jenkinsfile is not complete. There are a few things we need to change.
-
-To begin with, it uses the `jenkins-maven` agent which, as you can guess from the name, is a Pod with a container that contains Maven, Java, and the tools Jenkins needs to run the pipeline (e.g., Helm). We, however, do not need Maven but Go. So, our first action should be to change the `label` of the `agent` from `jenkins-maven` to `jenkins-go`.
-
-At this point, you might wonder how to know which images are available. We'll go through custom images and PodTemplates later. For now, we'll take a quick look at the images that are currently available.
-
-```bash
-JENKINS_URL=$(kubectl -n jx \
-  get ingress jenkins \
-  -o jsonpath="{.spec.rules[0].host}")
-
-open "http://$JENKINS_URL/configure"
-```
-
-All the agents that we can use are specified in the *Cloud* > *Kubernetes* section. The code of the images is stored in the [jenkins-x-builders](https://github.com/jenkins-x/jenkins-x-builders).
-
-That was a very quick detour. Let's go back to our Jenkinsfile.
-
-Further on in the Jenkinsfile, we can see that the `steps` are executed inside the `maven` container. Since we switched to the Go agent, we should change `container` from `maven` to `go`.
-
-Finally, we should add a step that will execute the tests. We could do that inside one of the two stages we already have, or add a new one. The only important thing to note is that the step that runs the tests must be executed after the deployment (e.g., `jx step helm apply`). Otherwise, our tests would validate the old, not the new release.
-
-To make things clearer, we'll create a new stage dedicated to testing. That code could be the one from the snippet that follows.
-
-```groovy
-    stage('Test') {
-      when {
-        branch 'master'
-      }
-      steps {
-        container('go') {
-          sh 'make test'
-        }
-      }
-    }
-```
-
-I urge you to apply those three changes (`agent`, `container`, and a new `stage`) yourself. If you fail, or you're lazy, I already prepared a Gist that we can download with the command that follows.
-
-```bash
-curl -sSLo Jenkinsfile \
-    https://bit.ly/2Dr1Kfk
-```
-
-If you did choose to download Jenkinsfile, output it with `cat Jenkinsfile` and explore the changes.
-
-The only thing left to explore is the `env` directory.
-
-```bash
-ls -1 env
-```
-
-As you can see by the names of the files, the `env` directory contains a Helm chart. The only file that matters in our case is `requirements.yml`.
-
-Typically, the real action in most of the charts is inside the `templates` directory. That's not our case, because the primary purpose of that chart is not to define details of a specific application. That's done in repositories of those applications. Instead, the purpose of the environment chart is to tie application charts together as Helm dependencies.
-
-Let's take a closer look at `requirements.yaml`.
-
-```bash
-cat env/requirements.yaml
-```
-
-The output is as follows.
-
-```yaml
-dependencies:
-- alias: expose
-  name: exposecontroller
-  repository: http://chartmuseum.jenkins-x.io
-  version: 2.3.89
-- alias: cleanup
-  name: exposecontroller
-  repository: http://chartmuseum.jenkins-x.io
-  version: 2.3.89
-- name: go-demo-6
-  repository: http://jenkins-x-chartmuseum:8080
-  version: 0.0.131
-```
-
-The first two entries (`expose` and `cleanup`) existed since the beginning. Jenkins X created them when we installed it inside our cluster. Both are based on the `exposecontroller` that is used to create Ingress resources automatically whenever we deploy something in the same Namespace.
-
-The last entry (`go-demo-6`) is new. Or, to be more precise, it did not exist from the start. It was added through the builds of the *go-demo-6* application. We'll explore that flow later. For now, we'll push the changes to the staging environment repo in GitHub and confirm that they work correctly.
-
-```bash
-git add .
-
-git commit \
-    --message "Added tests"
-
-git push
-```
-
-All that's left is to have a bit of patience until the new build triggered by the `environment-jx-rocks-staging` repository is finished. Feel free to use any of the commands that follow to track the progress and to confirm that the tests were indeed executed.
-
-```bash
-jx get activity \
-    -f environment-jx-rocks-staging
-
-jx get build logs \
-    $GH_USER/environment-jx-rocks-staging/master
-
-jx console
-```
-
-If you retrieved the activities or you output the logs of the build, you should see entries generated by the `Test` stage. Similarly, the `console` should provide a graphical representation of the activities of the `environment-jx-rocks-staging` job, including the new stage.
-
-I already mentioned that Helm (just as Kubernetes) is idempotent. Since we did not deploy a new release of any of the applications in the staging environment, all the Pods should be intact. After all, the only new thing is the addition of the step that runs the tests. We can confirm that by listing all the Pods in the `jx-staging` Namespace.
-
-```bash
-kubectl --namespace jx-staging get pods
-```
-
-If you observe the age of the Pods, you'll notice that they are all older than the execution of the build, meaning that none of them changed as the result of the last execution of the staging pipeline. That's the expected result of idempotency.
-
-Now that we run a few times application builds, as well as those related to the staging environment, we might want to discuss the relation between the two.
+Once we have the address, we could extend `jenkins-x.yml` by adding a step that would execute the tests we'd like to run. However, we won't do that just yet. We still need to explore Jenkins X pipelines in more detail.
 
 ## Understanding The Relation Between Application And Environment Pipelines
 
@@ -542,6 +351,8 @@ With that process, we are fulfilling quite a few of the rules (commandments), an
 
 ![Figure 6-6: The flow from a commit to the master branch to deployment to the staging environment](images/ch06/gitops-full-flow.png)
 
+I> Please note that the previous diagram is not very accurate. We did not yet explore all the technologies behind the process, so it is intentionally vague.
+
 One thing that we are obviously missing is tests in the application-specific pipeline. We'll correct that in one of the next chapters. But, before we reach the point that we can promote to production, we should apply a similar set of changes to the repository of the production environment.
 
 I'll leave it to you to add tests there as well. The steps should be the same, and you should be able to reuse the same file with integration tests located in https://bit.ly/2Do5LRN. You can also skip doing that since having production tests is not mandatory for the rest of the exercises we'll do. If you choose not to add them, please use your imagination so that whenever we talk about an environment, you always assume that we can have tests, if we choose to.
@@ -583,19 +394,7 @@ staging        Staging        Permanent   Auto    jx-staging        100         
 production     Production     Permanent   Manual  jx-production     200           ...
 ```
 
-As you might have guessed, we can modify the behavior of an environment. For example, we can change the promotion policy of the `pre-production` environment from `Manual` to `Auto`.
-
-```bash
-jx edit env \
-    --name pre-production \
-    --promotion Auto
-```
-
-Please note that for security reasons there is no batch mode of the `edit` command. We have to answer a few questions. Luckily, the default answers are correct, so all you have to do is to keep pressing the enter key until the command is executed.
-
-Feel free to execute `jx get env` and confirm that `pre-production` promotion policy is now set to `Auto`.
-
-Finally, we can also delete an environment.
+Just as we can create an environment, we can also delete it.
 
 ```bash
 jx delete env pre-production
@@ -611,6 +410,12 @@ hub delete -y \
 ```
 
 That's it. We're done with the exploration of the environment. Or, to be more precise, we're finished with the environment with promotion policy set to `Auto`. Those set to `Manual` are coming soon.
+
+Before we proceed, we'll go out of the `environment-jx-rocks-staging` directory.
+
+```bash
+cd ..
+```
 
 ## Are We Already Following All The Commandments?
 
@@ -654,8 +459,6 @@ If you did choose to destroy the cluster or to uninstall Jenkins X, please remov
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
-cd ..
-
 rm -rf environment-jx-rocks-*
 
 GH_USER=[...]
