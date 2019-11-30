@@ -2,7 +2,7 @@
 
 We saw how we can fast-track development and continuous delivery of new applications with Jenkins X quickstarts. However, it is likely that your company was not formed yesterday. That means that you already have some apps and hopefully you'd like to move them to Jenkins X.
 
-From a Jenkins X perspective, importing an existing project is relatively straightforward. All we have to do is execute `jx import`, and Jenkins X will do its magic. It will create the files we need. If we do not yet have `skaffold.yml`, it'll generate it for us. If we did not create a Helm chart, it would create that as well. No Dockerfile? No problem. We'll get that as well. Never wrote Jenkins pipeline for that project? Again, that is not an issue. We'll get a Jenkinsfile. Jenkins X will reuse the things we already have, and create those that we're missing.
+From a Jenkins X perspective, importing an existing project is relatively straightforward. All we have to do is execute `jx import`, and Jenkins X will do its magic. It will create the files we need. If we do not yet have `skaffold.yml`, it'll generate it for us. If we did not create a Helm chart, it would create that as well. No Dockerfile? No problem. We'll get that as well. Never wrote Jenkins pipeline for that project? Again, that is not an issue. We'll get jenkins-x.yml. Jenkins X will reuse the things we already have, and create those that we're missing.
 
 The import process does not limit itself to creating missing files and pushing them to Git. It'll also create a job in Jenkins, webhooks in GitHub, and quite a few other things.
 
@@ -97,7 +97,7 @@ vendor
 
 As you can see, there's (almost) nothing in that repository but Go code (`*.go`) and libraries (`vendor`).
 
-That project is one extreme of the possible spectrum of projects we might want to import to Jenkins X. It only has the code of the application. There is no Dockerfile, and there is no Helm chart. Heck, there is not even a script for building a binary, nor there is a mechanism to run tests, and there is definitely no Jenkinsfile that defines a continuous delivery pipeline for the application. There's only code, and (almost) nothing else.
+That project is one extreme of the possible spectrum of projects we might want to import to Jenkins X. It only has the code of the application. There is no Dockerfile, and there is no Helm chart. Heck, there is not even a script for building a binary, nor there is a mechanism to run tests, and there is definitely no jenkins-x.yml that defines a continuous delivery pipeline for the application. There's only code, and (almost) nothing else.
 
 Such a situation might not be your case. Maybe you do have scripts for running tests or building the code. Or perhaps you do have Dockerfile, and maybe you are already a heavy Kubernetes user, and you do have a Helm chart. You might have other files as well. We'll discuss those situations later. For now, we'll work on the case when there is nothing but a code of an application.
 
@@ -508,7 +508,7 @@ When we import a project, Jenkins X creates a lot of things. They are not a blin
 
 The real question is whether a person who imports a project has the skills to discover the cause of an issue created by missing entries in configuration files generated during the import process. If the answer is "yes, he knows how to find out what's missing in Kubernetes definitions", "yes, he uses Helm", and many other yeses, then that person should not have a hard time figuring out things similar to those we did together. Nevertheless, Jenkins X is not made to serve only people who are Kubernetes ninjas, and who know Helm, Skaffold, Docker, Knative Build, and other amazing tools Jenkins X packages. It is designed to ease the pain caused by the complexity of today's solutions. As such, it is silly to expect that everyone will go through the same process as we did. Someone often must, but the end result should not be what we just did. Instead, the solution lies in the creation of build packs. We'll explore them in the next chapter. We'll try to create a solution that will allow anyone with an application written in Go and dependant on MongoDB to import it into Jenkins X and expect everything to work from the first attempt.
 
-The application we imported is on one extreme of the spectrum. It had nothing but Go code. There was no Dockerfile, no Jenkinsfile, no Makefile, no skaffold.yaml, and certainly no Helm chart. Your applications might not be in such a state. Maybe you already created a Dockerfile, but you're missing the rest. Or, perhaps you have all those except skaffold.yaml.
+The application we imported is on one extreme of the spectrum. It had nothing but Go code. There was no Dockerfile, no jenkins-x.yml, no Makefile, no skaffold.yaml, and certainly no Helm chart. Your applications might not be in such a state. Maybe you already created a Dockerfile, but you're missing the rest. Or, perhaps you have all those except skaffold.yaml.
 
 When your project has some of the files, but not all, the import process will generate only those that are missing. It does not matter much what you do and what you don't have. Jenkins X will fill in the missing pieces.
 

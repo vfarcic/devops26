@@ -280,7 +280,7 @@ values.yaml
 
 If you used Helm, the structure should be familiar. If that's not the case, you might want to stop here and explore Helm in more detail. **The DevOps 2.4 Toolkit: Continuous Deployment To Kubernetes** book might be a good read if you have time, otherwise, check the official docs.
 
-The last file in that directory is *Jenkinsfile*.
+The last file in that directory is *jenkins-x.yml*.
 
 ```bash
 cat jenkins-x.yml
@@ -373,7 +373,7 @@ vfarcic/jx-go/master #1                                 7m24s    2m26s Succeeded
     Update                                              4m58s       0s Succeeded 
 ```
 
-We can see that there were activities with each of the three jobs. We had one deployment to the production environment (`environment-jx-rocks-production`), and two deployments to staging (`environment-jx-rocks-staging`). The first build (activity) is always performed when a job is created. Initially, environments only contain a few applications necessary for their correct operation. The reason for the second build of the staging environment lies in the creation of the *jx-go* project. One of the steps in its pipeline is in charge of promoting a successful build to the staging environment automatically. When we explore Jenkinsfile in more detail, you'll get a better understanding of the process, including promotions.
+We can see that there were activities with each of the three jobs. We had one deployment to the production environment (`environment-jx-rocks-production`), and two deployments to staging (`environment-jx-rocks-staging`). The first build (activity) is always performed when a job is created. Initially, environments only contain a few applications necessary for their correct operation. The reason for the second build of the staging environment lies in the creation of the *jx-go* project. One of the steps in its pipeline is in charge of promoting a successful build to the staging environment automatically. When we explore jenkins-x.yml in more detail, you'll get a better understanding of the process, including promotions.
 
 The last activity is of the *jx-go* pipeline. So far, we did not push any change to the repository, so we have only one build that was run when the job itself was generated through the quickstart process.
 
