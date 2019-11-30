@@ -38,14 +38,14 @@ To create such a development environment, we'll need a Jenkins X cluster.
 
 You know what to do. Create a new Jenkins X cluster unless you kept the one from before.
 
-I> All the commands from this chapter are available in the [07-dev.sh](https://gist.github.com/39c3fe9bbe693f9072e9e41980b9337e) Gist.
+I> All the commands from this chapter are available in the [07-dev.sh](https://gist.github.com/50fac90cc10ebc67b36ea07687e8df75) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
@@ -58,7 +58,7 @@ I> The commands that follow will reset your master branch with the contents of t
 ```bash
 git pull
 
-git checkout buildpack
+git checkout buildpack-tekton
 
 git merge -s ours master --no-edit
 
@@ -127,7 +127,7 @@ cd go-demo-6
 We'll create a whole development environment that will be custom tailored for the *go-demo-6* project. It will be the environment for a single user (a developer, you), and it will run inside our cluster. And we'll do that through a single command.
 
 ```bash
-jx create devpod --batch-mode
+jx create devpod --label go --batch-mode
 ```
 
 Right now, a Jenkins X DevPod is being created in the batch mode (no questions asked), and we can deduce what's happening from the output.
@@ -165,8 +165,7 @@ charts
 Dockerfile
 functional_test.go
 go.mod
-go.sum
-Jenkinsfile
+jenkins-x.yml
 main.go
 main_test.go
 Makefile
@@ -411,15 +410,14 @@ jx open
 The output is as follows.
 
 ```
-Name                      URL
-jenkins                   http://jenkins.jx.34.73.126.76.nip.io
-jenkins-x-chartmuseum     http://chartmuseum.jx.34.73.126.76.nip.io
-jenkins-x-docker-registry http://docker-registry.jx.34.73.126.76.nip.io
-jenkins-x-monocular-api   http://monocular.jx.34.73.126.76.nip.io
-jenkins-x-monocular-ui    http://monocular.jx.34.73.126.76.nip.io
-vfarcic-go-port-2345      http://vfarcic-go-port-2345.jx.34.73.126.76.nip.io
-vfarcic-go-port-8080      http://vfarcic-go-port-8080.jx.34.73.126.76.nip.io
-vfarcic-go-ide            http://vfarcic-go-ide.jx.34.73.126.76.nip.io
+NAME                  URL
+deck                  http://deck.jx.34.206.148.101.nip.io
+hook                  http://hook.jx.34.206.148.101.nip.io
+jenkins-x-chartmuseum http://chartmuseum.jx.34.206.148.101.nip.io
+tide                  http://tide.jx.34.206.148.101.nip.io
+vfarcic-go-ide        http://vfarcic-go-ide.jx.34.206.148.101.nip.io
+vfarcic-go-port-2345  http://vfarcic-go-port-2345.jx.34.206.148.101.nip.io
+vfarcic-go-port-8080  http://vfarcic-go-port-8080.jx.34.206.148.101.nip.io
 ```
 
 The `open` command lists all the applications managed by Jenkins X and running inside our cluster. We can see that one of them is `ide` prefixed with our username and the programming language we're using. In my case that's `vfarcic-go-ide`.
@@ -513,7 +511,10 @@ It'll take a few moments until everything is up and running. The final message s
 Now we can create yet another DevPod. This time, however, we'll add `--sync` argument. That will give it a signal that we want to use `ksync` to synchronize our local file system with the files in the DevPod.
 
 ```bash
-jx create devpod --sync --batch-mode
+jx create devpod \
+    --label go \
+    --sync \
+    --batch-mode
 ```
 
 Now we need to repeat the same commands as before to start the watcher inside the DevPod. However, this time we will not run it in the background since it might be useful to see the output in case one of our tests fail and we might need to apply a fix before we proceed with the development. For that reason, we'll open a second terminal. I recommend that you resize two terminals so that both occupy half of the screen. That way you can see them both.
@@ -588,7 +589,9 @@ git push
 You should be familiar with the rest of the process. Since we pushed a change to the master branch, Jenkins will pick it up and run all the steps defined in the pipeline. As a result, it will deploy a new release to the staging environment. As always, we can monitor the activity of the Jenkins build.
 
 ```bash
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 The new release should be available in the staging environment once all the steps `Succeeded` and we can cancel the activity watcher by pressing *ctrl+c*.
@@ -651,6 +654,12 @@ Finally, I would typically open a terminal session inside Visual Studio Code. Yo
 
 Now you have everything in one place. You can write your Code and see the Jenkins X activities as well as the output of `watch.sh` running in a DevPod. Isn't that awesome?
 
+Before we proceed, we'll go out of the `go-demo-6` directory.
+
+```bash
+cd ..
+```
+
 ## What Now?
 
 We're done with yet another chapter, and you are once again forced to decide whether to continue using the cluster or to destroy it. If the destruction is what you crave for, you'll find the instructions at the bottom of the Gist you chose at the beginning of this chapter.
@@ -660,8 +669,6 @@ If you destroyed the cluster or you uninstalled Jenkins X, please remove the rep
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
-cd ..
-
 GH_USER=[...]
 
 hub delete -y \
