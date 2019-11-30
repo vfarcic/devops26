@@ -14,7 +14,7 @@ git merge -s ours master --no-edit
 
 git checkout master
 
-git merge dev
+git merge dev-tekton
 
 git push
 
@@ -107,6 +107,10 @@ jx get applications
 STAGING_ADDR=[...] # Replace `[...]` with the URL
 
 curl "$STAGING_ADDR/demo/hello"
+
+git checkout master
+
+git pull
 
 kubectl get cronjobs
 

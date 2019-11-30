@@ -12,14 +12,14 @@ At the moment, our production environment is set to receive manual promotions. A
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [09-promote.sh](https://gist.github.com/345da6a87564078b84d30eccfd3037c9) Gist.
+I> All the commands from this chapter are available in the [09-promote.sh](https://gist.github.com/cba4f52d90d4d47fcb068a052077c953) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
@@ -32,15 +32,34 @@ I> The commands that follow will reset your `master` with the contents of the `p
 ```bash
 git pull
 
-git checkout pr
+git checkout pr-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge pr
+git merge pr-tekton
 
 git push
+```
+
+W> Please execute the commands that follow only if you are using **GKE** and if you ever restored a branch at the beginning of a chapter (like in the snippet above).
+
+```bash
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
 ```
 
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
@@ -62,7 +81,7 @@ Now we can promote our last release to production.
 Now that we feel that our new release is production-ready, we can promote it to production. But, before we do that, we'll check whether we already have something running in production.
 
 ```bash
-jx get applications -e production
+jx get applications --env production
 ```
 
 The output states that `no applications` were `found in environments production`.
@@ -108,7 +127,7 @@ The process of manual promotion (e.g., production) is the same as the one we exp
 Next, we'll confirm that the release is indeed deployed to production by retrieving all the applications in that environment.
 
 ```bash
-jx get applications -e production
+jx get applications --env  production
 ```
 
 The output is as follows.
@@ -132,6 +151,12 @@ curl "$PROD_ADDR/demo/hello"
 
 The output should be the familiar message `hello, PR!`. We confirmed that promotion to production works as expected.
 
+Before we proceed, we'll go out of the `go-demo-6` directory.
+
+```bash
+cd ..
+```
+
 ## What Now?
 
 This was a very short chapter. Wasn't it? There is not much more to learn about manual promotions. All we have to do is execute a single command.
@@ -147,8 +172,6 @@ If you destroyed the cluster or you uninstalled Jenkins X, please remove the rep
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
-cd ..
-
 GH_USER=[...]
 
 hub delete -y \
