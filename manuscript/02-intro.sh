@@ -46,7 +46,7 @@ export AWS_ACCESS_KEY_ID=[...]
 export AWS_SECRET_ACCESS_KEY=[...]
 
 # If EKS
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_REGION=us-east-1
 
 # If EKS
 jx create cluster eks \
@@ -183,8 +183,6 @@ jx install \
     --default-environment-prefix jx-rocks
 
 kubectl --namespace jx get pods
-
-jx console
 
 GH_USER=[...]
 

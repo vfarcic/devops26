@@ -10,7 +10,7 @@ export AWS_ACCESS_KEY_ID=[...] # Replace [...] with the AWS Access Key ID
 
 export AWS_SECRET_ACCESS_KEY=[...] # Replace [...] with the AWS Secret Access Key
 
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_REGION=us-east-1
 
 CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-boot)
 

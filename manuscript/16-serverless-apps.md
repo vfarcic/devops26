@@ -1,5 +1,6 @@
 # Using Jenkins X To Define And Run Serverless Deployments {#knative}
 
+TODO: Rewrite
 W> At the time of this writing (July 2019), the examples in this chapter work both in **static** and **serverless** Jenkins X but only in a **GKE** cluster. Feel free to monitor [the issue 4668](https://github.com/jenkins-x/jx/issues/4668) for more info.
 
 We already saw how we could run the serverless flavor of Jenkins X. That helped with many things, with better resource utilization and scalability being only a few of the benefits. Can we do something similar with our applications? Can we scale them to zero when no one is using them? Can we scale them up when the number of concurrent requests increases? Can we make our applications serverless?
@@ -90,8 +91,21 @@ I> All the commands from this chapter are available in the [16-serverless-apps.s
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
+TODO: Test
 * Create a new static **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
 * Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+TODO: Test
+* Create a new static **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
+TODO: Test
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+TODO: Test
+* Create a new static **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
+TODO: Test
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+TODO: Test
+* Use an **existing** static cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+TODO: Test
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
 I> The commands that follow will reset your *go-demo-6* `master` branch with the contents of the branch that contain all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
@@ -137,15 +151,40 @@ We could visit Knative documentation and follow the instructions to install it a
 
 [Gloo](https://gloo.solo.io/) is a Kubernetes ingress controller, and API gateway. The main reason for using it in our context is because of its ability to route requests to applications managed and autoscaled by Knative. The alternative to Gloo would be Istio which, even though it's very popular, is too heavy and complex.
 
-Now that we know the "elevator pitch" for Gloo, we can proceed and install it.
+Now that we know the "elevator pitch" for Gloo, we can proceed by installing the `glooctl` CLI.
+
+Please follow the [Install command line tool (CLI)](https://docs.solo.io/gloo/latest/installation/knative/#install-command-line-tool-cli) instructions.
+
+Now we can use Gloo to install Knative.
 
 ```bash
-jx create addon gloo
+glooctl install knative \
+    --install-knative-version=0.9.0
 ```
 
-Judging from the output, we can see that the process checked whether `glooctl` is installed and, if it isn't, it set it up for us. The command-line tool has quite a few features, but the only one that matters (for now) is that it installs Knative. Further on, the process installed Gloo and Knative in our cluster, and it configured our team to use `knative` as the default deployment kind. What that means is that, from now on, every new application we add through a quickstart or by importing an existing project will be deployed as Knative, unless we specify otherwise.
+The process Knative in our cluster.
 
-The default deployment mechanism can be changed at any time, and we'll see that in action soon. For now, let's take a closer look at what we got by exploring the Namespaces.
+There's one more thing missing for us to be able to run serverless applications using Knative. We need to configure it to use a domain (in this case `nip.io`).
+
+```bash
+KNATIVE_IP=$(kubectl \
+    --namespace gloo-system \
+    get service knative-external-proxy \
+    --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
+echo "apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-domain
+  namespace: knative-serving
+data:
+  $KNATIVE_IP.nip.io: \"\"" \
+    | kubectl apply --filename -
+```
+
+We retrieved the IP of the LoadBalancer Service that was created during the Knative installation. Further on, we used it as a `nip.io` address in the Knative configuration.
+
+Let's take a closer look at what we got by exploring the Namespaces.
 
 ```bash
 kubectl get namespaces
@@ -171,18 +210,7 @@ We can see that we got two new Namespaces. As you can probably guess, `gloo-syst
 
 Now, I could go into details and explain the function of every Pod, service, CRD, and other components running in `gloo-system` and `knative-serving` Namespaces. But I feel that would be a waste of time. You can get that information yourself by exploring Kubernetes resources running in those Namespaces, or by going through the official documentation. What matters, for now, is that we got everything Jenkins X needs to convert your applications into serverless deployments.
 
-From now on, all our new projects will be running as serverless deployments. Later on, I'll show you how to switch one project from being serverless to "traditional", and vice versa. But, for now, we'll imagine that we do not want new projects to be serverless by default. We can rectify that by editing deployment settings for the whole team (a Jenkins X installation).
-
-```bash
-jx edit deploy \
-    --team \
-    --kind default \
-    --batch-mode
-```
-
-The output should confirm that `the team deploy kind` was set to `default`. That happens to be a terrible name that really means non-serverless deployments we used so far (e.g., Kubernetes Deployment, Service, etc.).
-
-But what if we made a mistake and we do want all new projects to be serverless unless the author specifies something different? As you can probably guess, all we have to do is execute a similar command, but with the changed value for the `kind` argument.
+We're almost done with the setup. Knative is installed in our cluster, but we still need to tell Jenkins X to use it as a default deployment mechanism. We can do that with the command that follows.
 
 ```bash
 jx edit deploy \
@@ -191,7 +219,9 @@ jx edit deploy \
     --batch-mode
 ```
 
-From this moment on, all new projects will be serverless, unless we say otherwise. So, let's create a new project and check it out.
+From this moment on, all new projects will be serverless, unless we say otherwise. If you choose to change your mind, please re-run the same command, with the `default` kind instead of `knative`.
+
+Let's create a new project and check it out.
 
 ## Creating A New Serverless Application Project
 
@@ -436,13 +466,15 @@ knative     svtns
 
 The `go-demo-6` application is reported correctly since it is not deployed with Knative, but the serverless one is not. Hopefully, that will be fixed soon. Until then, feel free to monitor the progress through the [issue 4635](https://github.com/jenkins-x/jx/issues/4635).
 
-Knative defines its own Service that, just like those available in the Kubernetes core, can be queried to get the domain through which we can access the application. We can query it just as we would query the "normal" Service, the main difference being that it is called `ksvc`, instead of `svc`. We'll use it to retrieve the domain through which we can access and, therefore, test whether the newly deployed serverless application works as expected.
+Knative defines its own Service that, just like those available in the Kubernetes core, can be queried to get the domain through which we can access the application. We can query it just as we would query the "normal" Service, the main difference being that it is called `ksvc`, instead of `svc`. We'll use it to retrieve the address through which we can access and, therefore, test whether the newly deployed serverless application works as expected.
+
+TODO: Apply to the rest of the chapters
 
 ```bash
 ADDR=$(kubectl \
     --namespace $NAMESPACE-staging \
     get ksvc jx-knative \
-    --output jsonpath="{.status.domain}")
+    --output jsonpath="{.status.url}")
 
 echo $ADDR
 ```
@@ -531,7 +563,7 @@ kubectl run siege \
     --generator "run-pod/v1" \
      -it --rm \
      -- --concurrent 300 --time 20S \
-     "http://$ADDR/" \
+     "$ADDR" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
@@ -627,7 +659,7 @@ kubectl run siege \
     --generator "run-pod/v1" \
      -it --rm \
      -- --concurrent 400 --time 60S \
-     "http://$ADDR/" \
+     "$ADDR" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
@@ -1046,7 +1078,7 @@ To be on the safe side, we'll confirm that the application deployed in the previ
 PR_ADDR=$(kubectl \
     --namespace $PR_NAMESPACE \
     get ksvc go-demo-6 \
-    --output jsonpath="{.status.domain}")
+    --output jsonpath="{.status.url}")
 
 echo $PR_ADDR
 ```
@@ -1149,7 +1181,7 @@ Just as before, we'll send a request to the new release of `go-demo-6` and confi
 ADDR=$(kubectl \
     --namespace $NAMESPACE-staging \
     get ksvc go-demo-6 \
-    --output jsonpath="{.status.domain}")
+    --output jsonpath="{.status.url}")
 
 echo $ADDR
 

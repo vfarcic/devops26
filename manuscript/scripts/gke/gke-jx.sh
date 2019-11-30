@@ -12,9 +12,9 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
+# The command that follows uses `--batch-mode` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
 # If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
+# Please remove `--batch-mode` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
 jx create cluster gke \
     --cluster-name jx-rocks \

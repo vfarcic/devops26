@@ -114,7 +114,7 @@ kubectl run siege \
     --generator "run-pod/v1" \
      -it --rm \
      -- --concurrent 300 --time 20S \
-     "http://$STAGING_ADDR/demo/hello" \
+     "$STAGING_ADDR/demo/hello" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods
@@ -204,7 +204,7 @@ export AWS_ACCESS_KEY_ID=[...]
 export AWS_SECRET_ACCESS_KEY=[...]
 
 # If EKS
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_REGION=us-east-1
 
 jx get applications --env staging
 
@@ -271,8 +271,7 @@ PRODUCTION_ADDR=[...]
 
 curl "$PRODUCTION_ADDR/demo/hello"
 
-jx create addon istio \
-    --version 1.1.7
+jx create addon istio
 
 # If NOT EKS
 ISTIO_IP=$(kubectl \

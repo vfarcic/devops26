@@ -10,7 +10,7 @@ export AWS_ACCESS_KEY_ID=[...] # Replace [...] with the AWS Access Key ID
 
 export AWS_SECRET_ACCESS_KEY=[...] # Replace [...] with the AWS Secret Access Key
 
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_REGION=us-east-1
 
 echo "nexus:
   enabled: false
@@ -31,6 +31,9 @@ jx create cluster eks \
     --namespace cd \
     --prow \
     --tekton
+
+# If you get stuck with the `waiting for external loadbalancer to be created and update the nginx-ingress-controller service in kube-system namespace`, you probably encountered a bug.
+# To fix it, open the AWS console and remove the `kubernetes.io/cluster/jx-rocks` tag from the security group `eks-cluster-sg-*`.
 
 # When in doubt, use the default answers, except in the cases listed below
 # Answer with `n` to `Would you like to register a wildcard DNS ALIAS to point at this ELB address?`

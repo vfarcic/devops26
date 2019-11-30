@@ -23,6 +23,10 @@ cat jx-requirements.yml
 # Set `cluster.project`
 # Set `cluster.provider
 # Set `cluster.zone`
+# Set `secretStorage` to `vault`
+# Set `storage.logs.enabled` to `true`
+# Set `storage.reports.enabled` to `true`
+# Set `storage.repository.enabled` to `true`
 
 cat jx-requirements.yml
 

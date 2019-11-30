@@ -36,8 +36,6 @@ cd environment-$CLUSTER_NAME-dev
 
 git pull
 
-jx profile cloudbees
-
 jx boot
 
 # Repeat the `jx boot` command if the process is aborted because of upgrading the `jx` CLI

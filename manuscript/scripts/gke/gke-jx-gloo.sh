@@ -30,7 +30,8 @@ jx create cluster gke \
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 
-jx create addon gloo
+glooctl install knative \
+    --install-knative-version=0.9.0
 
 #######################
 # Destroy the cluster #

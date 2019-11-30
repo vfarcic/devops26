@@ -140,8 +140,6 @@ echo "nexus:
 
 Among other things, Jenkins X installs Nexus where we can store our libraries. While that is useful for many projects, we will not need it in the examples that follow. By disabling it, we'll avoid reserving resources we won't use.
 
-W> We will use `Static Jenkins Server and Jenkinsfiles` and switch to the serverless flavor later. Jenkins X 1.x has the static flavor as the default, while version 2.x changed to serverless as the default option. It is tempting to keep pressing the enter key to use the default answer on every question since Jenkins X provides sane defaults. For now (until instructed otherwise) please make sure to choose the static flavor.
-
 For your convenience, bookmarks to the relevant sub-chapters are as follows.
 
 * [Creating A Google Kubernetes Engine (GKE) Cluster With jx](#jx-create-cluster-gke)
@@ -199,7 +197,7 @@ Once we're authenticated, and the services are enabled, `jx` will create a clust
 
 Once the GKE cluster is up and running, the process will create a `jx` Namespace. It will also modify your local `kubectl` context and create a ClusterRoleBinding that will give you the necessary administrative permissions.
 
-Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll ask us a few additional questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later.
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Serverless Jenkins X Pipelines with Tekton`. Even though Jenkins X started its history with Jenkins, the preferred pipeline engine is [Tekton](https://cloud.google.com/tekton/), which is available through the serverless flavor of Jenkins X. We'll discuss Tekton and the reasons Jenkins X is using it later.
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
@@ -212,8 +210,6 @@ Since we did not specify a custom domain for our cluster, the process will combi
 Jenkins X will *enable long-term logs storage* automatically and ask you for the *Google Cloud Zone*. Feel free to keep the one selected by default.
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
-
-A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
 We're almost done. Only one question is pending. You'll be asked to `select the organization where you want to create the environment repository`. Choose one from the list.
 
@@ -238,7 +234,7 @@ export AWS_ACCESS_KEY_ID=[...]
 
 export AWS_SECRET_ACCESS_KEY=[...]
 
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_REGION=us-east-1
 ```
 
 Please replace the first `[...]` with the AWS Access Key ID, and the second with the AWS Secret Access Key. I am assuming that you are already familiar with AWS and you know how to create those keys, or that you already have them. If that's not the case, please follow the instructions from the [Managing Access Keys for Your AWS Account Root User](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) page.
@@ -263,11 +259,13 @@ jx create cluster eks \
 
 Let's explore what we're getting with that command. You should be able to correlate my explanation with the console output.
 
+W> If you get stuck with the `waiting for external loadbalancer to be created and update the nginx-ingress-controller service in kube-system namespace`, you probably encountered a bug. To fix it, open the AWS console and remove the `kubernetes.io/cluster/jx-rocks` tag from the security group `eks-cluster-sg-*`.
+
 W> Do not be too hasty answering `jx` questions. For all other types of Kubernetes clusters, we can safely use the default answers (enter key). But, in the case of EKS, there is one question that we'll answer with a non-default value. I'll explain it in more detail when we get there. For now, keep an eye on the "`would you like to register a wildcard DNS ALIAS to point at this ELB address?`" question.
 
 The process started creating an EKS cluster right away. This will typically take around ten minutes, during which you won't see any movement in `jx` console output. It uses CloudFormation to set up EKS as well as worker nodes, so you can monitor the progress by visiting the [CloudFormation page](https://console.aws.amazon.com/cloudformation/).
 
-Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later.
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Serverless Jenkins X Pipelines with Tekton`. Even though Jenkins X started its history with Jenkins, the preferred pipeline engine is [Tekton](https://cloud.google.com/tekton/), which is available through the serverless flavor of Jenkins X. We'll discuss Tekton and the reasons Jenkins X is using it later.
 
 The next in line is Ingress. The process will try to find it inside the `kube-system` Namespace and install it if it's not there. The process installs it through a Helm chart. As a result, Ingress will create a load balancer that will provide an entry point into the cluster.
 
@@ -277,15 +275,13 @@ You might be asked *to enable long-term logs storage*. Make sure to answer with 
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
-A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
-
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
 The process will create two GitHub repositories; `environment-jx-rocks-staging` that describes the staging environment and `environment-jx-rocks-production` for production. Those repositories will hold the definitions of those environments. For example, when you decide to promote a release to production, your pipelines will not install anything directly. Instead, they will push changes to `environment-jx-rocks-production` which, in turn, will trigger another job that will comply with the updated definition of the environment.
 
 That's GitOps
 
-Nothing is done without recording a change in Git. Of course, for that process to work, we need new jobs in Jenkins, so the process created two jobs that correspond to those repositories. We'll discuss the environments in greater detail later.
+Nothing is done without recording a change in Git. Of course, for that process to work, we need new jobs in Jenkins X, so the process created two jobs that correspond to those repositories. We'll discuss the environments in greater detail later.
 
 Finally, the `kubectl` context was changed to point to the `jx` Namespace, instead of `default`.
 
@@ -415,7 +411,7 @@ Once we're authenticated, `jx` will create a cluster. It should take around ten 
 
 Once the AKS cluster is up and running, the process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 
-Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later.
+Next, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few other questions. Which kind do we want to install? Static or serverless? Please answer with `Serverless Jenkins X Pipelines with Tekton`. Even though Jenkins X started its history with Jenkins, the preferred pipeline engine is [Tekton](https://cloud.google.com/tekton/), which is available through the serverless flavor of Jenkins X. We'll discuss Tekton and the reasons Jenkins X is using it later.
 
 At this point, `jx` will try to deduce your Git name and email. If it fails to do so, it'll ask you for that info.
 
@@ -428,8 +424,6 @@ Since we did not specify a custom domain for our cluster, the process will combi
 You might be asked *to enable long-term logs storage*. Make sure to answer with *n*. We will not need it for our exercises and, at the time of this writing, it is still in the "experimental" phase.
 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
-
-A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
@@ -645,7 +639,7 @@ If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll no
 
 * Which kind do we want to install? Static or serverless? 
 
-Please answer with `Static Jenkins Server and Jenkinsfiles`. We'll explore the serverless option later. 
+Please answer with `Serverless Jenkins X Pipelines with Tekton`. We'll explore the serverless option later. 
 
 The process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 
@@ -658,8 +652,6 @@ You might be asked *to enable long term logs storage*. Make sure to answer with 
 Next, we'll be asked a few questions related to Git and GitHub. You should be able to answer those. In most cases, all you have to do is confirm the suggested answer by pressing the enter key. As a result, `jx` will store the credentials internally so that it can continue interacting with GitHub on our behalf. It will also install the software necessary for correct functioning of those environments (Namespaces) inside our cluster.
 
 Finally, the installation of Jenkins X itself and a few other applications (e.g., ChartMuseum for storing Helm charts) will start. The exact list of apps that will be installed depends on the Kubernetes flavor, the type of the setup, and the hosting vendor. But, before it proceeds, it'll need to ask us a few more questions. 
-
-A few moments later, Jenkins & friends will be up and running, and you should see the password in the output (it should be `admin`). You'll also notice that Jenkins is now accessible through `http://jenkins.jx.[THE_IP_OF_YOUR_LB].nip.io`.
 
 We're almost done. Only one question is pending. `Select the organization where you want to create the environment repository?` Choose one from the list.
 
@@ -686,36 +678,27 @@ kubectl --namespace jx get pods
 The output is as follows.
 
 ```
-NAME                                 READY STATUS  RESTARTS AGE
-jenkins-...                          1/1   Running 0        7m
-jenkins-x-chartmuseum-...            1/1   Running 0        7m
-jenkins-x-controllercommitstatus-... 1/1   Running 0        7m
-jenkins-x-controllerrole-...         1/1   Running 0        7m
-jenkins-x-controllerteam-...         1/1   Running 0        7m
-jenkins-x-controllerworkflow-...     1/1   Running 0        7m
-jenkins-x-docker-registry-...        1/1   Running 0        7m
-jenkins-x-heapster-...               2/2   Running 0        7m
-jenkins-x-mongodb-...                1/1   Running 1        7m
-jenkins-x-monocular-api-...          1/1   Running 3        7m
-jenkins-x-monocular-prerender-...    1/1   Running 0        7m
-jenkins-x-monocular-ui-...           1/1   Running 0        7m
+NAME                            READY STATUS  RESTARTS AGE
+crier-7c58ff4897-...            1/1   Running 0        3m27s
+deck-b5b568797-...              1/1   Running 0        3m26s
+deck-b5b568797-...              1/1   Running 0        3m26s
+hook-6596bbffb9-...             1/1   Running 0        3m23s
+hook-6596bbffb9-...             1/1   Running 0        3m23s
+horologium-...                  1/1   Running 0        3m22s
+jenkins-x-chartmuseum-...       1/1   Running 0        2m53s
+jenkins-x-controllerbuild-...   1/1   Running 0        2m40s
+jenkins-x-controllerrole-...    1/1   Running 0        2m37s
+jenkins-x-heapster-...          2/2   Running 0        2m16s
+pipeline-...                    1/1   Running 0        3m20s
+pipelinerunner-...              1/1   Running 0        3m17s
+plank-...                       1/1   Running 0        3m16s
+sinker-...                      1/1   Running 0        3m14s
+tekton-pipelines-controller-... 1/1   Running 0        5m2s
+tekton-pipelines-webhook-...    1/1   Running 0        5m1s
+tide-...                        1/1   Running 0        3m13s
 ```
 
-As you can see, there are quite a few tools in that Namespace. We have Jenkins. Now, that's not simply yet-another-Jenkins. It's much more. For now, I'll keep you in suspense. Then, there is ChartMuseum. That's where we'll store our Helm charts. Further on, we got a few controllers that are not relevant to this discussion. What else is there? We have a Docker Registry that we'll use to store our container images. Heapster is mostly deprecated, so I'll ignore it. We have Monocular with its MongoDB. We can use it as a UI that allows us to browse the charts we'll store in ChartMuseum. Finally, there is Nexus, that we can use to store dependencies of our apps.
-
-Is that all? Not even close. But, it should be enough until we get into actual usage and more advanced topics. What matters for now is that we got everything we need to manage a full lifecycle of our applications. More importantly, we got a process to guide us through that lifecycle. We'll explore the tools and the process in the follow-up chapters. For now, let's just say that this is awesome. We got a lot (much more than what I shared with you so far) from the execution of a single command.
-
-Before we conclude this chapter, let's validate whether we can access those applications. We won't go through all of them just yet, but pick only one. It'll be Jenkins. But, what is its address? Should we take a peek at Ingress to see the host under which Jenkins is accessible? There's no need for that. We can open Jenkins UI with yet another `jx` command.
-
-```bash
-jx console
-```
-
-If you are asked to *pick service to open*, please select `jenkins`, login using `admin` as the username and password, and click the *Blue Ocean* link. Otherwise, Jenkins' Blue Ocean screen will open automatically after you login.
-
-![Figure 2-1: Jenkins X Console](images/ch02/jx-console-environments.png)
-
-What you see in front of you is Jenkins, alive and kicking. It already has two jobs, each being in charge with one of the two environments we have right now (staging and production). They are an essential part of the process we'll explore later. For now, just note that those two repositories will hold all the information about their respective environments.
+As you can see, there are quite a few tools in that Namespace. I won't dive into them just yet. We'll become familiar with each as we're progressing. What matters for now is that we got everything we need to manage the full lifecycle of our applications. More importantly, we got a process to guide us through that lifecycle. We'll explore the tools and the process in the follow-up chapters. For now, let's just say that this is awesome. We got a lot (much more than what I shared with you so far) from the execution of a single command.
 
 ## What Now?
 

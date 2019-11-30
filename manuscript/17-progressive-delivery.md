@@ -297,7 +297,7 @@ kubectl run siege \
     --generator "run-pod/v1" \
     -it --rm \
     -- --concurrent 300 --time 20S \
-    "http://$STAGING_ADDR/demo/hello" \
+    "$STAGING_ADDR/demo/hello" \
     && kubectl \
     --namespace $NAMESPACE-staging \
     get pods
@@ -566,7 +566,7 @@ export AWS_ACCESS_KEY_ID=[...]
 
 export AWS_SECRET_ACCESS_KEY=[...]
 
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_DEFAULT_REGION=us-east-1
 ```
 
 Let's find out the address of our application running in staging.
@@ -990,8 +990,7 @@ We'll install all the tools we need as Jenkins X addons. They are an excellent w
 Let's start with Istio.
 
 ```bash
-jx create addon istio \
-    --version 1.1.7
+jx create addon istio
 ```
 
 W> In some cases, the previous command may fail due to the order Helm applies CRD resources. If that happens, re-run the command again to fix the issue.

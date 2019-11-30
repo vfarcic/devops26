@@ -28,7 +28,8 @@ jx import --pack go --batch-mode
 
 cd ..
 
-jx create addon gloo
+glooctl install knative \
+    --install-knative-version=0.9.0
 
 kubectl get namespaces
 
@@ -112,7 +113,7 @@ kubectl run siege \
     --generator "run-pod/v1" \
      -it --rm \
      -- --concurrent 300 --time 20S \
-     "http://$ADDR/" \
+     "$ADDR" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
@@ -148,7 +149,7 @@ kubectl run siege \
     --generator "run-pod/v1" \
      -it --rm \
      -- --concurrent 400 --time 60S \
-     "http://$ADDR/" \
+     "$ADDR" \
      && kubectl \
      --namespace $NAMESPACE-staging \
     get pods \
