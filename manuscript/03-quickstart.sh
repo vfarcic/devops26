@@ -1,11 +1,9 @@
 # Links to gists for creating a cluster with jx
 
-# gke-jx.sh: https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18
-# eks-jx.sh: https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac
-# aks-jx.sh: https://gist.github.com/6e01717c398a5d034ebe05b195514060
-# jx.sh: https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233
-
-jx console
+# gke-jx-serverless.sh: https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+# eks-jx-serverless.sh: https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+# aks-jx-serverless.sh: https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+# install-serverless.sh: https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
 jx create quickstart
 
@@ -38,11 +36,9 @@ ls -1 charts
 
 ls -1 charts/jx-go
 
-cat Jenkinsfile
+cat jenkins-x.yml
 
 open "https://github.com/$GH_USER/jx-go/settings/hooks"
-
-jx console
 
 jx get activities
 
@@ -50,9 +46,10 @@ jx get activities --filter jx-go --watch
 
 jx get build logs
 
-jx get build logs -f jx-go
+jx get build logs --filter jx-go
 
-jx get build logs $GH_USER/jx-go/master
+jx get build logs \
+    --filter $GH_USER/jx-go/master
 
 jx get pipelines
 
@@ -72,6 +69,8 @@ ADDR=$(kubectl --namespace jx-staging \
 
 curl "http://$ADDR"
 
+cd ..
+
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
 
@@ -81,7 +80,5 @@ hub delete -y \
 hub delete -y $GH_USER/jx-go
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-cd ..
 
 rm -rf jx-go

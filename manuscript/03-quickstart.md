@@ -19,29 +19,21 @@ For that, we need a Kubernetes cluster with Jenkins X.
 
 Jenkins X runs on (almost) any Kubernetes cluster, so I'll let you choose whether you want to use one you already have, or create a new one. As long as Jenkins X is running and is accessible, you should be good to go.
 
-I> All the commands from this chapter are available in the [03-quickstart.sh](https://gist.github.com/a6a6ebc16f75e2cd8902f7695cbce5a5) Gist.
+I> All the commands from this chapter are available in the [03-quickstart.sh](https://gist.github.com/8d1f6e34ba9fdecb5eea49fe6b80979e) Gist.
 
 For your convenience, I have created a few Gists that you can use. Feel free to use them as they are, adapt them to your own needs, or skip them altogether and create your cluster and install Jenkins X on your own.
 
 W> The gists that follow use `-b` to run in the batch mode and they assume that this is not the first time you have created a cluster with `jx`. If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user, and the installation might fail.
 W> Make sure to remove `-b` from the `jx create cluster` command inside the Gists if this is NOT the first time you're creating a cluster with `jx`.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
 W> Please note that the Gists have the section to "destroy the cluster". Do not execute the commands from there until you're finished with this chapter and you do not plan to continue using it for the next.
 
 Now that we have a cluster and that Jenkins X is up and running, we can proceed and create our first quickstart project.
-
-To be on the safe side, we'll confirm that Jenkins X is indeed running and accessible by opening the UI console in a browser.
-
-```bash
-jx console
-```
-
-If you used one of the Gists, both the username and the password are `admin`. Otherwise, please use the value you specified as the `--default-admin-password` argument in the `jx create cluster` command. If you did not set it, Jenkins X created a random password that you should be able to see from the output.
 
 ## Creating A Quickstart Project
 
@@ -122,22 +114,41 @@ ls -1 ~/.jx/draft/packs/github.com/jenkins-x-buildpacks/jenkins-x-kubernetes/pac
 The output is as follows.
 
 ```
+C++
 D
+apps
 appserver
+charts
 csharp
+custom-jenkins
+cwp
+docker
+docker-helm
 dropwizard
+environment
+git
 go
+go-mongodb
 gradle
+helm
 imports.yaml
 javascript
+jenkins
 liberty
 maven
+maven-java11
+ml-python-gpu-service
+ml-python-gpu-training
+ml-python-service
+ml-python-training
+nop
 php
 python
 ruby
 rust
 scala
 swift
+typescript
 ```
 
 We can see that it matches the output we got from the `jx create quickstart` command, even though the names of the directories are not the same.
@@ -190,13 +201,13 @@ The output is as follows.
 
 ```
 Dockerfile
-Jenkinsfile
 Makefile
 OWNERS
 OWNERS_ALIASES
 README.md
 charts
 curlloop.sh
+jenkins-x.yml
 main.go
 skaffold.yaml
 watch.sh
@@ -272,18 +283,12 @@ If you used Helm, the structure should be familiar. If that's not the case, you 
 The last file in that directory is *Jenkinsfile*.
 
 ```bash
-cat Jenkinsfile
+cat jenkins-x.yml
 ```
 
-Just as with the other files generated with Jenkins X quickstart, we'll go into more detail later. For now, focus on the `stages`. We got three out of the box.
+Just as with the other files generated with Jenkins X quickstart, we'll go into more detail later. For now, think of it as a pipeline definition that points to the pipeline `go` defined in a different repository and used with all applications written in GoLang.
 
-The `CI Build and push snapshot` stage is used only with pull requests. Its job is to validate each PR and provider us with sufficient information to decide whether to merge it or not. It also deploys the application so that we can preview it manually if needed.
-
-The `Build Release` stage is limited to commits to the `master` branch with the assumption that all others will become pull requests. As the name indicates, this stage builds the release. In this case, that means building the binary, building a container image, pushing it to the registry, and performing post-build actions.
-
-The last stage is `Promote to Environments`. It creates GitHub release notes, and it deploys the application to the staging environment (namespace).
-
-Jenkins X did not create only a Git project, but also a project in Jenkins, as well as GitHub webhook that will trigger it.
+Jenkins X did not create only a Git project, but also a pipeline in the cluster, as well as GitHub webhook that will trigger it.
 
 ```bash
 open "https://github.com/$GH_USER/jx-go/settings/hooks"
@@ -295,18 +300,6 @@ From now on, every time we push a change to the repository, that webhook will tr
 
 ## Retrieving Jenkins X Activities, Logs, Pipelines, Applications, And Environments
 
-Now that we have created a new quickstart project and explored the files `jx` created for us, we should check the jobs we have in Jenkins.
-
-```bash
-jx console
-```
-
-We can see that there are three jobs named *environment-jx-rocks-production*, *environment-jx-rocks-staging*, and *jx-go*. The first two are in charge of deploying applications to staging and production environments. Since we are using Kubernetes, those environments are separate namespaces. We'll discuss those two later. The third job is related to the *jx-go* project we created as a quickstart.
-
-Feel free to enter inside any of those jobs to see more detail or, to be more precise, to look at the builds they run as well as the logs of the steps they performed.
-
-![Figure 3-3: Jenkins console home screen)](images/ch03/jx-console-go-demo-6.png)
-
 While UIs are nice to look at, I am a firm believer that nothing beats command line concerning speed and repeatability. Fortunately, we can retrieve (almost) any information related to Jenkins X through `jx` executable. We can, for example, get the last activities (builds) of those jobs.
 
 ```bash
@@ -316,31 +309,69 @@ jx get activities
 The output is as follows.
 
 ```
-STEP                                           STARTED AGO DURATION STATUS
-vfarcic/environment-jx-rocks-production/master #1   25m13s    3m46s Succeeded 
-  Checkout Source                                   22m20s       5s Succeeded 
-  Validate Environment                              22m15s      20s Succeeded 
-  Update Environment                                21m55s      28s Succeeded 
-vfarcic/environment-jx-rocks-staging/master #1      25m23s    2m35s Succeeded 
-  Checkout Source                                   23m45s       6s Succeeded 
-  Validate Environment                              23m38s      20s Succeeded 
-  Update Environment                                23m18s      30s Succeeded 
-vfarcic/environment-jx-rocks-staging/master #2      18m11s    1m14s Succeeded 
-  Checkout Source                                   17m52s       5s Succeeded 
-  Validate Environment                              17m47s      21s Succeeded 
-  Update Environment                                17m26s      29s Succeeded 
-vfarcic/jx-go/master #1                             21m12s    4m17s Succeeded Version: 0.0.1
-  Checkout Source                                   20m35s       7s Succeeded 
-  CI Build and push snapshot                        20m28s          NotExecuted 
-  Build Release                                     20m27s      46s Succeeded 
-  Promote to Environments                           19m41s    2m46s Succeeded 
-  Promote: staging                                  19m22s    2m26s Succeeded 
-    PullRequest                                     19m22s    1m25s Succeeded PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/1 Merge SHA: 563c73b772066fe5ef76ed247de6a6d87ea64288
-    Update                                          17m57s     1m1s Succeeded Status: Success at: http://jenkins.jx.jenkinx.34.73.64.91.nip.io/job/vfarcic/job/environment-jx-rocks-staging/job/master/2/display/redirect
-    Promoted                                        17m57s     1m1s Succeeded Application is at: http://jx-go.jx-staging.jenkinx.34.73.64.91.nip.io
+STEP                                              STARTED AGO DURATION STATUS
+vfarcic/environment-jx-rocks-staging/master #1          5m17s      59s Succeeded 
+  meta pipeline                                         5m17s      14s Succeeded 
+    Credential Initializer Cd47r                        5m17s       0s Succeeded 
+    Working Dir Initializer N5vv7                       5m17s       1s Succeeded 
+    Place Tools                                         5m16s       1s Succeeded 
+    Git Source Meta Vfarcic Environment Jx Roc ...      5m15s       4s Succeeded https://github.com/vfarcic/environment-jx-rocks-staging.git
+    Git Merge                                           5m11s       1s Succeeded 
+    Merge Pull Refs                                     5m10s       0s Succeeded 
+    Create Effective Pipeline                           5m10s       2s Succeeded 
+    Create Tekton Crds                                   5m8s       5s Succeeded 
+  from build pack                                        5m2s      44s Succeeded 
+    Credential Initializer Q4qvj                         5m2s       0s Succeeded 
+    Working Dir Initializer Gtj86                        5m2s       1s Succeeded 
+    Place Tools                                          5m1s       1s Succeeded 
+    Git Source Vfarcic Environment Jx Rocks St ...       5m0s       5s Succeeded https://github.com/vfarcic/environment-jx-rocks-staging.git
+    Git Merge                                           4m55s       1s Succeeded 
+    Setup Jx Git Credentials                            4m54s       1s Succeeded 
+    Build Helm Apply                                    4m53s      35s Succeeded 
+vfarcic/environment-jx-rocks-staging/PR-1 #1            6m22s      47s Succeeded 
+  meta pipeline                                         6m22s      12s Succeeded 
+    Credential Initializer Jdbwq                        6m22s       0s Succeeded 
+    Working Dir Initializer T54b2                       6m22s       0s Succeeded 
+    Place Tools                                         6m22s       1s Succeeded 
+    Git Source Meta Vfarcic Environment Jx Roc ...      6m21s       5s Succeeded https://github.com/vfarcic/environment-jx-rocks-staging.git
+    Git Merge                                           6m16s       0s Succeeded 
+    Merge Pull Refs                                     6m16s       1s Succeeded 
+    Create Effective Pipeline                           6m15s       3s Succeeded 
+    Create Tekton Crds                                  6m12s       2s Succeeded 
+  from build pack                                        6m7s      32s Succeeded 
+    Credential Initializer Ntjdr                         6m7s       0s Succeeded 
+    Working Dir Initializer 86qgm                        6m7s       1s Succeeded 
+    Place Tools                                          6m6s       1s Succeeded 
+    Git Source Vfarcic Environment Jx Rocks St ...       6m5s       4s Succeeded https://github.com/vfarcic/environment-jx-rocks-staging.git
+    Git Merge                                            6m1s       1s Succeeded 
+    Build Helm Build                                     6m0s      25s Succeeded 
+vfarcic/jx-go/master #1                                 7m24s    2m26s Succeeded Version: 0.0.1
+  meta pipeline                                         7m24s      18s Succeeded 
+    Credential Initializer J9wnj                        7m24s       0s Succeeded 
+    Working Dir Initializer Fs82g                       7m24s       2s Succeeded 
+    Place Tools                                         7m22s       2s Succeeded 
+    Git Source Meta Vfarcic Jx Go Master ...            7m20s       3s Succeeded https://github.com/vfarcic/jx-go.git
+    Git Merge                                           7m17s       1s Succeeded 
+    Merge Pull Refs                                     7m16s       0s Succeeded 
+    Create Effective Pipeline                           7m16s       3s Succeeded 
+    Create Tekton Crds                                  7m13s       7s Succeeded 
+  from build pack                                        7m4s     2m6s Succeeded 
+    Credential Initializer Fmc45                         7m4s       0s Succeeded 
+    Working Dir Initializer Vpjff                        7m4s       3s Succeeded 
+    Place Tools                                          7m1s       2s Succeeded 
+    Git Source Vfarcic Jx Go Master ...                 6m59s      11s Succeeded https://github.com/vfarcic/jx-go.git
+    Git Merge                                           6m48s       1s Succeeded 
+    Setup Jx Git Credentials                            6m47s       0s Succeeded 
+    Build Make Build                                    6m47s       6s Succeeded 
+    Build Container Build                               6m41s       2s Succeeded 
+    Build Post Build                                    6m39s       1s Succeeded 
+    Promote Changelog                                   6m38s       4s Succeeded 
+    Promote Helm Release                                6m34s       5s Succeeded 
+    Promote Jx Promote                                  6m29s    1m31s Succeeded 
+  Promote: staging                                      6m24s    1m26s Succeeded 
+    PullRequest                                         6m24s    1m26s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/1 Merge SHA: ...
+    Update                                              4m58s       0s Succeeded 
 ```
-
-I> You might not see the activities from all three pipelines. If that's the case, the likely culprit is GitHub API quota that limits the number of requests that can be made. As a result, Jenkins might not be able to reach GitHub and fetch Jenkinsfile that defines the pipeline. The quota renews every hour so you might need to wait for a while.
 
 We can see that there were activities with each of the three jobs. We had one deployment to the production environment (`environment-jx-rocks-production`), and two deployments to staging (`environment-jx-rocks-staging`). The first build (activity) is always performed when a job is created. Initially, environments only contain a few applications necessary for their correct operation. The reason for the second build of the staging environment lies in the creation of the *jx-go* project. One of the steps in its pipeline is in charge of promoting a successful build to the staging environment automatically. When we explore Jenkinsfile in more detail, you'll get a better understanding of the process, including promotions.
 
@@ -355,19 +386,36 @@ jx get activities --filter jx-go --watch
 This time, the output is limited to all the activities related to *jx-go* which, in our case, is a single build of the *master* branch.
 
 ```
-STEP                         STARTED AGO DURATION STATUS
-vfarcic/jx-go/master #1           21m46s    4m17s Succeeded Version: 0.0.1
-  Checkout Source                  21m9s       7s Succeeded
-  CI Build and push snapshot       21m2s          NotExecuted
-  Build Release                    21m1s      46s Succeeded
-  Promote to Environments         20m15s    2m46s Succeeded
-  Promote: staging                19m56s    2m26s Succeeded
-    PullRequest                   19m56s    1m25s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/1 Merge SHA: 563c73b772066fe5ef76ed247de6a6d87ea64288
-    Update                        18m31s     1m1s Succeeded  Status: Success at: http://jenkins.jx.jenkinx.34.73.64.91.nip.io/job/vfarcic/job/environment-jx-rocks-staging/job/master/2/display/redirect
-    Promoted                      18m31s     1m1s Succeeded  Application is at: http://jx-go.jx-staging.jenkinx.34.73.64.91.nip.io
+STEP                                        STARTED AGO DURATION STATUS
+vfarcic/jx-go/master #1                           9m53s    2m26s Succeeded Version: 0.0.1
+  meta pipeline                                   9m53s      18s Succeeded 
+    Credential Initializer J9wnj                  9m53s       0s Succeeded 
+    Working Dir Initializer Fs82g                 9m53s       2s Succeeded 
+    Place Tools                                   9m51s       2s Succeeded 
+    Git Source Meta Vfarcic Jx Go Master ...      9m49s       3s Succeeded https://github.com/vfarcic/jx-go.git
+    Git Merge                                     9m46s       1s Succeeded 
+    Merge Pull Refs                               9m45s       0s Succeeded 
+    Create Effective Pipeline                     9m45s       3s Succeeded 
+    Create Tekton Crds                            9m42s       7s Succeeded 
+  from build pack                                 9m33s     2m6s Succeeded 
+    Credential Initializer Fmc45                  9m33s       0s Succeeded 
+    Working Dir Initializer Vpjff                 9m33s       3s Succeeded 
+    Place Tools                                   9m30s       2s Succeeded 
+    Git Source Vfarcic Jx Go Master ...           9m28s      11s Succeeded https://github.com/vfarcic/jx-go.git
+    Git Merge                                     9m17s       1s Succeeded 
+    Setup Jx Git Credentials                      9m16s       0s Succeeded 
+    Build Make Build                              9m16s       6s Succeeded 
+    Build Container Build                         9m10s       2s Succeeded 
+    Build Post Build                               9m8s       1s Succeeded 
+    Promote Changelog                              9m7s       4s Succeeded 
+    Promote Helm Release                           9m3s       5s Succeeded 
+    Promote Jx Promote                            8m58s    1m31s Succeeded 
+  Promote: staging                                8m53s    1m26s Succeeded 
+    PullRequest                                   8m53s    1m26s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/1 Merge SHA: 078c131331ccf7460b32f54e979b8797ae4e55e7
+    Update                                        7m27s       0s Succeeded 
 ```
 
-This time, we used the `-w` flag to tell Jenkins X that we'd like to *watch* the activities. Since there are no pending builds, the output will stay intact, so please press *ctrl+c* to stop the watch and return to the prompt.
+This time, we used the `--watch` flag to tell Jenkins X that we'd like to *watch* the activities. Since there are no pending builds, the output will stay intact, so please press *ctrl+c* to stop the watch and return to the prompt.
 
 I> Internally, Jenkins X activities are stored as Kubernetes Custom Resources (CRDs). If you're curious, you can see them by executing `kubectl --namespace jx get act`.
 
@@ -381,10 +429,10 @@ Since we did not specify from which build we'd like to retrieve logs, we are fac
 
 Please press *ctrl+c* to return to the prompt.
 
-We can use `-f` argument to retrieve logs from the last build of a specific pipeline.
+We can use `--filter` argument to retrieve logs from the last build of a specific pipeline.
 
 ```bash
-jx get build logs -f jx-go
+jx get build logs --filter jx-go
 ```
 
 The output should show the logs of the last build of *jx-go*, no matter the branch.
@@ -392,7 +440,8 @@ The output should show the logs of the last build of *jx-go*, no matter the bran
 We can be even more specific than that and request logs from the specific GitHub user, of the specific pipeline, from the last build of a specific branch.
 
 ```bash
-jx get build logs $GH_USER/jx-go/master
+jx get build logs \
+    --filter $GH_USER/jx-go/master
 ```
 
 The output should show the logs of the last build of the *jx-go* pipeline initiated by a commit to the *master* branch.
@@ -403,7 +452,7 @@ Being able to retrieve logs from a specific pipeline is not of much use if we do
 jx get pipelines
 ```
 
-The output should show that there are three pipelines, two related to the environments, and one for the *jx-go* project.
+We can see that there are three pipelines named *environment-jx-rocks-production*, *environment-jx-rocks-staging*, and *jx-go* (I'll ignore the existence of the `dummy` pipeline). The first two are in charge of deploying applications to staging and production environments. Since we are using Kubernetes, those environments are separate namespaces. We'll discuss those two later. The third job is related to the *jx-go* project we created as a quickstart.
 
 Similarly, we can also retrieve the list of applications currently managed by Jenkins X.
 
@@ -415,7 +464,7 @@ The output is as follows.
 
 ```
 APPLICATION STAGING PODS URL
-jx-go       0.0.1   1/1  http://jx-go.jx-staging.34.73.155.90.nip.io
+jx-go       0.0.1   1/1  http://jx-go.jx-staging.34.206.148.101.nip.io
 ```
 
 For now, retrieving the applications is uneventful since we have only one deployed to the staging environment.
@@ -447,13 +496,13 @@ The output is as follows.
 
 ```
 APPLICATION STAGING PODS URL
-jx-go       0.0.1   1/1  http://jx-go.jx-staging.jenkinx.34.73.64.91.nip.io
+jx-go       0.0.1   1/1  http://jx-go.jx-staging.34.206.148.101.nip.io
 ```
 
 We already knew from before that the *jx-go* application is running in staging and we already know that nothing is installed in production. Nevertheless, we can confirm that with the command that follows.
 
 ```bash
-jx get applications -e production
+jx get applications --env production
 ```
 
 It should come as no surprise that the output states that `no applications` were `found in environments production`. We did not promote anything to production yet. We'll do that later.
@@ -490,6 +539,12 @@ All in all, this was a very quick introduction, and the real fun is coming next.
 
 Now is a good time for you to take a break.
 
+Please go out (back) of the `jx-go` directory.
+
+```bash
+cd ..
+```
+
 If you created a cluster only for the purpose of the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom.
 
 If you did choose to destroy the cluster or to uninstall Jenkins X, please remove the repositories we created as well as the local files. You can use the commands that follow for that.
@@ -504,8 +559,6 @@ hub delete -y \
 hub delete -y $GH_USER/jx-go
 
 rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-
-cd ..
 
 rm -rf jx-go
 ```
