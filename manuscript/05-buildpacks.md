@@ -442,9 +442,20 @@ curl "$STAGING_ADDR/demo/hello"
 
 The first command should show that all the Pods are now running, while the last should output the familiar "hello, world" message.
 
-Before we proceed, we'll go out of the `go-demo-6` directory.
+Before we proceed, we'll go back to the `go` build pack. That way, we won't depend on it in the upcoming chapters.
 
 ```bash
+cat jenkins-x.yml \
+    | sed -e \
+    's@buildPack: go-mongo@buildPack: go@g' \
+    | tee jenkins-x.yml
+
+git add .
+
+git commit -m "Reverted to the go buildpack"
+
+git push
+
 cd ..
 ```
 

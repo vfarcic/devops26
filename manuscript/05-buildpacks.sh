@@ -138,6 +138,17 @@ STAGING_ADDR=[...]
 
 curl "$STAGING_ADDR/demo/hello"
 
+cat jenkins-x.yml \
+    | sed -e \
+    's@buildPack: go-mongo@buildPack: go@g' \
+    | tee jenkins-x.yml
+
+git add .
+
+git commit -m "Reverted to the go buildpack"
+
+git push
+
 cd ..
 
 GH_USER=[...]

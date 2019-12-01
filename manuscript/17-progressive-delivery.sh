@@ -1,172 +1,96 @@
-# Links to gists for creating a Jenkins X cluster
-# gke-jx-gloo.sh: https://gist.github.com/dfaaca2e89676ee1848d2b4499c63709)
-# gke-jx-serverless-gloo.sh: https://gist.github.com/72b77eb4846eac10a91ca139274bd06c)
-# eks-jx-gloo.sh: https://gist.github.com/97184bedebfdc91628b87da7c0f07d43)
-# eks-jx-serverless-gloo.sh: https://gist.github.com/3fc23136cb76ff5518ae27c47308d28a)
-# aks-jx-gloo.sh: https://gist.github.com/378193008889f5c71f00b7df005cf4eb)
-# aks-jx-serverless-gloo.sh: https://gist.github.com/1164ac0b9a16f07905afcf98725ae103)
-# install.sh: https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
-# install-serverless.sh: https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+# Links to gists for creating a cluster with jx
+# gke-jx-serverless-gloo.sh: https://gist.github.com/cf939640f2af583c3a12d04affa67923
+# eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
+# aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
+# install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 
-NAMESPACE=$(kubectl config view \
-    --minify \
-    --output jsonpath="{..namespace}")
+jx create quickstart \
+    --filter golang-http \
+    --project-name jx-progressive \
+    --batch-mode
 
-cd go-demo-6
+cd jx-progressive
 
-git pull
+cat charts/jx-progressive/templates/ksvc.yaml
 
-# If GKE
-BRANCH=knative-$NAMESPACE
-
-# If NOT GKE
-BRANCH=extension-model-$NAMESPACE
-
-git checkout $BRANCH
-
-git merge -s ours master --no-edit
-
-git checkout master
-
-git merge $BRANCH
-
-git push
-
-cd ..
-
-# If GKE
-cd go-demo-6
-
-# If GKE
-cat charts/go-demo-6/Makefile \
-    | sed -e \
-    "s@vfarcic@$PROJECT@g" \
-    | tee charts/go-demo-6/Makefile
-
-# If GKE
-cat charts/preview/Makefile \
-    | sed -e \
-    "s@vfarcic@$PROJECT@g" \
-    | tee charts/preview/Makefile
-
-# If GKE
-cat skaffold.yaml \
-    | sed -e \
-    "s@vfarcic@$PROJECT@g" \
-    | tee skaffold.yaml
-
-# If GKE
-git add .
-
-# If GKE
-git commit -m "Fixed the project"
-
-# If GKE
-git push
-
-# If GKE
-cd ..
-
-cd go-demo-6
-
-jx import --pack go --batch-mode
-
-cd ..
-
-# If GKE
-cd go-demo-6
-
-# If GKE
-cat charts/go-demo-6/templates/ksvc.yaml
-
-# If GKE
 jx get activities \
-    --filter go-demo-6 \
+    --filter jx-progressive \
     --watch
 
-# If GKE and serverless Jenkins X
 jx get activities \
-    --filter environment-tekton-staging/master \
+    --filter environment-jx-rocks-staging/master \
     --watch
 
-# If GKE
-kubectl \
-    --namespace $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get pods
 
-# If GKE
 STAGING_ADDR=$(kubectl \
-    --namespace $NAMESPACE-staging \
-    get ksvc go-demo-6 \
-    --output jsonpath="{.status.domain}")
+    --namespace jx-staging \
+    get ksvc jx-progressive \
+    --output jsonpath="{.status.url}")
 
-# If GKE
-curl "http://$STAGING_ADDR/demo/hello"
+curl "$STAGING_ADDR"
 
-# If GKE
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods
 
-# If GKE
 kubectl run siege \
     --image yokogawa/siege \
     --generator "run-pod/v1" \
-     -it --rm \
-     -- --concurrent 300 --time 20S \
-     "$STAGING_ADDR/demo/hello" \
-     && kubectl \
-     --namespace $NAMESPACE-staging \
+    -it --rm \
+    -- --concurrent 300 --time 20S \
+    "$STAGING_ADDR" \
+    && kubectl \
+    --namespace jx-staging \
     get pods
 
-# If GKE
 jx edit deploy \
     --kind default \
     --batch-mode
 
-# If GKE
-cat charts/go-demo-6/values.yaml \
+cat charts/jx-progressive/values.yaml \
     | grep knative
 
-# If GKE
 cd ..
 
-cd go-demo-6
+cd jx-progressive
 
-cat charts/go-demo-6/templates/deployment.yaml \
+cat charts/jx-progressive/values.yaml \
+    | sed -e \
+    's@replicaCount: 1@replicaCount: 3@g' \
+    | tee charts/jx-progressive/values.yaml
+
+cat charts/jx-progressive/templates/deployment.yaml \
     | sed -e \
     's@  replicas:@  strategy:\
     type: Recreate\
   replicas:@g' \
-    | tee charts/go-demo-6/templates/deployment.yaml
+    | tee charts/jx-progressive/templates/deployment.yaml
 
-cat charts/go-demo-6/templates/deployment.yaml
+cat charts/jx-progressive/templates/deployment.yaml
 
 git add .
 
 git commit -m "Recreate strategy"
 
-git push
+git push --set-upstream origin master
 
 jx get activities \
-    --filter go-demo-6/master \
+    --filter jx-progressive/master \
     --watch
 
-# If serverless Jenkins X
 jx get activities \
-    --filter environment-tekton-staging/master \
+    --filter environment-jx-rocks-staging/master \
     --watch
 
-kubectl \
-    --namespace $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get pods
 
-kubectl \
-    --namespace $NAMESPACE-staging \
-    describe deployment jx-go-demo-6
+kubectl --namespace jx-staging \
+    describe deployment jx-jx-progressive
 
-kubectl \
-    --namespace $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get ing
 
 echo "something" | tee README.md
@@ -178,16 +102,12 @@ git commit -m "Recreate strategy"
 git push
 
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get ing
 
 cat main.go | sed -e \
-    "s@hello, PR@hello, recreate@g" \
+    "s@example@recreate@g" \
     | tee main.go
-
-cat main_test.go | sed -e \
-    "s@hello, PR@hello, recreate@g" \
-    | tee main_test.go
 
 git add .
 
@@ -195,15 +115,10 @@ git commit -m "Recreate strategy"
 
 git push
 
-# Open a second terminal window.
-
-# If EKS
 export AWS_ACCESS_KEY_ID=[...]
 
-# If EKS
 export AWS_SECRET_ACCESS_KEY=[...]
 
-# If EKS
 export AWS_DEFAULT_REGION=us-east-1
 
 jx get applications --env staging
@@ -212,24 +127,18 @@ STAGING_ADDR=[...]
 
 while true
 do
-    curl "$STAGING_ADDR/demo/hello"
+    curl "$STAGING_ADDR"
     sleep 0.2
 done
 
-# Go to the first terminal
-
-cat charts/go-demo-6/templates/deployment.yaml \
+cat charts/jx-progressive/templates/deployment.yaml \
     | sed -e \
     's@type: Recreate@type: RollingUpdate@g' \
-    | tee charts/go-demo-6/templates/deployment.yaml
+    | tee charts/jx-progressive/templates/deployment.yaml
 
 cat main.go | sed -e \
-    "s@hello, recreate@hello, rolling update@g" \
+    "s@recreate@rolling update@g" \
     | tee main.go
-
-cat main_test.go | sed -e \
-    "s@hello, recreate@hello, rolling update@g" \
-    | tee main_test.go
 
 git add .
 
@@ -237,39 +146,33 @@ git commit -m "Recreate strategy"
 
 git push
 
-# Go to the second terminal
-
 while true
 do
-    curl "$STAGING_ADDR/demo/hello"
+    curl "$STAGING_ADDR"
     sleep 0.2
 done
 
-# Go to the first terminal
-
-kubectl \
-    --namespace $NAMESPACE-staging \
-    describe deployment jx-go-demo-6
+kubectl --namespace jx-staging \
+    describe deployment jx-jx-progressive
 
 jx get applications --env staging
 
 VERSION=[...]
 
-jx promote go-demo-6 \
+jx promote jx-progressive \
     --version $VERSION \
     --env production \
     --batch-mode
 
-# If serverless Jenkins X
 jx get activities \
-    --filter environment-tekton-production/master \
+    --filter environment-jx-rocks-production/master \
     --watch
 
 jx get applications --env production
 
 PRODUCTION_ADDR=[...]
 
-curl "$PRODUCTION_ADDR/demo/hello"
+curl "$PRODUCTION_ADDR"
 
 jx create addon istio
 
@@ -297,18 +200,17 @@ kubectl --namespace istio-system \
     get pods
 
 kubectl describe namespace \
-    $NAMESPACE-production
+    jx-production
 
 kubectl describe namespace \
-    $NAMESPACE-staging
+    jx-staging
 
-kubectl label namespace \
-    $NAMESPACE-staging \
+kubectl label namespace jx-staging \
     istio-injection=enabled \
     --overwrite
 
 kubectl describe namespace \
-    $NAMESPACE-staging
+    jx-staging
 
 echo "{{- if .Values.canary.enable }}
 apiVersion: flagger.app/v1alpha2
@@ -342,7 +244,7 @@ spec:
 {{ toYaml .Values.canary.canaryAnalysis.metrics | indent 4 }}
 {{- end }}
 {{- end }}
-" | tee charts/go-demo-6/templates/canary.yaml
+" | tee charts/jx-progressive/templates/canary.yaml
 
 echo "
 canary:
@@ -350,7 +252,7 @@ canary:
   provider: istio
   service:
     hosts:
-    - go-demo-6.$ISTIO_IP.nip.io
+    - jx-progressive.$ISTIO_IP.nip.io
     gateways:
     - jx-gateway.istio-system.svc.cluster.local
   canaryAnalysis:
@@ -365,35 +267,22 @@ canary:
     - name: request-duration
       threshold: 500
       interval: 120s
-" | tee -a charts/go-demo-6/values.yaml
-
-cat charts/go-demo-6/values.yaml \
-    | sed -e \
-    's@go-demo-6-db:@go-demo-6-db:\
-  podAnnotations:\
-    sidecar.istio.io/inject: "false"@g' \
-    | tee charts/go-demo-6/values.yaml
+" | tee -a charts/jx-progressive/values.yaml
 
 cd ..
 
-# If static Jenkins X
-ENVIRONMENT=jx-rocks
-
-# If serverless Jenkins X
-ENVIRONMENT=tekton
-
-rm -rf environment-$ENVIRONMENT-staging
+rm -rf environment-jx-rocks-staging
 
 GH_USER=[...]
 
 git clone \
-    https://github.com/$GH_USER/environment-$ENVIRONMENT-staging.git
+    https://github.com/$GH_USER/environment-jx-rocks-staging.git
 
-cd environment-$ENVIRONMENT-staging
+cd environment-jx-rocks-staging
 
-STAGING_ADDR=staging.go-demo-6.$ISTIO_IP.nip.io
+STAGING_ADDR=staging.jx-progressive.$ISTIO_IP.nip.io
 
-echo "go-demo-6:
+echo "jx-progressive:
   canary:
     enable: true
     service:
@@ -408,7 +297,7 @@ git commit \
 
 git push
 
-cd ../go-demo-6
+cd ../jx-progressive
 
 git add .
 
@@ -418,39 +307,32 @@ git commit \
 git push
 
 jx get activities \
-    --filter go-demo-6/master \
+    --filter jx-progressive/master \
     --watch
 
-# If serverless Jenkins X
 jx get activities \
-    --filter environment-tekton-staging/master \
+    --filter environment-jx-rocks-staging/master \
     --watch
 
 curl $STAGING_ADDR/demo/hello
 
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods
 
-kubectl \
-    --namespace $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get canary
 
-kubectl \
-    --namespace $NAMESPACE-staging \
-    get virtualservice.networking.istio.io
+kubectl --namespace jx-staging \
+    get virtualservices.networking.istio.io
 
 kubectl \
     --namespace istio-system logs \
     --selector app.kubernetes.io/name=flagger
 
 cat main.go | sed -e \
-    "s@hello, rolling update@hello, progressive@g" \
+    "s@rolling update@progressive@g" \
     | tee main.go
-
-cat main_test.go | sed -e \
-    "s@hello, rolling update@hello, progressive@g" \
-    | tee main_test.go
 
 git add .
 
@@ -461,63 +343,27 @@ git push
 
 echo $STAGING_ADDR
 
-# Go to the second terminal
-
 STAGING_ADDR=[...]
 
 while true
 do
-    curl "$STAGING_ADDR/demo/hello"
+    curl "$STAGING_ADDR"
     sleep 0.2
 done
 
-# Go to the first terminal
-
-kubectl \
-    --namespace $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get pods
 
-kubectl \
-    --namespace $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get virtualservice.networking.istio.io \
-    jx-go-demo-6 \
+    jx-jx-progressive \
     --output yaml
 
-kubectl -n $NAMESPACE-staging \
+kubectl --namespace jx-staging \
     get canary
 
-kubectl \
-    --namespace $NAMESPACE-staging \
-    describe canary jx-go-demo-6
-
-cat main.go | sed -e \
-    "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
-    | tee main.go
-
-cat main_test.go | sed -e \
-    "s@Everything is still OK@Everything is still OK with progressive delivery@g" \
-    | tee main_test.go
-
-git add .
-
-git commit \
-    -m "Added progressive deployment"
-
-git push
-
-# Go to the second terminal
-
-while true
-do
-    curl "$STAGING_ADDR/demo/random-error"
-    sleep 0.2
-done
-
-# Go to the first terminal
-
-kubectl \
-    --namespace $NAMESPACE-staging \
-    describe canary jx-go-demo-6
+kubectl --namespace jx-staging \
+    describe canary jx-jx-progressive
 
 # If NOT EKS
 LB_IP=$(kubectl \
@@ -560,18 +406,15 @@ cd ..
 
 GH_USER=[...]
 
-# If serverless
-ENVIRONMENT=tekton
-
-# If static
-ENVIRONMENT=jx-rocks
+hub delete -y \
+    $GH_USER/environment-jx-rocks-staging
 
 hub delete -y \
-    $GH_USER/environment-$ENVIRONMENT-staging
+    $GH_USER/environment-jx-rocks-production
 
 hub delete -y \
-    $GH_USER/environment-$ENVIRONMENT-production
+    $GH_USER/jx-progressive
 
-rm -rf ~/.jx/environments/$GH_USER/environment-$ENVIRONMENT-*
+rm -rf environment-jx-rocks-staging
 
-rm -rf environment-$ENVIRONMENT-staging
+rm -rf $GH_USER/jx-progressive

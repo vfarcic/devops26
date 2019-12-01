@@ -12,29 +12,56 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
+# The command that follows uses `--batch-mode` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
 # If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
+# Please remove `--batch-mode` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
 jx create cluster gke \
     --cluster-name jx-rocks \
     --project-id $PROJECT \
     --region us-east1 \
-    --machine-type n1-standard-4 \
+    --machine-type n1-standard-2 \
     --min-num-nodes 1 \
     --max-num-nodes 2 \
     --default-admin-password=admin \
-    --default-environment-prefix tekton \
+    --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --namespace cd \
+    --namespace jx \
     --prow \
     --tekton \
     --batch-mode
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 
+############################
+# Install Gloo And Knative #
+############################
+
 glooctl install knative \
     --install-knative-version=0.9.0
+
+jx edit deploy \
+    --team \
+    --kind knative \
+    --batch-mode
+
+KNATIVE_IP=$(kubectl \
+    --namespace gloo-system \
+    get service knative-external-proxy \
+    --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
+echo $KNATIVE_IP
+
+# Confirm that the IP exists (that the LB was created)
+
+echo "apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-domain
+  namespace: knative-serving
+data:
+  $KNATIVE_IP.nip.io: \"\"" \
+    | kubectl apply --filename -
 
 #######################
 # Destroy the cluster #

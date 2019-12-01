@@ -26,18 +26,14 @@ That was enough of a pep talk. Let's jump into examples that will illustrate thi
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Kubernetes cluster with Jenkins X.
 
-I> All the commands from this chapter are available in the [19-apps.sh](https://gist.github.com/3b3af5bda3582bd2fc0e7887516544b0) Gist.
+I> All the commands from this chapter are available in the [19-apps.sh](https://gist.github.com/422c42cf08eaf9df0e8d18f1dc93a0bd) Gist.
 
 For your convenience, the Gists with different cluster creation and Jenkins X installation combinations are provided below. Choose one that best fits your needs and run it as-is, or modify it to fit your use-case. Alternatively, feel free to create a cluster and install Jenkins X in any other way. At this point, you should be able to install Jenkins X, not the way I tell you, but in the way that best fits your situation, so Gists might not be needed at all. Nevertheless, they are here just in case. What matters is that you have a cluster with Jenkins X up-and-running.
 
-* Create a new **GKE** cluster with **serverless** Jenkins X created **with the Boot**: [gke-jx-boot.sh](https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f)
-* Create a new **GKE** cluster with **static** Jenkins X created **without the Boot**: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create a new **EKS** cluster with **serverless** Jenkins X created **without the Boot**: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create a new **EKS** cluster with **static** Jenkins X created **without the Boot**: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create a new **AKS** cluster with **serverless** Jenkins X created **without the Boot**: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Create a new **AKS** cluster with **static** Jenkins X created **without the Boot**: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Create an **existing** cluster with **serverless** Jenkins X created **without the Boot**: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
-* Create an **existing** cluster with **static** Jenkins X created **without the Boot**: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster created **with the Boot**: [gke-jx-boot.sh](https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f)
+* Create a new serverless **EKS** cluster created **without the Boot**: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster created **without the Boot**: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster created **without the Boot**: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 Now we are ready to talk about installing, validating, and managing third-party applications.
 
