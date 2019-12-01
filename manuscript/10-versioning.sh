@@ -1,12 +1,30 @@
 # Links to gists for creating a cluster with jx
-# gke-jx.sh: https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18
-# eks-jx.sh: https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac
-# aks-jx.sh: https://gist.github.com/6e01717c398a5d034ebe05b195514060
-# install.sh: https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233
+# gke-jx-serverless.sh: https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8
+# eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
+# aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
+# install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 
 cd go-demo-6
 
 git checkout master
+
+# If GKE
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+# If GKE
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+# If GKE
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
 
 jx import --batch-mode
 
@@ -14,9 +32,11 @@ jx get activities \
     --filter go-demo-6 \
     --watch
 
+cd ..
+
 jx get applications
 
-jx create devpod -b
+jx create devpod --label go --batch-mode
 
 jx rsh -d
 
@@ -41,14 +61,6 @@ exit
 
 jx delete devpod
 
-# Add `VERSION := 1.0.0` to Makefile`
-
-jx-release-version
-
-cat Jenkinsfile
-
-cat Jenkinsfile
-
 git add .
 
 git commit \
@@ -60,7 +72,7 @@ jx get activities \
     --filter go-demo-6 \
     --watch
 
-jx get applications
+jx get applications --env staging
 
 GH_USER=[...]
 
@@ -75,7 +87,9 @@ git commit \
 
 git push
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 
 cd ..
 

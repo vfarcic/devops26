@@ -48,14 +48,14 @@ That was enough of theory. We'll explore through practical hands-on examples how
 
 If you kept the cluster from the previous chapter, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [10-versioning.sh](https://gist.github.com/a9dc4b033aadedb460c92381d27ecffc) Gist.
+I> All the commands from this chapter are available in the [10-versioning.sh](https://gist.github.com/c7f4de887ea45232ea64400264340a73) Gist.
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create new **GKE** cluster: [gke-jx.sh](https://gist.github.com/86e10c8771582c4b6a5249e9c513cd18)
-* Create new **EKS** cluster: [eks-jx.sh](https://gist.github.com/dfaf2b91819c0618faf030e6ac536eac)
-* Create new **AKS** cluster: [aks-jx.sh](https://gist.github.com/6e01717c398a5d034ebe05b195514060)
-* Use an **existing** cluster: [install.sh](https://gist.github.com/3dd5592dc5d582ceeb68fb3c1cc59233)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 We'll continue using the *go-demo-6* application. Please enter the local copy of the repository, unless you're there already.
 
@@ -63,6 +63,25 @@ We'll continue using the *go-demo-6* application. Please enter the local copy of
 cd go-demo-6
 
 git checkout master
+```
+
+W> Please execute the commands that follow only if you are using **GKE** and if you ever restored a branch at the beginning of a chapter (like in the snippet above).
+
+```bash
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
 ```
 
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
@@ -73,6 +92,8 @@ jx import --batch-mode
 jx get activities \
     --filter go-demo-6 \
     --watch
+
+cd ..
 ```
 
 Please wait until the activity of the application shows that all the steps were executed successfully, and stop the watcher by pressing *ctrl+c*.
@@ -103,7 +124,7 @@ There are two ways we can proceed with the examples that involve `jx-release-ver
 W> Please make sure that you are inside the local copy of the *go-demo-6* repository before executing the commands that follow.
 
 ```bash
-jx create devpod -b
+jx create devpod --label go --batch-mode
 
 jx rsh -d
 
@@ -196,98 +217,11 @@ W> Just as before, do not use `1.0.0` blindly. Make sure that the major version 
 
 Please save the changes before proceeding.
 
-Let's see what will be the output of `jx-release-version` now.
+If we'd execute `jx-release-version`, the output would be `1.0.0` (or whichever value was put into the Makefile). We won't do that because we do not have `jx-release-version` on our laptop, and we already deleted the DevPod. For now, you'll need to trust me on that one.
 
-```bash
-jx-release-version
-```
+By now, you might be wondering why we are exploring `jx-release-version`. What is its relation to Jenkins X pipelines? That binary is used in every pipeline available in Jenkins X build packs. We'll see that part of definitions later when we explore Jenkins X pipelines. For now, we'll focus on the effect it produces, rather than how and where is its usage defined.
 
-This time, my output is `1.0.0`. `jx-release-version` read the value of `VERSION` in Makefile and filtered the Git tags so that only those belonging to the major version `1` and minor version `0` are retrieved. Since it found none, it deduced that it should be the first release of the new major version and set the patch version to `0`.
-
-By now, you might be wondering why we are exploring `jx-release-version`. What is its relation to Jenkins X pipelines? If you paid close attention to Jenkinsfile we've been using so far, you probably already know the answer. Nevertheless, we'll take another look at the project's Jenkinsfile.
-
-Since previews and releases to permanent environments use different versioning logic, we'll explore each separately, starting with the previews.
-
-```bash
-cat Jenkinsfile
-```
-
-The output, limited to the relevant parts, is as follows.
-
-```groovy
-pipeline {
-  ...
-  stages {
-    stage('CI Build and push snapshot') {
-      when {
-        branch 'PR-*'
-      }
-      environment {
-        PREVIEW_VERSION = "0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER"
-        ...
-      }
-      steps {
-        container('go') {
-          dir('/home/jenkins/go/src/github.com/vfarcic/go-demo-6') {
-            ...
-            sh "export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml"
-            sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
-          }
-          dir('/home/jenkins/go/src/github.com/vfarcic/go-demo-6/charts/preview') {
-            sh "make preview"
-            sh "jx preview --app $APP_NAME --dir ../.."
-          }
-          ...
-```
-
-When previews are concerned, the key is in the environment variable `PREVIEW_VERSION`. It's set to `0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER`. It is using semantic versioning, even though all three versions are set to `0`. We can also observe that it contains a suffix comprised of the name of the branch and the build number. The reason in setting all three versions to `0` lies in the purpose of previews. They are not "real" releases but serve only limited testing and validation purposes. In our current setup, "real" releases are created when we merge pull requests to the master branch. So, you can ignore the details of how we generate versions of the previews. The only important thing to note is that the combination of the branch name and the build number makes each preview unique. Another essential thing to understand is that `jx preview` command expects us to have either the environment variable `PREVIEW_VERSION` or `VERSION`.
-
-Let's move away from previews and jump into the stages executed when we push a change to the master branch.
-
-```bash
-cat Jenkinsfile
-```
-
-The output, limited to the relevant parts, is as follows.
-
-```groovy
-pipeline {
-  ...
-  stages {
-    ...
-    stage('Build Release') {
-      when {
-        branch 'master'
-      }
-      steps {
-        container('go') {
-          dir('/home/jenkins/go/src/github.com/vfarcic/go-demo-6') {
-            ...
-            sh "echo \$(jx-release-version) > VERSION"
-            sh "jx step tag --version \$(cat VERSION)"
-            sh "make build"
-            sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml"
-            sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
-          }
-        }
-      }
-    }
-    stage('Promote to Environments') {
-      when {
-        branch 'master'
-      }
-      steps {
-        container('go') {
-          dir('/home/jenkins/go/src/github.com/vfarcic/go-demo-6/charts/go-demo-6') {
-            sh "jx step changelog --version v\$(cat ../../VERSION)"
-            // release the helm chart
-            sh "jx step helm release"
-            // promote through all 'Auto' promotion Environments
-            sh "jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)"
-          ...
-```
-
-We can see that the output of `jx-release-version` is stored in the file `VERSION`. From there on, contents of that file are used to create a Git tag (`jx step tag`), to build a container image (`skaffold build`), to generate release notes (`jx step changelog`), and to promote the release to all environments set to receive automatic promotions (`jx promote`). As a result, every time we push a change to the master or merge a pull request, a new release based on increments of the patch version is created and deployed. At least, that's how it worked until now. Since we just added `VERSION` to `Makefile`, next release should use the new major version and reset patch counter to zero. Let's confirm that.
+Let's see what happens when we push the changes to GitHub.
 
 ```bash
 git add .
@@ -317,7 +251,7 @@ Please wait until the new release is promoted to staging and press *ctrl+c* to s
 Next, we'll list the applications and confirm that the correct version was deployed to the staging environment.
 
 ```bash
-jx get applications
+jx get applications --env staging
 ```
 
 The output is as follows.
@@ -353,7 +287,9 @@ git commit \
 
 git push
 
-jx get activity -f go-demo-6 -w
+jx get activity \
+    --filter go-demo-6 \
+    --watch
 ```
 
 In my case, the output of the new activity showed that the new release is `1.0.1`. Please stop the activity watcher by pressing *ctrl+c*.
@@ -361,6 +297,12 @@ In my case, the output of the new activity showed that the new release is `1.0.1
 The next change would be `1.0.2`, the one after that `1.0.3`, and so on and so forth until the minor or the major version change again in Makefile. It's elegant and straightforward, isn't it? 
 
 But what should we do when we do not want to use semantic versioning?
+
+Before we proceed, we'll go out of the `go-demo-6` directory.
+
+```bash
+cd ..
+```
 
 ## Customizing Versioning Logic
 
@@ -395,8 +337,6 @@ If you destroyed the cluster or you uninstalled Jenkins X, please remove the rep
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
-cd ..
-
 GH_USER=[...]
 
 hub delete -y \
