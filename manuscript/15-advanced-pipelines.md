@@ -33,7 +33,7 @@ As always, we need a cluster with Jenkins X so that we can experiment with some 
 
 You can skip this section if you kept the cluster from the previous chapter and it contains **serverless Jenkins X**. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [15-advanced-pipelines.sh](https://gist.github.com/46d8171750213481c29008653d237036) Gist.
+I> All the commands from this chapter are available in the [15-advanced-pipelines.sh](https://gist.github.com/db86e33ed393edc595176787712bcd92) Gist.
 
 For your convenience, the Gists that will create a new serverless Jenkins X cluster or install it inside an existing one are as follows.
 
@@ -49,15 +49,40 @@ cd go-demo-6
 
 git pull
 
-git checkout extension-model-cd
+git checkout extension-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-cd
+git merge extension-tekton
 
 git push
+
+cd ..
+```
+
+If you ever restored a branch at the beginning of a chapter, the chances are that there is a reference to my user (`vfarcic`). We'll change that to Google project since that's what Knative will expect to be the location of the container images.
+
+W> Please execute the commands that follow only if you are using **GKE** and if you ever restored a branch at the beginning of a chapter (like in the snippet above).
+
+```bash
+cd go-demo-6
+
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
 
 cd ..
 ```
@@ -136,7 +161,7 @@ pipelineConfig:
         # This is new
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         # This was modified
@@ -215,7 +240,7 @@ vfarcic/go-demo-6/PR-103 #1        1m36s 1m28s Succeeded
     Promote Rollout                1m30s 1m18s Succeeded
     Promote Functional Tests       1m30s 1m22s Succeeded
   Preview                            18s        https://github.com/vfarcic/go-demo-6/pull/103
-    Preview Application              18s        http://go-demo-6.cd-vfarcic-go-demo-6-pr-103.35.196.24.179.nip.io
+    Preview Application              18s        http://go-demo-6.jx-vfarcic-go-demo-6-pr-103.35.196.24.179.nip.io
 ```
 
 You'll notice that now we have a new step `Promote Rollout`. It is a combination of the name of the stage (`promote`) and the `name` of the step we defined earlier. Similarly, you'll notice that our unit and functional tests are now adequately named as well.
@@ -234,10 +259,7 @@ The output, limited to the relevant section, is as follows.
 
 ```
 ...
-getting the log for build vfarcic/go-demo-6/PR-101 #1 serverless-jenkins stage from build pack and container build-step-promote-rollout
-Waiting for deployment "preview-preview" rollout to finish: 0 of 3 updated replicas are available...
-Waiting for deployment "preview-preview" rollout to finish: 1 of 3 updated replicas are available...
-Waiting for deployment "preview-preview" rollout to finish: 2 of 3 updated replicas are available...
+Showing logs for build vfarcic-go-demo-6-pr-159-server-1 stage from-build-pack and container step-promote-rollout
 deployment "preview-preview" successfully rolled out
 ...
 ```
@@ -319,7 +341,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -433,7 +455,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -530,7 +552,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -563,14 +585,23 @@ The output of the last command, limited to the relevant parts, is as follows.
 
 ```
 ...
-vfarcic/go-demo-6/master #3        9s 4s Succeeded
-  from build pack                  9s 4s Succeeded
-    Credential Initializer Ch2fc   9s 0s Succeeded
-    Working Dir Initializer 4gsbn  8s 0s Succeeded
-    Place Tools                    7s 0s Succeeded
-    Git Source Vfarcic Go Demo ... 6s 0s Succeeded https://github.com/vfarcic/go-demo-6
-    Git Merge                      6s 1s Succeeded
-    Setup Jx Git Credentials       6s 1s Succeeded
+vfarcic/go-demo-6/master #3                        36s 30s Succeeded 
+  meta pipeline                                    36s 20s Succeeded 
+    Credential Initializer Bsggw                   36s  0s Succeeded 
+    Working Dir Initializer 5n6mx                  36s  1s Succeeded 
+    Place Tools                                    35s  1s Succeeded 
+    Git Source Meta Vfarcic Go Demo 6 Master R ... 34s  5s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                      29s  1s Succeeded 
+    Merge Pull Refs                                28s  1s Succeeded 
+    Create Effective Pipeline                      27s  3s Succeeded 
+    Create Tekton Crds                             24s  8s Succeeded 
+  from build pack                                  14s  8s Succeeded 
+    Credential Initializer Fw774                   14s  0s Succeeded 
+    Working Dir Initializer S7292                  14s  1s Succeeded 
+    Place Tools                                    13s  1s Succeeded 
+    Git Source Vfarcic Go Demo 6 Master Releas ... 12s  5s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                       7s  1s Succeeded 
+    Setup Jx Git Credentials                        6s  0s Succeeded 
 ```
 
 Judging from the output of the latest activity, the number of steps dropped drastically. That's the expected behavior since we told Jenkins X to override the release pipeline with "nothing". We did not specify replacement steps that should be executed instead of those inherited from the build pack. So, the only steps executed are those related to Git since they are universal and not tied to any specific pipeline.
@@ -606,7 +637,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -621,8 +652,8 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            sleep 15
-            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            sleep 30
+            kubectl -n jx-staging rollout status deployment jx-go-demo-6 --timeout 3m
 " | tee jenkins-x.yml
 ```
 
@@ -648,22 +679,31 @@ The output, limited to the latest build, is as follows.
 
 ```
 ...
-vfarcic/go-demo-6/master #5       4m59s 4m49s Failed Version: 1.0.193
-  from build pack                 4m59s 4m49s Failed
-    Credential Initializer G72ls  4m59s    0s Succeeded
-    Working Dir Initializer Z7ns2 4m58s    0s Succeeded
-    Place Tools                   4m57s    0s Succeeded
-    Git Source Vfarcic Go Demo... 4m56s    0s Succeeded https://github.com/vfarcic/go-demo-6
-    Git Merge                     4m56s    1s Succeeded
-    Setup Jx Git Credentials      4m56s    2s Succeeded
-    Promote Changelog             4m56s    8s Succeeded
-    Promote Helm Release          4m55s   16s Succeeded
-    Promote Jx Promote            4m55s 1m29s Succeeded
-    Promote Rollout               4m55s 4m45s Failed
-  Promote: staging                4m32s  1m6s Succeeded
-    PullRequest                   4m32s  1m6s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/4 Merge SHA: ...
-    Update                        3m26s    0s Succeeded
-    Promoted                      3m26s    0s Succeeded  Application is at: http://go-demo-6.cd-staging.34.214.94.88.nip.io
+vfarcic/go-demo-6/master #5                        3m46s 2m45s Succeeded Version: 1.0.446
+  meta pipeline                                    3m46s   21s Succeeded 
+    Credential Initializer L6kh9                   3m46s    0s Succeeded 
+    Working Dir Initializer Khkf6                  3m46s    0s Succeeded 
+    Place Tools                                    3m46s    1s Succeeded 
+    Git Source Meta Vfarcic Go Demo 6 Master R ... 3m45s    5s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                      3m40s    1s Succeeded 
+    Merge Pull Refs                                3m39s    0s Succeeded 
+    Create Effective Pipeline                      3m39s    4s Succeeded 
+    Create Tekton Crds                             3m35s   10s Succeeded 
+  from build pack                                  3m23s 2m22s Succeeded 
+    Credential Initializer 5cw8t                   3m23s    0s Succeeded 
+    Working Dir Initializer D99p2                  3m23s    1s Succeeded 
+    Place Tools                                    3m22s    1s Succeeded 
+    Git Source Vfarcic Go Demo 6 Master Releas ... 3m21s    6s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                      3m15s    0s Succeeded 
+    Setup Jx Git Credentials                       3m15s    0s Succeeded 
+    Promote Changelog                              3m15s    8s Succeeded 
+    Promote Helm Release                            3m7s   18s Succeeded 
+    Promote Jx Promote                             2m49s 1m32s Succeeded 
+    Promote Rollout                                1m17s   16s Succeeded 
+  Promote: staging                                 2m43s 1m26s Succeeded 
+    PullRequest                                    2m43s 1m26s Succeeded  PullRequest: ...
+    Update                                         1m17s    0s Succeeded 
+    Promoted                                       1m17s    0s Succeeded  Application ...
 ```
 
 The first thing we can note is that the number of steps in the activity is closer to what we're used to. Now that we are not overriding the whole pipeline but only the `build` stage, almost all the steps inherited from the build pack are there. Only those related to the `build` stage are gone, simply because we limited the scope of the `overrides` instruction.
@@ -701,7 +741,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -712,8 +752,8 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            sleep 15
-            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            sleep 30
+            kubectl -n jx-staging rollout status deployment jx-go-demo-6 --timeout 3m
 " | tee jenkins-x.yml
 ```
 
@@ -805,8 +845,8 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
-            sleep 15
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 30
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
           command: ADDRESS=\`jx get preview --current 2>&1\` make functest
@@ -831,7 +871,7 @@ pipelineConfig:
         - name: rollout
           command: |
             sleep 15
-            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            kubectl -n jx-staging rollout status deployment jx-go-demo-6 --timeout 3m
 " | tee jenkins-x.yml
 ```
 
@@ -887,27 +927,36 @@ The output, limited to the latest build, is as follows.
 
 ```
 ...
-vfarcic/go-demo-6/master #6        3m4s 2m55s Succeeded Version: 1.0.194
-  from build pack                  3m4s 2m55s Succeeded
-    Credential Initializer Xb9cv   3m4s    0s Succeeded
-    Working Dir Initializer Qknjp  3m3s    0s Succeeded
-    Place Tools                    3m2s    0s Succeeded
-    Git Source Vfarcic Go Demo...  3m0s    0s Succeeded https://github.com/vfarcic/go-demo-6
-    Git Merge                      3m0s    1s Succeeded
-    Setup Jx Git Credentials       3m0s    1s Succeeded
-    Build1                         3m0s   22s Succeeded
-    Build2                         3m0s   30s Succeeded
-    Build3                         3m0s   46s Succeeded
-    Build Container Build         2m59s   48s Succeeded
-    Build Post Build              2m59s   49s Succeeded
-    Promote Changelog             2m58s   53s Succeeded
-    Promote Helm Release          2m58s  1m2s Succeeded
-    Promote Jx Promote            2m57s 2m16s Succeeded
-    Promote Rollout               2m56s 2m47s Succeeded
-  Promote: staging                1m48s  1m7s Succeeded
-    PullRequest                   1m48s  1m7s Succeeded  PullRequest: ...
-    Update                          41s    0s Succeeded
-    Promoted                        41s    0s Succeeded  Application is at: ...
+vfarcic/go-demo-6/master #6                        5m32s 5m18s Succeeded Version: 1.0.447
+  meta pipeline                                    5m32s   24s Succeeded 
+    Credential Initializer Pg5cf                   5m32s    0s Succeeded 
+    Working Dir Initializer Lzpdb                  5m32s    2s Succeeded 
+    Place Tools                                    5m30s    1s Succeeded 
+    Git Source Meta Vfarcic Go Demo 6 Master R ... 5m29s    4s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                      5m25s    1s Succeeded 
+    Merge Pull Refs                                5m24s    0s Succeeded 
+    Create Effective Pipeline                      5m24s    4s Succeeded 
+    Create Tekton Crds                             5m20s   12s Succeeded 
+  from build pack                                   5m6s 4m52s Succeeded 
+    Credential Initializer P5wrz                    5m6s    0s Succeeded 
+    Working Dir Initializer Frrq2                   5m6s    0s Succeeded 
+    Place Tools                                     5m6s    1s Succeeded 
+    Git Source Vfarcic Go Demo 6 Master Releas ...  5m5s    9s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                      4m56s    1s Succeeded 
+    Setup Jx Git Credentials                       4m55s    0s Succeeded 
+    Build1                                         4m55s   42s Succeeded 
+    Build2                                         4m13s   16s Succeeded 
+    Build3                                         3m57s   33s Succeeded 
+    Build Container Build                          3m24s    5s Succeeded 
+    Build Post Build                               3m19s    0s Succeeded 
+    Promote Changelog                              3m19s    7s Succeeded 
+    Promote Helm Release                           3m12s   16s Succeeded 
+    Promote Jx Promote                             2m56s 1m31s Succeeded 
+    Promote Rollout                                1m25s 1m11s Succeeded 
+  Promote: staging                                 2m50s 1m25s Succeeded 
+    PullRequest                                    2m50s 1m24s Succeeded  PullRequest: ...f157af83f254d90df5e9b0c4bb8ddb81e1016871
+    Update                                         1m25s    0s Succeeded 
+    Promoted                                       1m25s    0s Succeeded  Application is at: ...
 ```
 
 We can make a few observations. The `Build Make Build` step is now gone, so the override worked correctly. We have `Build1`, `Build2`, and `Build3` in its place. Those are the three steps created as a result of having the loop with three iterations. Those are the steps that are building `windows`, `linux`, and `darwin` binaries. Finally, we can observe that the `Promote Rollout` step is now shown as `succeeded`, thus providing a clear indication that the new building process (steps) worked correctly. Otherwise, the new release could not roll out, and that step would fail.
@@ -958,14 +1007,23 @@ The output of the last command, limited to the newest activity, is as follows.
 
 ```
 ...
-vfarcic/go-demo-6/master #7       14s 6s Succeeded
-  nothing                         14s 6s Succeeded
-    Credential Initializer Hwqm2  14s 0s Succeeded
-    Working Dir Initializer Lqnvn 13s 0s Succeeded
-    Place Tools                   12s 0s Succeeded
-    Git Source Vfarcic Go Demo... 11s 1s Succeeded https://github.com/vfarcic/go-demo-6
-    Git Merge                     11s 2s Succeeded
-    Silly                         10s 2s Succeeded
+vfarcic/go-demo-6/master #7                        34s 28s Succeeded 
+  meta pipeline                                    34s 20s Succeeded 
+    Credential Initializer Jnghb                   34s  0s Succeeded 
+    Working Dir Initializer H4bg2                  34s  1s Succeeded 
+    Place Tools                                    33s  1s Succeeded 
+    Git Source Meta Vfarcic Go Demo 6 Master R ... 32s  5s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                      27s  1s Succeeded 
+    Merge Pull Refs                                26s  1s Succeeded 
+    Create Effective Pipeline                      25s  3s Succeeded 
+    Create Tekton Crds                             22s  8s Succeeded 
+  nothing                                          13s  7s Succeeded 
+    Credential Initializer 26fg8                   13s  0s Succeeded 
+    Working Dir Initializer Fz7zz                  13s  1s Succeeded 
+    Place Tools                                    12s  1s Succeeded 
+    Git Source Vfarcic Go Demo 6 Master Releas ... 11s  4s Succeeded https://github.com/vfarcic/go-demo-6.git
+    Git Merge                                       7s  1s Succeeded 
+    Silly                                           6s  0s Succeeded 
 ```
 
 We can see that all the steps we normally get from a build pack are gone. We are left only with the generic Git-related steps and the `silly` one we defined in our pipeline.
@@ -1049,13 +1107,13 @@ I> We explored only a fraction of the Jenkins X pipeline syntax. Please consult 
 Before we leave, we'll restore the master to the `extension-model-cd`. Our jenkins-x.yml became too big for future examples so we'll go back to the much simpler one we had at the beginning of this chapter. I will assume that you understood the constructs we used and that you will extend that knowledge by exploring the pipeline schema. If we'd keep adding everything we learn to our *go-demo-6* pipeline, we'd soon need multiple pages only to list jenkins-x.yml content.
 
 ```bash
-git checkout extension-model-cd
+git checkout extension-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-cd
+git merge extension-tekton
 
 git push
 ```

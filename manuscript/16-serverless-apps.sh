@@ -96,7 +96,7 @@ kubectl \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 
-kubectl --namespace cd-staging \
+kubectl --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 
@@ -321,7 +321,7 @@ echo $PR_ADDR
 
 curl "$PR_ADDR/demo/hello"
 
-kubectl --namespace cd-staging get pods
+kubectl --namespace jx-staging get pods
 
 jx repo
 

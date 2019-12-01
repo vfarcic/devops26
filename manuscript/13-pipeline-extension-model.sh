@@ -14,53 +14,53 @@ cd go-demo-6
 
 git pull
 
-git checkout versioning
+git checkout versioning-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge versioning
+git merge versioning-tekton
 
 git push
 
 cd ..
 
-# Only if GKE and a branch was restored
+# If GKE
 cd go-demo-6
 
-# Only if GKE and a branch was restored
+# If GKE
 cat charts/go-demo-6/Makefile \
     | sed -e \
     "s@vfarcic@$PROJECT@g" \
     | tee charts/go-demo-6/Makefile
 
-# Only if GKE and a branch was restored
+# If GKE
 cat charts/preview/Makefile \
     | sed -e \
     "s@vfarcic@$PROJECT@g" \
     | tee charts/preview/Makefile
 
-# Only if GKE and a branch was restored
+# If GKE
 cat skaffold.yaml \
     | sed -e \
     "s@vfarcic@$PROJECT@g" \
     | tee skaffold.yaml
 
-# Only if GKE and a branch was restored
+# If GKE
 cd ..
 
-cd go-demo-6
+jx import --batch-mode
 
-git checkout master
+jx get activities \
+    --filter go-demo-6 \
+    --watch
 
-rm -f Jenkinsfile
-
-jx import --pack go --batch-mode
-
-ls -1
+cd ..
 
 cat jenkins-x.yml
+
+buildPack: go
 
 open "https://github.com/jenkins-x-buildpacks/jenkins-x-kubernetes"
 
@@ -112,6 +112,12 @@ BRANCH=[...] # e.g., `PR-56`
 jx get build logs \
     --filter go-demo-6 \
     --branch $BRANCH
+
+echo 'functest: 
+	CGO_ENABLED=$(CGO_ENABLED) $(GO) \\
+	test -test.v --run FunctionalTest \\
+	--cover
+' | tee -a Makefile
 
 jx create step \
     --pipeline pullrequest \

@@ -1,7 +1,7 @@
 # Using Jenkins X To Define And Run Serverless Deployments {#knative}
 
 TODO: Rewrite
-W> At the time of this writing (July 2019), the examples in this chapter work both in **static** and **serverless** Jenkins X but only in a **GKE** cluster. Feel free to monitor [the issue 4668](https://github.com/jenkins-x/jx/issues/4668) for more info.
+W> At the time of this writing (July 2019), the examples in this chapter work only in a **GKE** cluster. Feel free to monitor [the issue 4668](https://github.com/jenkins-x/jx/issues/4668) for more info.
 
 We already saw how we could run the serverless flavor of Jenkins X. That helped with many things, with better resource utilization and scalability being only a few of the benefits. Can we do something similar with our applications? Can we scale them to zero when no one is using them? Can we scale them up when the number of concurrent requests increases? Can we make our applications serverless?
 
@@ -104,25 +104,40 @@ I> The commands that follow will reset your *go-demo-6* `master` branch with the
 W> Depending on whether you're using static or serverless Jenkins X flavor, we'll need to restore one branch or the other. The commands that follow will restore `extension-model-jx` if you are using static Jenkins X, or `extension-model-cd` if you prefer the serverless flavor.
 
 ```bash
-NAMESPACE=$(kubectl config view \
-    --minify \
-    --output jsonpath="{..namespace}")
-
 cd go-demo-6
 
 git pull
 
-git checkout extension-model-$NAMESPACE
+git checkout extension-model-cd
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-$NAMESPACE
+git merge extension-model-cd
 
 git push
 
 cd ..
+```
+
+W> Please execute the commands that follow only if you are using **GKE** and if you ever restored a branch at the beginning of a chapter (like in the snippet above).
+
+```bash
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
 ```
 
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
@@ -156,14 +171,40 @@ glooctl install knative \
 
 The process Knative in our cluster.
 
-There's one more thing missing for us to be able to run serverless applications using Knative. We need to configure it to use a domain (in this case `nip.io`).
+There's one more thing missing for us to be able to run serverless applications using Knative. We need to configure it to use a domain (in this case `nip.io`). So, the first step is to get the IP of the Knative service. However, the command differ depending on whether you're using EKS or some other Kubernetes flavor.
+
+W> Please run the command that follows only if you are **NOT** using **EKS** (e.g., GKE, AKS, etc.).
 
 ```bash
 KNATIVE_IP=$(kubectl \
     --namespace gloo-system \
     get service knative-external-proxy \
     --output jsonpath="{.status.loadBalancer.ingress[0].ip}")
+```
 
+W> Please run the commands that follow only if you are using **EKS**.
+
+```bash
+KNATIVE_HOST=$(kubectl \
+    --namespace gloo-system \
+    get service knative-external-proxy \
+    --output jsonpath="{.status.loadBalancer.ingress[0].hostname}")
+
+export KNATIVE_IP="$(dig +short $KNATIVE_HOST \
+    | tail -n 1)"
+```
+
+To be on the safe side, we'll output the retrieved IP.
+
+```bash
+echo $KNATIVE_IP
+```
+
+If the output is an IP, everything is working smoothly so far.
+
+Now we can change Knative configuration.
+
+```bash
 echo "apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -174,7 +215,7 @@ data:
     | kubectl apply --filename -
 ```
 
-We retrieved the IP of the LoadBalancer Service that was created during the Knative installation. Further on, we used it as a `nip.io` address in the Knative configuration.
+We used the IP of the LoadBalancer Service that was created during the Knative installation as a `nip.io` address in the Knative configuration. From now on, all applications deployed using Knative will be exposed using that address.
 
 Let's take a closer look at what we got by exploring the Namespaces.
 
@@ -184,15 +225,13 @@ kubectl get namespaces
 
 The output is as follows.
 
-I> The outputs are from serverless Jenkins X running in GKE. If you're using a different combination, you might experience some differences when comparing the output from this book with the one on your screen.
-
 ```
 NAME            STATUS AGE
-cd              Active 66m
-cd-production   Active 59m
-cd-staging      Active 59m
 default         Active 67m
 gloo-system     Active 2m1s
+jx              Active 66m
+jx-production   Active 59m
+jx-staging      Active 59m
 knative-serving Active 117s
 kube-public     Active 67m
 kube-system     Active 67m
@@ -367,7 +406,7 @@ Now we can have a look at the Pods running as part of our serverless application
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -387,7 +426,7 @@ Let's describe the Pod and see what we'll get.
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     describe pod \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -410,7 +449,7 @@ Let's see which other resources were created for us.
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get all
 ```
 
@@ -452,7 +491,7 @@ The output is as follows.
 
 ```
 APPLICATION STAGING PODS URL
-go-demo-6   1.0.221 3/3  http://go-demo-6.cd-staging.35.190.185.247.nip.io
+go-demo-6   1.0.221 3/3  http://go-demo-6.jx-staging.35.190.185.247.nip.io
 knative     svtns
 ```
 
@@ -464,7 +503,7 @@ TODO: Apply to the rest of the chapters
 
 ```bash
 ADDR=$(kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get ksvc jx-knative \
     --output jsonpath="{.status.url}")
 
@@ -474,10 +513,10 @@ echo $ADDR
 The output should be similar to the one that follows.
 
 ```
-jx-knative.cd-staging.35.243.171.144.nip.io
+jx-knative.jx-staging.35.243.171.144.nip.io
 ```
 
-As you can see, the pattern is the same no matter whether it is a "normal" or a Knative service. Jenkins X is making sure that the URLTemplate we explored in the [Changing URL Patterns](#upgrade-url-template) subchapter is applied no matter the type of the Service or the Ingress used to route external requests to the application. In this case, it is the default one that combines the name of the service (`jx-knative`) with the environment (`cd-staging`) and the cluster domain (`35.243.171.144.nip.io`).
+As you can see, the pattern is the same no matter whether it is a "normal" or a Knative service. Jenkins X is making sure that the URLTemplate we explored in the [Changing URL Patterns](#upgrade-url-template) subchapter is applied no matter the type of the Service or the Ingress used to route external requests to the application. In this case, it is the default one that combines the name of the service (`jx-knative`) with the environment (`jx-staging`) and the cluster domain (`35.243.171.144.nip.io`).
 
 Now comes the moment of truth. Is our application working? Can we access it?
 
@@ -491,7 +530,7 @@ So, let's take a look at that "famous" Pod that was created out of thin air.
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -508,7 +547,7 @@ We can see a single Pod created a short while ago. Now, let's observe what we'll
 Please wait for seven minutes or more before executing the command that follows.
 
 ```bash
-kubectl --namespace cd-staging \
+kubectl --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -536,7 +575,7 @@ Before we test Knative's scaling capabilities, we'll check whether the applicati
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -557,7 +596,7 @@ kubectl run siege \
      -- --concurrent 300 --time 20S \
      "$ADDR" \
      && kubectl \
-     --namespace $NAMESPACE-staging \
+     --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -653,7 +692,7 @@ kubectl run siege \
      -- --concurrent 400 --time 60S \
      "$ADDR" \
      && kubectl \
-     --namespace $NAMESPACE-staging \
+     --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -698,7 +737,7 @@ Now, let's see what happens a while later. Please execute the command that follo
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -716,7 +755,7 @@ Please wait for some five to ten minutes more before executing the command that 
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -769,7 +808,7 @@ Now, let's see how many Pods we have.
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -778,7 +817,7 @@ The output should show that only one Pod is running. However, that might not be 
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods \
     --selector serving.knative.dev/service=jx-knative
 ```
@@ -1037,13 +1076,13 @@ W> Please replace `[...]` with your GitHub user before executing the commands th
 GH_USER=[...]
 
 PR_NAMESPACE=$(\
-  echo $NAMESPACE-$GH_USER-go-demo-6-$BRANCH \
+  echo jx-$GH_USER-go-demo-6-$BRANCH \
   | tr '[:upper:]' '[:lower:]')
 
 echo $PR_NAMESPACE
 ```
 
-In my case, the output of the last command was `cd-vfarcic-go-demo-6-pr-115`. Yours should be different but still follow the same logic.
+In my case, the output of the last command was `jx-vfarcic-go-demo-6-pr-115`. Yours should be different but still follow the same logic.
 
 Now we can take a look at the Pods running in the preview Namespace.
 
@@ -1078,7 +1117,7 @@ echo $PR_ADDR
 The output should be similar to the one that follows.
 
 ```
-go-demo-6.cd-vfarcic-go-demo-6-pr-115.34.73.141.184.nip.io
+go-demo-6.jx-vfarcic-go-demo-6-pr-115.34.73.141.184.nip.io
 ```
 
 I> Please note that we did not have to "discover" the address. We could have gone to the GitHub pull request screen and clicked the *here* link. We'd need to add `/demo/hello` to the address, but that could still be easier than what we did. Still, I am "freak" about automation and doing everything from a terminal screen, and I have the right to force you to do things my way, at least while you're following the exercises I prepared.
@@ -1094,7 +1133,7 @@ The output should be already familiar `hello, PR!` message. If by the time we se
 Now, let's see what do we have in the staging environment.
 
 ```bash
-kubectl --namespace cd-staging get pods
+kubectl --namespace jx-staging get pods
 ```
 
 The output is as follows.
@@ -1148,7 +1187,7 @@ Let's see which Pods do we have now in the staging Namespace.
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods
 ```
 
@@ -1171,7 +1210,7 @@ Just as before, we'll send a request to the new release of `go-demo-6` and confi
 
 ```bash
 ADDR=$(kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get ksvc go-demo-6 \
     --output jsonpath="{.status.url}")
 
@@ -1283,7 +1322,7 @@ Now, let's check whether the application was indeed deployed as non-serverless t
 
 ```bash
 kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get pods
 ```
 
@@ -1306,7 +1345,7 @@ Since you know that I have a paranoid nature, you won't be surprised that we'll 
 
 ```bash
 ADDR=$(kubectl \
-    --namespace $NAMESPACE-staging \
+    --namespace jx-staging \
     get ing go-demo-6 \
     --output jsonpath="{.spec.rules[0].host}")
 

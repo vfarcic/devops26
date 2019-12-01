@@ -108,13 +108,13 @@ cd go-demo-6
 
 git pull
 
-git checkout versioning
+git checkout versioning-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge versioning
+git merge versioning-tekton
 
 git push
 
@@ -146,33 +146,21 @@ cat skaffold.yaml \
 cd ..
 ```
 
+I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
+
+```bash
+jx import --batch-mode
+
+jx get activities \
+    --filter go-demo-6 \
+    --watch
+
+cd ..
+```
+
 Now we can explore Jenkins X Pipeline Extension Model.
 
 ## Exploring Build Pack Pipelines
-
-Let's see (one more time) the pipeline serverless Jenkins X creates for us.
-
-```bash
-cd go-demo-6
-
-git checkout master
-
-rm -f Jenkinsfile
-
-jx import --pack go --batch-mode
-```
-
-We checked out the master branch and deleted Jenkinsfile. The latter action is not required. However, serverless Jenkins X ignores Jenkinsfile, so keeping it in the repository can only create confusion.
-
-Finally, the last command imported the project *go-demo-6* project into Jenkins X, and now we can see what did Jenkins X create for us.
-
-```bash
-ls -1
-```
-
-Jenkins X saw that we already have Dockerfile, charts, skaffold.yaml, and the other files created when we imported the project into static Jenkins X. So, it left them untouched assuming that we want to continue using them. Indeed, all but pipeline definition are the same no matter whether we use static or serverless Jenkins X.
-
-The only new file is `jenkins-x.yml`. As you saw in the previous chapters, Jenkins X uses that file as a definition of the pipeline it should execute.
 
 As a reminder, we'll take another quick look at the `jenkins-x.yml` file.
 
@@ -468,11 +456,23 @@ We can see that our unit tests are indeed executed.
 
 In our context, what truly matters is the output after the tests. It shows that the application binary and container images were built. That proves that the new step did not replace anything, but that it was added among those defined in the build pack. Since we specified the mode as part of `preSteps`, it was added before the existing steps in the `build` lifecycle.
 
-As I'm sure you already know, unit tests are often not enough and we should add some form of tests against the live application. We already have the Makefile target `functest` so we might just as well add them to the `pullrequest` pipeline. But, before we do that, we need to decide when is the best moment to run them. Since they require a new release to be installed, and we already know from the past experience that installations and upgrades are performed through promotions, we should already have an idea where to put them. So, we'll add functional tests to the `pullrequest` pipeline, into the `promote` lifecycle, and with the `post` mode. That way, those tests will run after the promotion is finished, and our release based on the PR is up-and-running.
+As I'm sure you already know, unit tests are often not enough and we should add some form of tests against the live application. We should probably add functional tests to the pipeline. But, before we do that, we need to create one more target in the Makefile.
+
+W> Remember what we said before about `Makefile`. It expects tabs as indentation. Please make sure that the command that follows is indeed using tabs and not spaces, if you're typing the commands instead of copying and pasting from the Gist.
+
+```bash
+echo 'functest: 
+	CGO_ENABLED=$(CGO_ENABLED) $(GO) \\
+	test -test.v --run FunctionalTest \\
+	--cover
+' | tee -a Makefile
+```
+
+Now we can add the `functest`  target to the `pullrequest` pipeline. But, before we do that, we need to decide when is the best moment to run them. Since they require a new release to be installed, and we already know from the past experience that installations and upgrades are performed through promotions, we should already have an idea where to put them. So, we'll add functional tests to the `pullrequest` pipeline, into the `promote` lifecycle, and with the `post` mode. That way, those tests will run after the promotion is finished, and our release based on the PR is up-and-running.
 
 But, there is a problem that we need to solve or, to be more precise, there is an improvement we could do.
 
-Functional tests need to know the address of the application under tests. Since each pull request is deployed into its own namespace and the app is exposed through a dynamically created address, we need to figure out how to retrieve that URL. In the past, when we used Jenkinsfile, we had a command that combines quite a few environment variables (e.g., `ORG`, `HELM_RELEASE`, etc.) and retrieves the address by querying Ingress. If you forgot it, you can see it from [this Jenkinsfile](https://github.com/vfarcic/go-demo-6/blob/versioning/Jenkinsfile#L36). That approach should still work, but we might want to look for a cleaner solution. Fortunately, there is a command that allows us to retrieve the address of the current pull request. The bad news is that we cannot (easily) run it locally, so you'll need to trust me when I say that `jx get preview --current` will return the full address of the PR deployed with the `jx preview` command executed as the last step in the `promote` lifecycle of the `pullrequest` pipeline.
+Functional tests need to know the address of the application under tests. Since each pull request is deployed into its own namespace and the app is exposed through a dynamically created address, we need to figure out how to retrieve that URL. In the past, when we used Jenkinsfile, we had a command that combines quite a few environment variables (e.g., `ORG`, `HELM_RELEASE`, etc.) and retrieves the address by querying Ingress. Fortunately, there is a command that allows us to retrieve the address of the current pull request. The bad news is that we cannot (easily) run it locally, so you'll need to trust me when I say that `jx get preview --current` will return the full address of the PR deployed with the `jx preview` command executed as the last step in the `promote` lifecycle of the `pullrequest` pipeline.
 
 Finally, we might want to skip the questions and provide all the answers by executing `jx create step` in batch mode.
 
@@ -546,9 +546,9 @@ test -test.v --run FunctionalTest \
 --cover
 === RUN   TestFunctionalTestSuite
 === RUN   TestFunctionalTestSuite/Test_Hello_ReturnsStatus200
-2019/04/26 10:58:31 Sending a request to http://go-demo-6.cd-vfarcic-go-demo-6-pr-57.34.74.193.252.nip.io/demo/hello
+2019/04/26 10:58:31 Sending a request to http://go-demo-6.jx-vfarcic-go-demo-6-pr-57.34.74.193.252.nip.io/demo/hello
 === RUN   TestFunctionalTestSuite/Test_Person_ReturnsStatus200
-2019/04/26 10:58:31 Sending a request to http://go-demo-6.cd-vfarcic-go-demo-6-pr-57.34.74.193.252.nip.io/demo/person
+2019/04/26 10:58:31 Sending a request to http://go-demo-6.jx-vfarcic-go-demo-6-pr-57.34.74.193.252.nip.io/demo/person
 --- PASS: TestFunctionalTestSuite (0.26s)
     --- PASS: TestFunctionalTestSuite/Test_Hello_ReturnsStatus200 (0.13s)
     --- PASS: TestFunctionalTestSuite/Test_Person_ReturnsStatus200 (0.13s)
@@ -659,12 +659,12 @@ The output is as follows.
 ```yaml
 env:
 - name: DEPLOY_NAMESPACE
-  value: cd-staging
+  value: jx-staging
 pipelineConfig:
   agent: {}
   env:
   - name: DEPLOY_NAMESPACE
-    value: cd-staging
+    value: jx-staging
   pipelines: {}
 ```
 
@@ -730,11 +730,11 @@ The output is as follows.
 ```yaml
 env:
 - name: DEPLOY_NAMESPACE
-  value: cd-staging
+  value: jx-staging
 pipelineConfig:
   env:
   - name: DEPLOY_NAMESPACE
-    value: cd-staging
+    value: jx-staging
   pipelines:
     release:
       postBuild:

@@ -8,16 +8,40 @@ cd go-demo-6
 
 git pull
 
-git checkout extension-model-cd
+git checkout extension-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-cd
+git merge extension-tekton
 
 git push
 
+cd ..
+
+# If GKE
+cd go-demo-6
+
+# If GKE
+cat charts/go-demo-6/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/go-demo-6/Makefile
+
+# If GKE
+cat charts/preview/Makefile \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee charts/preview/Makefile
+
+# If GKE
+cat skaffold.yaml \
+    | sed -e \
+    "s@vfarcic@$PROJECT@g" \
+    | tee skaffold.yaml
+
+# If GKE
 cd ..
 
 cd go-demo-6
@@ -46,7 +70,7 @@ pipelineConfig:
         # This is new
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         # This was modified
@@ -106,7 +130,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -154,7 +178,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -201,7 +225,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -245,7 +269,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -260,8 +284,8 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            sleep 15
-            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            sleep 30
+            kubectl -n jx-staging rollout status deployment jx-go-demo-6 --timeout 3m
 " | tee jenkins-x.yml
 
 jx step syntax validate pipeline
@@ -298,7 +322,7 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
             sleep 15
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
@@ -309,8 +333,8 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            sleep 15
-            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            sleep 30
+            kubectl -n jx-staging rollout status deployment jx-go-demo-6 --timeout 3m
 " | tee jenkins-x.yml
 
 jx step syntax effective
@@ -337,8 +361,8 @@ pipelineConfig:
         steps:
         - name: rollout
           command: |
-            NS=\`echo cd-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
-            sleep 15
+            NS=\`echo jx-\$REPO_OWNER-go-demo-6-\$BRANCH_NAME | tr '[:upper:]' '[:lower:]'\`
+            sleep 30
             kubectl -n \$NS rollout status deployment preview-preview --timeout 3m
         - name: functional-tests
           command: ADDRESS=\`jx get preview --current 2>&1\` make functest
@@ -363,7 +387,7 @@ pipelineConfig:
         - name: rollout
           command: |
             sleep 15
-            kubectl -n cd-staging rollout status deployment jx-go-demo-6 --timeout 3m
+            kubectl -n jx-staging rollout status deployment jx-go-demo-6 --timeout 3m
 " | tee jenkins-x.yml
 
 jx step syntax validate pipeline
@@ -415,13 +439,13 @@ jx step syntax schema --buildpack
 
 jx step syntax validate buildpacks
 
-git checkout extension-model-cd
+git checkout extension-tekton
 
 git merge -s ours master --no-edit
 
 git checkout master
 
-git merge extension-model-cd
+git merge extension-tekton
 
 git push
 
