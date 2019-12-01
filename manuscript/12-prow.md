@@ -51,38 +51,22 @@ All in all, Prow will be our only entry point to the cluster. Since it accepts o
 
 I> At the time of this writing (April 2019), Prow only supports GitHub. The community is working hard on adding support for other Git platforms. Until that is finished, we are restricted to GitHub. If you do use a different Git platform (e.g., GitLab), I still recommend going through the exercises in this chapter. They will provide a learning experience. The chances are that, by the time you start using Jenkins X in production, support for other Git flavors will be finished.
 
-W> Due to the current limitation, you cannot use Prow with anything but GitHub, and serverless Jenkins X doesn't work without Prow. Please take that into account if you are planning to use it in your organization (until the support for other Git providers is added to Prow).
+W> We cannot use Prow with anything but GitHub, and serverless Jenkins X doesn't work without Prow. However, that is not an issue. Or, at least, it is not a problem anymore. The team created a new project called Lighthouse that performs all the same functions that Prow provides while supporting all major Git providers. Everything you read about Prow applies equally to Lighthouse, which should be your choice if you do not use GitHub.
 
 As always, we need a cluster with Jenkins X to explore things through hands-on exercises.
 
 ## Creating A Kubernetes Cluster With Jenkins X
 
-W> You might be used to the fact that until now we were always using the same Gists to create a cluster or install Jenkins X in an existing one. Those that follow are different.
-
 If you kept the cluster from the previous chapter and it contains serverless Jenkins X, you can skip this section. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [12-prow.sh](https://gist.github.com/3ce238a85ff5537919d394bb9ec57e8e) Gist.
+I> All the commands from this chapter are available in the [12-prow.sh](https://gist.github.com/ac2407f0aab33e65e9ca8f247b6451bf) Gist.
 
 For your convenience, the Gists that will create a new Jenkins X cluster or install it inside an existing one are as follows.
 
-* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
-
-You'll notice that there are not many differences between the Gists we're using now and those we used to create a cluster with static Jenkins X. The major difference is that we're using a different environment prefix and the namespace just in case you're running both flavors in parallel. The "real" difference is in the addition of `--prow` and `--tekton` arguments to `jx create cluster` and `jx install` commands.
-
-We will not need the `jx-serverless` project we created in the previous chapter. If you are reusing the cluster and Jenkins X installation, you might want to remove it and save a bit of resources.
-
-W> Please replace `[...]` with your GitHub user before executing the commands that follow.
-
-```bash
-GH_USER=[...]
-
-jx delete application \
-    $GH_USER/jx-serverless \
-    --batch-mode
-```
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 Now we can explore Prow inside the serverless Jenkins X bundle.
 
@@ -94,9 +78,9 @@ W> Make sure that you are not inside an existing repository before executing the
 
 ```bash
 jx create quickstart \
-  --filter golang-http \
-  --project-name jx-prow \
-  --batch-mode
+    --filter golang-http \
+    --project-name jx-prow \
+    --batch-mode
 
 cd jx-prow
 
@@ -105,8 +89,6 @@ jx get activities \
 ```
 
 We created a Go-based project called `jx-prow`, entered into the local copy of the Git repository `jx` created for us, and started watching the activity. After a while, all the steps in the output will be in the `Succeeded` status, and we can stop the watcher by pressing *ctrl+c*.
-
-When we created a new project, Git sent a webhook to Prow which, in turn, notified the system that it should run a pipeline build. Even though different processes are running builds in serverless Jenkins (e.g., Pipeline Operator and Tekton), they are functionally the same as they were before with the static flavor. We'll explore those processes later. We'll conclude that the build was successful and, as a result, we got the application deployed to the staging environment just as before when we used static Jenkins X. For now, we're mostly interested in ChatOps (or GitChat) features available through Prow.
 
 Since most of the ChatOps features apply to pull requests, we need to create one.
 
@@ -138,7 +120,7 @@ We created a pull request and are presented with a confirmation message with a l
 
 You will notice a few things right away. A comment was created describing the process we should follow with pull requests. In a nutshell, the PR needs to be approved. Someone should review the changes we are proposing. That might mean going through the code, performing additional manual tests, or anything else that the approver might think is needed before he gives his OK.
 
-Near the bottom, you'll see that a few checks are running. The *serverless-jenkins* process is executing the part of the pipeline dedicated to pull requests. At the end of the process, the application will be deployed to a temporary PR-specific environment just as it did when we explored pull requests with static Jenkins X. The pipeline is the same. What's different are the rules that we need to follow before we merge to master and the communication happening between Git and Prow.
+Near the bottom, you'll see that a few checks are running. The *serverless-jenkins* process is executing the part of the pipeline dedicated to pull requests. At the end of the process, the application will be deployed to a temporary PR-specific environment. All that is the same as before. However, there is an important aspect of PR that we did not yet explore. There are rules that we need to follow before we merge to master and the communication happening between Git and Prow.
 
 The second activity is called *tide*. It will be in the *pending* state until we complete the process described in the comment.
 
@@ -427,14 +409,14 @@ cd ..
 GH_USER=[...]
 
 hub delete -y \
-  $GH_USER/environment-tekton-staging
+  $GH_USER/environment-jx-rocks-staging
 
 hub delete -y \
-  $GH_USER/environment-tekton-production
+  $GH_USER/environment-jx-rocks-production
 
 hub delete -y $GH_USER/jx-prow
 
 rm -rf jx-prow
 
-rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 ```

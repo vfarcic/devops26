@@ -11,7 +11,6 @@
 11-serverless.md
 12-prow.md
 13-pipeline-extension-model.md
-14-upgrade.md
 15-advanced-pipelines.md
 16-serverless-apps.md
 17-progressive-delivery.md

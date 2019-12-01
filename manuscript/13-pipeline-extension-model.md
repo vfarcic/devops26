@@ -80,14 +80,14 @@ The serverless flavor of Jenkins X solves the problem of unnecessary repetition 
 
 You can skip this section if you kept the cluster from the previous chapter and it contains serverless Jenkins X. Otherwise, we'll need to create a new Jenkins X cluster.
 
-I> All the commands from this chapter are available in the [13-pipeline-extension-model.sh](https://gist.github.com/60556b4844afb120581f7dfeb9280bda) Gist.
+I> All the commands from this chapter are available in the [13-pipeline-extension-model.sh](https://gist.github.com/ca1d91973560dc0bd385c471437069ab) Gist.
 
 For your convenience, the Gists that will create a new serverless Jenkins X cluster or install it inside an existing one are as follows.
 
-* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 We will not need the `jx-prow` project we created in the previous chapter. If you are reusing the cluster and Jenkins X installation, you might want to remove it and save a bit of resources.
 
@@ -296,7 +296,7 @@ vfarcic/go-demo-6/master #1                         6m57s     5m2s Succeeded Ver
     Promote Helm Release                            3m16s       9s Succeeded
     Promote Jx Promote                               3m6s    1m11s Succeeded
   Promote: staging                                   3m2s     1m7s Succeeded
-    PullRequest                                      3m2s     1m7s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/1 Merge SHA: d6ed094a9803681dab1d0ae7b8501eac10e7703a
+    PullRequest                                      3m2s     1m7s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/1 Merge SHA: d6ed094a9803681dab1d0ae7b8501eac10e7703a
     Update                                          1m55s       0s Succeeded
 ```
 
@@ -643,12 +643,12 @@ cd ..
 GH_USER=[...]
 
 git clone \
-    https://github.com/$GH_USER/environment-tekton-staging.git
+    https://github.com/$GH_USER/environment-jx-rocks-staging.git
 
-cd environment-tekton-staging
+cd environment-jx-rocks-staging
 ```
 
-We cloned the `environment-tekton-staging` repository that contains the always-up-to-date definition of our staging environment. Let's take a look at the `jenkins-x.yml` file that controls the processes executed whenever a change is pushed to that repo.
+We cloned the `environment-jx-rocks-staging` repository that contains the always-up-to-date definition of our staging environment. Let's take a look at the `jenkins-x.yml` file that controls the processes executed whenever a change is pushed to that repo.
 
 ```bash
 cat jenkins-x.yml
@@ -759,7 +759,7 @@ Just as before, we need to wait for a few moments until the new pipeline run sta
 
 ```bash
 jx get build logs \
-    --filter environment-tekton-staging \
+    --filter environment-jx-rocks-staging \
     --branch master
 ```
 
@@ -791,12 +791,12 @@ cd ..
 GH_USER=[...]
 
 hub delete -y \
-  $GH_USER/environment-tekton-staging
+  $GH_USER/environment-jx-rocks-staging
 
 hub delete -y \
-  $GH_USER/environment-tekton-production
+  $GH_USER/environment-jx-rocks-production
 
-rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
-rm -rf environment-tekton-staging
+rm -rf environment-jx-rocks-staging
 ```

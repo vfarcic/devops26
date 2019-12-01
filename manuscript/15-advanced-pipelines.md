@@ -37,10 +37,10 @@ I> All the commands from this chapter are available in the [15-advanced-pipeline
 
 For your convenience, the Gists that will create a new serverless Jenkins X cluster or install it inside an existing one are as follows.
 
-* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 I> The commands that follow will reset your *go-demo-6* `master` with the contents of the `extension-model-cd` branch that contains all the changes we did so far. Please execute them only if you are unsure whether you did all the exercises correctly.
 
@@ -661,7 +661,7 @@ vfarcic/go-demo-6/master #5       4m59s 4m49s Failed Version: 1.0.193
     Promote Jx Promote            4m55s 1m29s Succeeded
     Promote Rollout               4m55s 4m45s Failed
   Promote: staging                4m32s  1m6s Succeeded
-    PullRequest                   4m32s  1m6s Succeeded  PullRequest: https://github.com/vfarcic/environment-tekton-staging/pull/4 Merge SHA: e943036bad3ecddce8769c64e5eaa39875d76611
+    PullRequest                   4m32s  1m6s Succeeded  PullRequest: https://github.com/vfarcic/environment-jx-rocks-staging/pull/4 Merge SHA: ...
     Update                        3m26s    0s Succeeded
     Promoted                      3m26s    0s Succeeded  Application is at: http://go-demo-6.cd-staging.34.214.94.88.nip.io
 ```
@@ -1072,10 +1072,10 @@ cd ..
 GH_USER=[...]
 
 hub delete -y \
-  $GH_USER/environment-tekton-staging
+  $GH_USER/environment-jx-rocks-staging
 
 hub delete -y \
-  $GH_USER/environment-tekton-production
+  $GH_USER/environment-jx-rocks-production
 
-rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 ```

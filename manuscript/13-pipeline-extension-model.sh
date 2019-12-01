@@ -1,8 +1,8 @@
-# Links to gists for creating a serverless Jenkins X cluster
-# gke-jx-serverless.sh: https://gist.github.com/a04269d359685bbd00a27643b5474ace
-# eks-jx-serverless.sh: https://gist.github.com/69a4cbc65d8cb122d890add5997c463b
-# aks-jx-serverless.sh: https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c
-# install-serverless.sh: https://gist.github.com/f592c72486feb0fb1301778de08ba31d
+# Links to gists for creating a cluster with jx
+# gke-jx-serverless.sh: https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8
+# eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
+# aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
+# install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 
 GH_USER=[...]
 
@@ -167,9 +167,9 @@ cd ..
 GH_USER=[...]
 
 git clone \
-    https://github.com/$GH_USER/environment-tekton-staging.git
+    https://github.com/$GH_USER/environment-jx-rocks-staging.git
 
-cd environment-tekton-staging
+cd environment-jx-rocks-staging
 
 cat jenkins-x.yml
 
@@ -191,7 +191,7 @@ git commit \
 git push
 
 jx get build logs \
-    --filter environment-tekton-staging \
+    --filter environment-jx-rocks-staging \
     --branch master
 
 open "$PR_ADDR"
@@ -201,11 +201,11 @@ cd ..
 GH_USER=[...]
 
 hub delete -y \
-  $GH_USER/environment-tekton-staging
+  $GH_USER/environment-jx-rocks-staging
 
 hub delete -y \
-  $GH_USER/environment-tekton-production
+  $GH_USER/environment-jx-rocks-production
 
-rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
+rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
 
-rm -rf environment-tekton-staging
+rm -rf environment-jx-rocks-staging
