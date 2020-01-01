@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  restartPolicy: Never
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor
+    imagePullPolicy: Always
+    args: ["--dockerfile=Dockerfile",
+            "--context=git://github.com/carlossg/go-demo-6.git#refs/heads/kaniko",
+            "--destination=csanchez/test"]
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+    resources:
+      limits:
+        cpu: 1
+        memory: 200Mi
+  volumes:
+  - name: docker-config
+    projected:
+      sources:
+      - secret:
+          name: regcred
+          items:
+            - key: .dockerconfigjson
+              path: config.json

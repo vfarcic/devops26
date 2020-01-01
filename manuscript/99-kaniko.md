@@ -115,7 +115,7 @@ docker run \
 
 In Kubernetes we can manually create a pod that will do our Docker image build.
 
-Depending on where we want to push to we need to created the corresponding secrets.
+Depending on where we want to push to we need to create the corresponding secrets.
 
 For Dockerhub or a Docker registry
 
@@ -128,8 +128,6 @@ kubectl create secret docker-registry regcred \
     --docker-username=${DOCKER_USERNAME} \
     --docker-password=${DOCKER_PASSWORD}
 
-# TODO we need gcr.io/kaniko-project/executor:80421f2a73d49057ab0aea8170afbf867475855c until this is released https://github.com/GoogleContainerTools/kaniko/commit/f0b9ad3a57f5e0ad16bb0b26097d6864a1e52006
-
 # TODO vfarcic create the kaniko branch in vfarcic/go-demo-6
 
 echo << EOF | kubectl create -f -
@@ -141,7 +139,7 @@ spec:
   restartPolicy: Never
   containers:
   - name: kaniko
-    image: gcr.io/kaniko-project/executor:80421f2a73d49057ab0aea8170afbf867475855c
+    image: gcr.io/kaniko-project/executor
     imagePullPolicy: Always
     args: ["--dockerfile=Dockerfile",
             "--context=git://github.com/carlossg/go-demo-6.git#refs/heads/kaniko",
