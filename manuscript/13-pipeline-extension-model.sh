@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/ca1d91973560dc0bd385c471437069ab
+
 # Links to gists for creating a cluster with jx
 # gke-jx-serverless.sh: https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8
 # eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
@@ -33,18 +35,24 @@ cd go-demo-6
 cat charts/go-demo-6/Makefile \
     | sed -e \
     "s@vfarcic@$PROJECT@g" \
+    | sed -e \
+    "s@devops-26@$PROJECT@g" \
     | tee charts/go-demo-6/Makefile
 
 # If GKE
 cat charts/preview/Makefile \
     | sed -e \
     "s@vfarcic@$PROJECT@g" \
+    | sed -e \
+    "s@devops-26@$PROJECT@g" \
     | tee charts/preview/Makefile
 
 # If GKE
 cat skaffold.yaml \
     | sed -e \
     "s@vfarcic@$PROJECT@g" \
+    | sed -e \
+    "s@devops-26@$PROJECT@g" \
     | tee skaffold.yaml
 
 # If GKE
