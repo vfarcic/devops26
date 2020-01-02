@@ -82,7 +82,8 @@ jx create pullrequest \
     --body "What I can say?" \
     --batch-mode
 
-kubectl -n cd describe cm plugins
+kubectl --namespace jx \
+    describe cm plugins
 
 cd ..
 

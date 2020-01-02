@@ -359,7 +359,8 @@ By now, you hopefully see the benefits of ChatOps, but you are probably wonderin
 The list of Prow plugins and their configuration is stored in ConfigMap `plugins`. Let's describe it and see what we'll get.
 
 ```bash
-kubectl -n cd describe cm plugins
+kubectl --namespace jx \
+    describe cm plugins
 ```
 
 The interesting part is the `plugins` section. We can see that each repository we imported into Jenkins X contains a list of plugins. Jenkins X makes sure that the list is always up-to-date with the imported projects.
