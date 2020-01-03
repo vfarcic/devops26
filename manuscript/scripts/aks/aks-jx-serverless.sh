@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
+
 ####################
 # Create a cluster #
 ####################
@@ -17,7 +19,7 @@ jx create cluster aks \
     --cluster-name $CLUSTER_NAME \
     --resource-group-name jxrocks-group \
     --location eastus \
-    --node-vm-size Standard_D2s_v3 \
+    --node-vm-size Standard_D4s_v3 \
     --nodes 3 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \

@@ -13,16 +13,17 @@
 - [X] 11-serverless.md
 - [X] 12-prow.md
 - [X] 13-pipeline-extension-model.md
-- [X] 14-upgrade.md
+- [-] 14-upgrade.md
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
 - [X] 17-progressive-delivery.md
 - [X] 99-the-end.md
 - [X] 18-boot.md
 - [X] 19-apps.md
-- [ ] Replace `environment-jx-rocks*` with `environment-tekton*`
-- [ ] 20-cjxd.md
+- [ ] Add the book to the jx docs
 - [ ] Add EKS to 18-boot.md
+- [ ] Add AKS to 18-boot.md
+- [ ] Replace `jx create cluster` and `jx install` with `jx boot`
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
 - [ ] Remove *At the time of this writing (September 2019),...* warning
 - [ ] Remove *For now (April 2019)* paragraph
@@ -40,7 +41,6 @@
 - [ ] Remove *The `--auto-merge` argument might not work due to the...*
 - [ ] Remove *At the time of this writing (November 2019)...*
 - [ ] Create a course on [udemy.com](https://www.udemy.com/)
-- [ ] Remove 14-upgrade.md
 - [ ] 99-lighthouse.md
 - [ ] Replace prow with lighthouse across the book
 - [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
@@ -74,6 +74,7 @@
 - [ ] 99-running-multiple-pipelines.md (https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646)
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-codified-infrastructure.md
+- [ ] 99-cjxd.md
 
 ## YouTube Live
 

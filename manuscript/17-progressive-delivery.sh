@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/7af19b92299278f9b0f20beba9eba022
+
 # Links to gists for creating a cluster with jx
 # gke-jx-serverless-gloo.sh: https://gist.github.com/cf939640f2af583c3a12d04affa67923
 # eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
@@ -101,8 +103,7 @@ git commit -m "Recreate strategy"
 
 git push
 
-kubectl \
-    --namespace jx-staging \
+kubectl --namespace jx-staging \
     get ing
 
 cat main.go | sed -e \
@@ -212,62 +213,9 @@ kubectl label namespace jx-staging \
 kubectl describe namespace \
     jx-staging
 
-echo "{{- if .Values.canary.enable }}
-apiVersion: flagger.app/v1alpha2
-kind: Canary
-metadata:
-  name: {{ template \"fullname\" . }}
-spec:
-  provider: {{.Values.canary.provider}}
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: {{ template \"fullname\" . }}
-  progressDeadlineSeconds: 60
-  service:
-    port: {{.Values.service.internalPort}}
-{{- if .Values.canary.service.gateways }}
-    gateways:
-{{ toYaml .Values.canary.service.gateways | indent 4 }}
-{{- end }}
-{{- if .Values.canary.service.hosts }}
-    hosts:
-{{ toYaml .Values.canary.service.hosts | indent 4 }}
-{{- end }}
-  canaryAnalysis:
-    interval: {{ .Values.canary.canaryAnalysis.interval }}
-    threshold: {{ .Values.canary.canaryAnalysis.threshold }}
-    maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
-    stepWeight: {{ .Values.canary.canaryAnalysis.stepWeight }}
-{{- if .Values.canary.canaryAnalysis.metrics }}
-    metrics:
-{{ toYaml .Values.canary.canaryAnalysis.metrics | indent 4 }}
-{{- end }}
-{{- end }}
-" | tee charts/jx-progressive/templates/canary.yaml
+cat charts/jx-progressive/templates/canary.yaml
 
-echo "
-canary:
-  enable: false
-  provider: istio
-  service:
-    hosts:
-    - jx-progressive.$ISTIO_IP.nip.io
-    gateways:
-    - jx-gateway.istio-system.svc.cluster.local
-  canaryAnalysis:
-    interval: 30s
-    threshold: 5
-    maxWeight: 70
-    stepWeight: 20
-    metrics:
-    - name: request-success-rate
-      threshold: 99
-      interval: 120s
-    - name: request-duration
-      threshold: 500
-      interval: 120s
-" | tee -a charts/jx-progressive/values.yaml
+cat charts/jx-progressive/values.yaml
 
 cd ..
 
@@ -284,10 +232,8 @@ STAGING_ADDR=staging.jx-progressive.$ISTIO_IP.nip.io
 
 echo "jx-progressive:
   canary:
-    enable: true
-    service:
-      hosts:
-      - $STAGING_ADDR" \
+    enabled: true
+    host: $STAGING_ADDR" \
     | tee -a env/values.yaml
 
 git add .

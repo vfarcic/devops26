@@ -424,8 +424,7 @@ We made a silly change, we pushed it to GitHub, and that triggered yet another b
 Assuming that you were patient enough and waited until the new release is deployed, now we can confirm that the Ingress was indeed created.
 
 ```bash
-kubectl \
-    --namespace jx-staging \
+kubectl --namespace jx-staging \
     get ing
 ```
 
@@ -1025,51 +1024,82 @@ The `istio-injection=enabled` is there, and we can continue while knowing that w
 
 ## Creating Canary Resources With Flagger
 
-Let's say we want to deploy our new release only to 20% of the users and that we will monitor metrics for 30 seconds. During that period, we'll be validating whether the error rate is within a predefined threshold and whether the time it takes to process requests is within some limits. If everything seems right, we'll increase the percentage of users who can use our new release for another 20%, and continue monitoring metrics to decide whether to proceed. The process should repeat until the new release is rolled out to everyone, twenty percent at a time every thirty seconds.
+Let's say we want to deploy our new release only to 20% of the users and that we will monitor metrics for 60 seconds. During that period, we'll be validating whether the error rate is within a predefined threshold and whether the time it takes to process requests is within some limits. If everything seems right, we'll increase the percentage of users who can use our new release for another 20%, and continue monitoring metrics to decide whether to proceed. The process should repeat until the new release is rolled out to everyone, twenty percent at a time every thirty seconds.
 
-Now that we have a general idea what we want to accomplish and that all the tools are set up, all that's missing is to create Flagger `Canary` definition. We'll create a new file `canary.yaml` in the `charts/jx-progressive/templates` directory.
+Now that we have a general idea of what we want to accomplish and that all the tools are set up, all that's missing is to create Flagger `Canary` definition.
 
-I> There might already be a canary.yaml in the buildpacks if I (or someone else) made a pull request to add canary capabilities out-of-the-box. If that's the case, ignore it because I'll explain the one we are about to create from scratch. Later on, if canaries are indeed available in build packs, you should be able to use the knowledge from creating a canary deployment from scratch to fine-tune those available in build packs.
+Fortunately, canary deployments with Flagger are available in Jenkins X build packs since January 2020. So, there's not much work to do to convert our application to use the canary deployment process.
 
-Please execute the command that follows to create a new `Canary` resource.
+Let's take a look at the `Canary` resource definition already available in our project.
 
 ```bash
-echo "{{- if .Values.canary.enable }}
-apiVersion: flagger.app/v1alpha2
+cat charts/jx-progressive/templates/canary.yaml
+```
+
+The output is as follows.
+
+```yaml
+{{- if .Values.canary.enabled }}
+apiVersion: flagger.app/v1alpha3
 kind: Canary
 metadata:
-  name: {{ template \"fullname\" . }}
+  name: {{ template "fullname" . }}
+  labels:
+    draft: {{ default "draft-app" .Values.draft }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 spec:
-  provider: {{.Values.canary.provider}}
+  provider: istio
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ template \"fullname\" . }}
-  progressDeadlineSeconds: 60
+    name: {{ template "fullname" . }}
+  progressDeadlineSeconds: {{ .Values.canary.progressDeadlineSeconds }}
+  {{- if .Values.hpa.enabled }}
+  autoscalerRef:
+    apiVersion: autoscaling/v2beta1
+    kind: HorizontalPodAutoscaler
+    name: {{ template "fullname" . }}
+  {{- end }}
   service:
-    port: {{.Values.service.internalPort}}
-{{- if .Values.canary.service.gateways }}
+    port: {{ .Values.service.externalPort }}
+    targetPort: {{ .Values.service.internalPort }}
     gateways:
-{{ toYaml .Values.canary.service.gateways | indent 4 }}
-{{- end }}
-{{- if .Values.canary.service.hosts }}
+    - {{ template "fullname" . }}
     hosts:
-{{ toYaml .Values.canary.service.hosts | indent 4 }}
-{{- end }}
+    - {{ .Values.canary.host }}
   canaryAnalysis:
     interval: {{ .Values.canary.canaryAnalysis.interval }}
     threshold: {{ .Values.canary.canaryAnalysis.threshold }}
     maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
     stepWeight: {{ .Values.canary.canaryAnalysis.stepWeight }}
-{{- if .Values.canary.canaryAnalysis.metrics }}
     metrics:
-{{ toYaml .Values.canary.canaryAnalysis.metrics | indent 4 }}
+    - name: request-success-rate
+      threshold: {{ .Values.canary.canaryAnalysis.metrics.requestSuccessRate.threshold }}
+      interval: {{ .Values.canary.canaryAnalysis.metrics.requestSuccessRate.interval }}
+    - name: request-duration
+      threshold: {{ .Values.canary.canaryAnalysis.metrics.requestDuration.threshold }}
+      interval: {{ .Values.canary.canaryAnalysis.metrics.requestDuration.interval }}
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ template "fullname" . }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: {{ .Values.service.externalPort }}
+      name: http
+      protocol: HTTP
+    hosts:
+    - {{ .Values.canary.host }}
 {{- end }}
-{{- end }}
-" | tee charts/jx-progressive/templates/canary.yaml
 ```
 
-To begin with, we enveloped the whole definition inside an `if` statement so that `Canary` is created only if the value `canary.enable` is set to `true`. That way, by default, we will not use canary deployments at all. Instead, we'll have to specify when and under which circumstances they will be created. That might spark the question "why do we go into the trouble of making sure that canary deployments are enabled only in certain cases?" Why not use them always?
+The whole definition is inside an `if` statement so that `Canary` is created only if the value `canary.enabled` is set to `true`. That way, by default, we will not use canary deployments at all. Instead, we'll have to specify when and under which circumstances they will be created. That might spark the question "why do we go into the trouble of making sure that canary deployments are enabled only in certain cases?" Why not use them always?
 
 By their nature, it takes much more time to execute a canary deployment than most of the other strategies. Canaries roll out progressively and are pausing periodically to allow us to validate the result on a subset of users. That increased duration can be anything from seconds to hours or even days or weeks. In some cases, we might have an important release that we want to test with our users progressively over a whole week. Such prolonged periods might be well worth the wait in production and staging, which should use the same processes. But, waiting for more than necessary to deploy a release in a preview environment is a waste. Those environments are not supposed to provide the "final stamp" before promoting to production, but rather to flash out most of the errors. After all, not using canaries in preview environments might not be the only difference. As we saw in the previous chapter, we might choose to make them serverless while keeping permanent environments using different deployment strategies. Long story short, the `if` statement allows us to decide when we'll do canary deployments. We are probably not going to employ it in all environments.
 
@@ -1077,54 +1107,59 @@ The `apiVersion`, `kind`, and `metadata` should be self-explanatory if you have 
 
 The exciting entry is `spec.provider`. As the name suggests, it allows us to specify which provider we'll use. In our case, it'll be Istio, but I wanted to make sure that you can easily switch to something else like, for example, Gloo. If you are using GKE, you already have Gloo running. While exploring different solutions is welcome while learning, later on, you should probably use one or the other, not necessarily both.
 
-The `spec.targetRef` tells `Canary` which Kubernetes object it should manipulate. Unlike serverless Deployments with Knative which replace Kubernetes Deployments, `Canary` runs on top of whichever Kubernetes resource we're using to run our software. For *jx-progressive* that's `Deployment`, but it could just as well be a `StatefulSet` or something else.
+The `spec.targetRef` tells `Canary` which Kubernetes object it should manipulate. Unlike serverless Deployments with Knative, which replace Kubernetes Deployments, `Canary` runs on top of whichever Kubernetes resource we're using to run our software. For *jx-progressive*, that's `Deployment`, but it could just as well be a `StatefulSet` or something else.
 
 The next in line is `spec.progressDeadlineSeconds`. Think of it as a safety net. If the system cannot progress with the deployment for the specified period (expressed in seconds), it will initiate a rollback to the previous release.
 
-The `spec.service` entry provides the information on how to access the application, both internally (`port`) and externally (`gateways`) as well as the `hosts` through which the end-users can communicate with the app.
+The `spec.service` entry provides the information on how to access the application, both internally (`port`) and externally (`gateways`), as well as the `hosts` through which the end-users can communicate with the app.
 
 The `spec.canaryAnalysis` entries are probably the most interesting ones. They define the analysis that should be done to decide whether to progress with the deployment or to roll back. Earlier I mentioned that the interval between progress iterations is thirty seconds. That's specified in the `interval` entry. The `threshold` defined how many failed metric checks are allowed before rolling back. The `maxWeight` sets the percentage of requests routed to the canary deployment before it gets converted to the primary. After that percentage is reached, all users will see the new release. More often than not, we do not need to wait until the process reaches 100% through smaller increments. We can say that, for example, when 50% of users are using the new release, there is no need to proceed with validations of the metrics. The system can move forward and make the new release available to everyone right away. The `stepWeight` entry defines how big roll out increments should be (e.g., 20% at a time). Finally, `metrics` can host an array of entries, one for each metric and threshold that should be evaluated continuously during the process.
 
-As you noticed, many of the values are not hard-coded into the `Canary` definition. Instead, we defined them as Helm values. That way we can change all those that should be tweaked from `charts/jx-progressive/values.yaml`. So, let's create that file with some sample values.
+The second definition is a "standard" Istio `Gateway`. We won't go into it in detail since that would derail us from our mission by leading us into a vast subject of Istio. For now, think of the `Gateway` as being equivalent to nginx Ingress we've been using so far. It allows Istio-managed applications to be accessible from outside the cluster.
+
+As you noticed, many of the values are not hard-coded into the `Canary` and `Gateway` definitions. Instead, we defined them as Helm values. That way, we can change all those that should be tweaked from `charts/jx-progressive/values.yaml`. So, let's take a look at them.
 
 ```bash
-echo "
-canary:
-  enable: false
-  provider: istio
-  service:
-    hosts:
-    - jx-progressive.$ISTIO_IP.nip.io
-    gateways:
-    - jx-gateway.istio-system.svc.cluster.local
-  canaryAnalysis:
-    interval: 30s
-    threshold: 5
-    maxWeight: 70
-    stepWeight: 20
-    metrics:
-    - name: request-success-rate
-      threshold: 99
-      interval: 120s
-    - name: request-duration
-      threshold: 500
-      interval: 120s
-" | tee -a charts/jx-progressive/values.yaml
+cat charts/jx-progressive/values.yaml
 ```
 
-We set the provider to `istio` since that is our service mesh technology of choice in this section.
+The relevant parts of the output are as follows.
 
-Through the `service` entry, we set the external-facing `hosts` to a single address (`jx-progressive.$ISTIO_IP.nip.io`). For what we're about to do, we cannot rely on Jenkins X's ability to auto-generate addresses, so they need to be explicit. We'll keep that address as production so we'll have to set the one for staging separately later on. The `gateway` is set to `jx-gateway.istio-system.svc.cluster.local` which represents the `jx-gateway` created by Flagger.
+```yaml
+...
+# Canary deployments
+# If enabled, Istio and Flagger need to be installed in the cluster
+canary:
+  enabled: false
+  progressDeadlineSeconds: 60
+  canaryAnalysis:
+    interval: "1m"
+    threshold: 5
+    maxWeight: 60
+    stepWeight: 20
+    # WARNING: Canary deployments will fail and rollback if there is no traffic that will generate the below specified metrics.
+    metrics:
+      requestSuccessRate:
+        threshold: 99
+        interval: "1m"
+      requestDuration:
+        threshold: 1000
+        interval: "1m"
+  # The host is using Istio Gateway and is currently not auto-generated
+  # Please overwrite the `canary.host` in `values.yaml` in each environment repository (e.g., staging, production)
+  host: acme.com
+...
+```
 
-The `canaryAnalysis` sets the interval to `30s`. So, it will progress with the rollout every half a minute. Similarly, it will roll back it encounters failures (e.g., reaches metrics thresholds) `5` times. It will finish rollout when it reaches `70` percent of users (`maxWeight`), and it will increase the number of requests forwarded to the new release with increments of `20` percent (`stepWeight`).
+We can set the address through which the application should be accessible through the `host` entry at the bottom of the `canary` section. The feature of creating Istio Gateway addresses automatically, like Jenkins X is doing with Ingress, is not available. So, we'll need to define the address of our application for each of the environments. We'll do that later. 
 
-Finally, it will use two metrics to validate rollouts and decide whether to proceed, to halt, or to roll back. The first metric is `request-success-rate` calculated throughout `120s`. If less than `99` percent of requests are successful (are not 5xx responses), it will be considered an error. Remember that does not necessarily mean that it will rollback right away since the `threshold` is set to `5`. There must be five failures for the rollback to initiate. The second metric is `request-duration`. It is also measured throughout `120s` with the threshold of half a second (`500` milliseconds). It does not take into account every request but rather the 99th percentile.
+The `canaryAnalysis` sets the interval to `1m`. So, it will progress with the rollout every minute. Similarly, it will roll back it encounters failures (e.g., reaches metrics thresholds) `5` times. It will finish rollout when it reaches `60` percent of users (`maxWeight`), and it will increase the number of requests forwarded to the new release with increments of `20` percent (`stepWeight`).
+
+Finally, it will use two metrics to validate rollouts and decide whether to proceed, to halt, or to roll back. The first metric is `requestSuccessRate` (`request-success-rate`) calculated throughout `1m`. If less than `99` percent of requests are successful (are not 5xx responses), it will be considered an error. Remember, that does not necessarily mean that it will rollback right away since the `canaryAnalysis.threshold` is set to `5`. There must be five failures for the rollback to initiate. The second metric is `requestDuration` (`request-duration`). It is also measured throughout `1m` with the threshold of a second (`1000` milliseconds). It does not take into account every request but rather the 99th percentile.
 
 We added the `istio-injection=enabled` label to the staging and the production environment Namespaces. As a result, everything running in those Namespaces will automatically use Istio for networking.
 
-There's only one more change missing before we can try `Canary` deployments in action. Do you remember that we set the `hosts` to `jx-progressive.$ISTIO_IP.nip.io`? Assuming that's the address through which our application will be exposed when running in production, we need to define a different address for staging. Otherwise, the releases running in both environments would be accessible through the same address, and that's almost certainly not something we want to do.
-
-Apart from changing the address through which the application will be accessible when running in the staging environment, we'll also have to enable canary deployment. Remember, it is disabled by default.
+Assuming that the default values suit our needs, there are only two changes we need to make to the values. We need to define the `host` for staging (and later for production), and we'll have to enable canary deployment. Remember, it is disabled by default.
 
 The best place to add staging-specific values is the staging repository. We'll have to clone it, so let's get out of the local copy of the *jx-progressive* repo.
 
@@ -1156,10 +1191,8 @@ STAGING_ADDR=staging.jx-progressive.$ISTIO_IP.nip.io
 
 echo "jx-progressive:
   canary:
-    enable: true
-    service:
-      hosts:
-      - $STAGING_ADDR" \
+    enabled: true
+    host: $STAGING_ADDR" \
     | tee -a env/values.yaml
 ```
 
@@ -1597,7 +1630,13 @@ Finally, remember that your Kubernetes cluster might not support all those choic
 
 ## What Now?
 
-That was a long chapter, and you deserve a break.
+We dived into quite a few deployment strategies. Hopefully, you saw both the benefits and the limitations of each. You should be able to make a decision on which route to take.
+
+Parts of this chapter might have been overwhelming if you do not have practical knowledge of the technologies we used. That is especially true for Istio. Unfortunately, we could not dive into it in more detail since that would derail us from Jenkins X. Knative, Istio, and others each deserve a book or a series of articles themselves.
+
+I> If you are eager to learn more about Istio, Flagger, and Prometheus in the context of canary deployments, you might want to explore the [Canary Deployments To Kubernetes Using Istio and Friends](https://www.udemy.com/course/canary-deployments-to-kubernetes-using-istio-and-friends/?referralCode=75549ECDBC41B27D94C4) course in Udemy. Occasionally, I will be posting coupons with discounts on my [Twitter](https://twitter.com/vfarcic) and [LinkedIn](https://www.linkedin.com/in/viktorfarcic/) accounts, so you might want to subscribe to one of those (if you're not already).
+
+That's it. That was a long chapter, and you deserve a break.
 
 If you created a cluster only for the exercises we executed, please destroy it. We'll start the next, and each other chapter from scratch as a way to save you from running your cluster longer than necessary and pay more than needed to your hosting vendor. If you created the cluster or installed Jenkins X using one of the Gists from the beginning of this chapter, you'll find the instructions on how to destroy the cluster or uninstall everything at the bottom of those Gists.
 
