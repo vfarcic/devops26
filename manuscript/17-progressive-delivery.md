@@ -183,8 +183,7 @@ So far, the significant difference when compared with "normal" Kubernetes deploy
 I cannot be sure whether your serverless deployment indeed scaled to zero or it didn't. So, we'll use a bit of patience to validate that it does indeed scale to nothing after a bit of inactivity. All we have to do is wait for five to ten minutes. Get a coffee or some snack.
 
 ```bash
-kubectl \
-    --namespace jx-staging \
+kubectl --namespace jx-staging \
     get pods
 ```
 
@@ -1249,7 +1248,7 @@ Before we start exploring `Canary` deployments, let's take a quick look at what 
 Is our application accessible through the Istio gateway?
 
 ```bash
-curl $STAGING_ADDR/demo/hello
+curl $STAGING_ADDR
 ```
 
 The output should say `Hello from:  Jenkins X golang http rolling update`.

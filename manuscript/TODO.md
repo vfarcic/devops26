@@ -20,6 +20,7 @@
 - [X] 99-the-end.md
 - [X] 18-boot.md
 - [X] 19-apps.md
+- [ ] 99-boot-upgrade.md
 - [ ] Add the book to the jx docs
 - [ ] Add EKS to 18-boot.md
 - [ ] Add AKS to 18-boot.md
@@ -45,7 +46,7 @@
 - [ ] Replace prow with lighthouse across the book
 - [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
 - [ ] Packt
-- [ ] 99-boot-upgrade.md
+- [ ] 99-jx-create-domain.md
 - [ ] 99-multi-cluster.md
 - [ ] jenkins-x.io
 - [ ] 99-ui.md

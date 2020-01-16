@@ -3,13 +3,12 @@
 
 open "https://github.com/jenkins-x/jenkins-x-boot-config"
 
-CLUSTER_NAME=[...]
+CLUSTER_NAME=[...] # e.g., jx-gke
 
 GH_USER=[...]
 
 git clone \
-    https://github.com/$GH_USER/jenkins-x-boot-config.git
- \
+    https://github.com/$GH_USER/jenkins-x-boot-config.git \
     environment-$CLUSTER_NAME-dev
 
 cd environment-$CLUSTER_NAME-dev
@@ -29,8 +28,6 @@ cat jx-requirements.yml
 # Set `storage.repository.enabled` to `true`
 
 cat jx-requirements.yml
-
-jx boot
 
 jx boot
 

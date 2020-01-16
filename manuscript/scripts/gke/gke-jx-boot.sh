@@ -1,12 +1,14 @@
+# Source: https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f
+
 ####################
 # Create a cluster #
 ####################
 
 # Use the same `PROJECT` as when you created the `dev` repository with `jx boot`
-PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
+export PROJECT=[...] # Replace `[...]` with the ID of the GCP project (e.g. jx).
 
 # Use the same `CLUSTER_NAME` as when you created the `dev` repository with `jx boot`
-CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-boot)
+export CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-gke)
 
 gcloud auth login
 
@@ -28,9 +30,6 @@ kubectl create clusterrolebinding \
 #####################
 # Install Jenkins X #
 #####################
-
-# To avoid potential conflicts with the previous installation
-rm -rf ~/.jx
 
 cd environment-$CLUSTER_NAME-dev
 

@@ -30,7 +30,7 @@ https://github.com/jenkins-x/jx/issues/6132
 
 * Create new **GKE** cluster with Jenkins X: [gke-jx-boot.sh](TODO:)
 
-## Backup
+## Upgrades
 
 ```bash
 CLUSTER_NAME=[...]
@@ -109,7 +109,7 @@ cat jx-requirements.yml
 
 # Change `autoUpdate.enabled` to `true`
 
-# Change `autoUpdate.schedule` to `"@daily"`
+# Change `autoUpdate.schedule` to `"0 0 * * *"`
 
 # Save and close
 
@@ -125,21 +125,45 @@ jx get activities \
 
 # Stop watching by pressing ctrl+c when statuses of all the steps are `Succeeded`
 
+# https://github.com/jenkins-x/jx/issues/6542
+
 # TODO: Show the new cronjob (if there is any)
 
 # TODO: Output the changes from the private cluster
+```
+
+## Backups
+
+```bash
+# TODO: Move to the top of the chapter
+
+# Create a GCP bucket with the name `jx-backup` (or any other)
+
+# Open `jx-requirements.yml` in your favorite editor
 
 # Open `jx-requirements.yml` in an editor
 
 # Change `storage.backup.enabled` to `true`
 
-# Create a GCP bucket with the name `jx-backup`
+# Change `storage.backup.url` to `gs://jx-backup`
 
-# Change `velero: {}` to 
-# ```yaml
-# velero:
-#   namespace: velero
-# ```
+# Change `velero.schedule` to `"0 23 * * *"`
+
+# Save and close
+
+git add .
+
+git commit -m "Added backups"
+
+git push
+
+jx get activities \
+    --filter environment-$CLUSTER_NAME-dev/master \
+    --watch
+
+kubectl get cronjobs
+
+# TODO: Cronjob was not created
 
 ls -1 systems
 
@@ -148,22 +172,6 @@ ls -1 systems/velero-backups
 ls -1 systems/velero-backups/templates
 
 cat systems/velero-backups/templates/default-backup.yaml
-
-# TODO: Modify spec.schedule
-
-git pull
-
-git add .
-
-git commit -m "Added backups"
-
-git push
-
-jx get activity \
-    --filter environment-$CLUSTER_NAME-dev/master \
-    --watch
-
-jx get build logs
 
 kubectl --namespace velero \
     get all

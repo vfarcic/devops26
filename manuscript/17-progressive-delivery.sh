@@ -1,5 +1,9 @@
 # Source: https://gist.github.com/7af19b92299278f9b0f20beba9eba022
 
+##################################################################################
+# Creating A Kubernetes Cluster With Jenkins X And Creating A Sample Application #
+##################################################################################
+
 # Links to gists for creating a cluster with jx
 # gke-jx-serverless-gloo.sh: https://gist.github.com/cf939640f2af583c3a12d04affa67923
 # eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
@@ -10,6 +14,10 @@ jx create quickstart \
     --filter golang-http \
     --project-name jx-progressive \
     --batch-mode
+
+###################################################
+# Using Serverless Strategy With Gloo And Knative #
+###################################################
 
 cd jx-progressive
 
@@ -33,8 +41,7 @@ STAGING_ADDR=$(kubectl \
 
 curl "$STAGING_ADDR"
 
-kubectl \
-    --namespace jx-staging \
+kubectl --namespace jx-staging \
     get pods
 
 kubectl run siege \
@@ -55,6 +62,10 @@ cat charts/jx-progressive/values.yaml \
     | grep knative
 
 cd ..
+
+################################################################
+# Using Recreate Strategy With Standard Kubernetes Deployments #
+################################################################
 
 cd jx-progressive
 
@@ -116,10 +127,15 @@ git commit -m "Recreate strategy"
 
 git push
 
+# Open a second terminal session
+
+# If EKS
 export AWS_ACCESS_KEY_ID=[...]
 
+# If EKS
 export AWS_SECRET_ACCESS_KEY=[...]
 
+# If EKS
 export AWS_DEFAULT_REGION=us-east-1
 
 jx get applications --env staging
@@ -131,6 +147,12 @@ do
     curl "$STAGING_ADDR"
     sleep 0.2
 done
+
+# Go back to the first terminal session
+
+#####################################################################
+# Using RollingUpdate Strategy With Standard Kubernetes Deployments #
+#####################################################################
 
 cat charts/jx-progressive/templates/deployment.yaml \
     | sed -e \
@@ -147,14 +169,22 @@ git commit -m "Recreate strategy"
 
 git push
 
+# Go to the second terminal session
+
 while true
 do
     curl "$STAGING_ADDR"
     sleep 0.2
 done
 
+# Go back to the first terminal session
+
 kubectl --namespace jx-staging \
     describe deployment jx-jx-progressive
+
+########################################################
+# Evaluating Whether Blue-Green Deployments Are Useful #
+########################################################
 
 jx get applications --env staging
 
@@ -174,6 +204,10 @@ jx get applications --env production
 PRODUCTION_ADDR=[...]
 
 curl "$PRODUCTION_ADDR"
+
+######################################################
+# Installing Istio, Prometheus, Flagger, And Grafana #
+######################################################
 
 jx create addon istio
 
@@ -212,6 +246,10 @@ kubectl label namespace jx-staging \
 
 kubectl describe namespace \
     jx-staging
+
+##########################################
+# Creating Canary Resources With Flagger #
+##########################################
 
 cat charts/jx-progressive/templates/canary.yaml
 
@@ -260,7 +298,11 @@ jx get activities \
     --filter environment-jx-rocks-staging/master \
     --watch
 
-curl $STAGING_ADDR/demo/hello
+############################################################
+# Using Canary Strategy With Flager, Istio, And Prometheus #
+############################################################
+
+curl $STAGING_ADDR
 
 kubectl \
     --namespace jx-staging \
@@ -311,6 +353,10 @@ kubectl --namespace jx-staging \
 kubectl --namespace jx-staging \
     describe canary jx-jx-progressive
 
+##############################################
+# Visualizing Rollouts Of Canary Deployments #
+##############################################
+
 # If NOT EKS
 LB_IP=$(kubectl \
     --namespace kube-system \
@@ -347,6 +393,10 @@ spec:
 " | kubectl create -f -
 
 open "http://flagger-grafana.$LB_IP.nip.io"
+
+#############
+# What Now? #
+#############
 
 cd ..
 
