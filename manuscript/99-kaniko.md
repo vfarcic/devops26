@@ -45,27 +45,6 @@ With Docker daemon image builds (`docker build`) we have caching. Each layer gen
 * Use an **existing** cluster: [install-kaniko.sh](TODO:)
 * Use an **existing** cluster: [upgrade-kaniko.sh](TODO:)
 
-```bash
-# cd go-demo-6
-
-# git pull
-
-# git checkout pr
-
-# git merge -s ours master --no-edit
-
-# git checkout master
-
-# git merge pr
-
-# git push
-```
-
-```bash
-# jx import --batch-mode
-
-# jx get activities --filter go-demo-6 --watch
-```
 
 ## Kaniko in Docker
 
@@ -79,18 +58,14 @@ make
 docker run \
     -v `pwd`:/workspace gcr.io/kaniko-project/executor:latest \
     --no-push
+```
 
-# if you want to push to GCR
-PROJECT=[...] # Your Google Cloud project id
-gcloud auth application-default login # get the Google Cloud credentials
-docker run \
-    -v $HOME/.config/gcloud:/root/.config/gcloud \
-    -v `pwd`:/workspace \
-    gcr.io/kaniko-project/executor:latest \
-    --destination gcr.io/$PROJECT/go-demo-6:kaniko-docker \
-    --cache
+Building by itself is not very useful, so we want to push to a remote Docker registry.
 
-# if you want to push to DockerHub (similarly to other Docker registries)
+To push to DockerHub or any other username and password Docker registries we need to mount the Docker `config.json` file that contains the credentials.
+Caching will not work for DockerHub as it does not support repositories with more than 2 path sections (`acme/myimage/cache`).
+
+```bash
 DOCKER_USERNAME=[...]
 DOCKER_PASSWORD=[...]
 AUTH=$(echo -n "${DOCKER_USERNAME}:${DOCKER_PASSWORD}" | base64)
@@ -104,20 +79,52 @@ cat << EOF > config.json
 }
 EOF
 docker run \
-    -v `pwd`/config.json:/root/.docker/config.json \
+    -v `pwd`/config.json:/kaniko/.docker/config.json:ro \
     -v `pwd`:/workspace \
     gcr.io/kaniko-project/executor:latest \
-    --destination $DOCKER_USERNAME/go-demo-6:kaniko-docker \
+    --destination $DOCKER_USERNAME/go-demo-6:kaniko-docker
+```
+
+To push to Google Container Registry (GCR) we need to login to Google Cloud and mount our local `$HOME/.config/gcloud` containing our credentials into the kaniko container so it can push to GCR.
+GCR does support caching and so it will push the intermediate layers to `gcr.io/$PROJECT/go-demo-6/cache:_some_large_uuid_` to be reused in subsequent builds.
+
+```bash
+PROJECT=$(gcloud config get-value project 2> /dev/null) # Your Google Cloud project id
+gcloud auth application-default login # get the Google Cloud credentials
+docker run \
+    -v $HOME/.config/gcloud:/root/.config/gcloud:ro \
+    -v `pwd`:/workspace \
+    gcr.io/kaniko-project/executor:latest \
+    --destination gcr.io/$PROJECT/go-demo-6:kaniko-docker \
     --cache
 ```
 
+
 ## Kaniko in Kubernetes
 
-In Kubernetes we can manually create a pod that will do our Docker image build.
+In Kubernetes we can manually create a pod that will do our Docker image build. We need to provide the build context, containing the same files that we would put in the directory used when building a Docker image with a Docker daemon.
+It should contain the `Dockerfile` and any other files used to build the image, ie. referenced in `COPY` commands.
 
-Depending on where we want to push to we need to create the corresponding secrets.
+As build context we can use multiple sources
 
-For Dockerhub or a Docker registry
+* GCS Bucket (as a `tar.gz` file) 
+  * `gs://kaniko-bucket/path/to/context.tar.gz`
+* S3 Bucket (as a `tar.gz` file) `
+  * `s3://kaniko-bucket/path/to/context.tar.gz`
+* Azure Blob Storage (as a `tar.gz` file)
+  * `https://myaccount.blob.core.windows.net/container/path/to/context.tar.gz`
+* Local Directory, mounted in the `/workspace` dir as shown above
+  * `dir:///workspace`
+* Git Repository
+  * `git://github.com/acme/myproject.git#refs/heads/mybranch`
+
+Depending on where we want to push to, we will also need to create the corresponding secrets and config maps.
+
+We are going to show examples building from a git repository as it will be the most typical use case.
+
+### Deploying to Docker Hub or a Docker registry
+
+We will need the Docker registry credentials in a `config.json` file, the same way that we need them to pull images from a private registry in Kubernetes.
 
 ```bash
 DOCKER_USERNAME=[...]
@@ -130,11 +137,11 @@ kubectl create secret docker-registry regcred \
 
 # TODO vfarcic create the kaniko branch in vfarcic/go-demo-6
 
-echo << EOF | kubectl create -f -
+cat << EOF | kubectl create -f -
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kaniko
+  name: kaniko-docker
 spec:
   restartPolicy: Never
   containers:
@@ -143,10 +150,14 @@ spec:
     imagePullPolicy: Always
     args: ["--dockerfile=Dockerfile",
             "--context=git://github.com/carlossg/go-demo-6.git#refs/heads/kaniko",
-            "--destination=csanchez/test"]
+            "--destination=${DOCKER_USERNAME}/go-demo-6"]
     volumeMounts:
       - name: docker-config
         mountPath: /kaniko/.docker
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
   volumes:
   - name: docker-config
     projected:
@@ -159,26 +170,270 @@ spec:
 EOF
 ```
 
-TODO Kaniko on GCR with caching
-TODO Kaniko on AWS
+### Deploying to Google Container Registry (GCR)
+
+To deploy to GCR we can use a service account and mount it as a Kubernetes secret, but when running on Google Kubernetes Engine (GKE) it is more convenient and safe to use the node pool service account.
+
+When creating the GKE node pool the default configuration only includes read-only access to Storage API, and we need **full** access in order to push to GCR. This is something that Jenkins X will do for us when creating the cluster but if we create our own we need to change under Add a new node pool - Security - Access scopes - Set access for each API - Storage - Full. Note that the scopes cannot be changed once the node pool has been created.
+
+If the nodes have the correct service account with full storage access scope then we do not need to do anything extra on our kaniko pod, as it will be able to push to GCR just fine.
+
+```bash
+PROJECT=$(gcloud config get-value project 2> /dev/null)
+
+cat << EOF | kubectl create -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko-gcr
+spec:
+  restartPolicy: Never
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor
+    imagePullPolicy: Always
+    args: ["--dockerfile=Dockerfile",
+            "--context=git://github.com/carlossg/go-demo-6.git#refs/heads/kaniko",
+            "--destination=gcr.io/${PROJECT}/go-demo-6:latest",
+            "--cache=true"]
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
+EOF
+```
+
+```
+kaniko/kaniko[kaniko]: Enumerating objects: 4036, done.
+kaniko/kaniko[kaniko]: Total 4036 (delta 0), reused 0 (delta 0), pack-reused 4036
+kaniko/kaniko[kaniko]: INFO[0005] Resolved base name golang to golang
+kaniko/kaniko[kaniko]: INFO[0005] Resolved base name scratch to scratch
+kaniko/kaniko[kaniko]: INFO[0005] Using dockerignore file: /kaniko/buildcontext/.dockerignore
+kaniko/kaniko[kaniko]: INFO[0005] Resolved base name golang to golang
+kaniko/kaniko[kaniko]: INFO[0005] Resolved base name scratch to scratch
+kaniko/kaniko[kaniko]: INFO[0005] Downloading base image golang
+kaniko/kaniko[kaniko]: ERROR: logging before flag.Parse: E1118 10:00:21.291716       1 metadata.go:142] while reading 'google-dockercfg' metadata: http status code: 404 while fetching url http://metadata.google.internal./computeMetadata/v1/instance/attributes/google-dockercfg
+kaniko/kaniko[kaniko]: ERROR: logging before flag.Parse: E1118 10:00:21.295595       1 metadata.go:159] while reading 'google-dockercfg-url' metadata: http status code: 404 while fetching url http://metadata.google.internal./computeMetadata/v1/instance/attributes/google-dockercfg-url
+kaniko/kaniko[kaniko]: INFO[0006] Error while retrieving image from cache: getting file info: stat /cache/sha256:80bf73289b856e9a9cb518e76380575b4328b031dd9f593c7c7b3c75c5598048: no such file or directory
+kaniko/kaniko[kaniko]: INFO[0006] Downloading base image golang
+kaniko/kaniko[kaniko]: INFO[0006] Built cross stage deps: map[0:[/src/bin/go-demo-6]]
+kaniko/kaniko[kaniko]: INFO[0006] Downloading base image golang
+kaniko/kaniko[kaniko]: INFO[0006] Error while retrieving image from cache: getting file info: stat /cache/sha256:80bf73289b856e9a9cb518e76380575b4328b031dd9f593c7c7b3c75c5598048: no such file or directory
+kaniko/kaniko[kaniko]: INFO[0006] Downloading base image golang
+kaniko/kaniko[kaniko]: INFO[0007] Unpacking rootfs as cmd RUN cd /src && make requires it.
+kaniko/kaniko[kaniko]: INFO[0025] Taking snapshot of full filesystem...
+kaniko/kaniko[kaniko]: INFO[0040] Using files from context: [/kaniko/buildcontext]
+kaniko/kaniko[kaniko]: INFO[0042] ADD . /src
+kaniko/kaniko[kaniko]: INFO[0042] Taking snapshot of files...
+kaniko/kaniko[kaniko]: INFO[0043] RUN cd /src && make
+kaniko/kaniko[kaniko]: INFO[0043] cmd: /bin/sh
+kaniko/kaniko[kaniko]: INFO[0043] args: [-c cd /src && make]
+kaniko/kaniko[kaniko]: go: downloading gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+kaniko/kaniko[kaniko]: go: downloading github.com/prometheus/client_golang v0.9.2
+kaniko/kaniko[kaniko]: go: extracting github.com/prometheus/client_golang v0.9.2
+kaniko/kaniko[kaniko]: go: downloading github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+kaniko/kaniko[kaniko]: go: downloading github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+kaniko/kaniko[kaniko]: go: extracting github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+kaniko/kaniko[kaniko]: go: downloading github.com/golang/protobuf v1.2.0
+kaniko/kaniko[kaniko]: go: downloading github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+kaniko/kaniko[kaniko]: go: downloading github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+kaniko/kaniko[kaniko]: go: extracting gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+kaniko/kaniko[kaniko]: go: extracting github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+kaniko/kaniko[kaniko]: go: extracting github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+kaniko/kaniko[kaniko]: go: extracting github.com/golang/protobuf v1.2.0
+kaniko/kaniko[kaniko]: go: extracting github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+kaniko/kaniko[kaniko]: go: downloading github.com/matttproud/golang_protobuf_extensions v1.0.1
+kaniko/kaniko[kaniko]: go: extracting github.com/matttproud/golang_protobuf_extensions v1.0.1
+kaniko/kaniko[kaniko]: go: finding gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+kaniko/kaniko[kaniko]: go: finding github.com/prometheus/client_golang v0.9.2
+kaniko/kaniko[kaniko]: go: finding github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+kaniko/kaniko[kaniko]: go: finding github.com/golang/protobuf v1.2.0
+kaniko/kaniko[kaniko]: go: finding github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+kaniko/kaniko[kaniko]: go: finding github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+kaniko/kaniko[kaniko]: go: finding github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+kaniko/kaniko[kaniko]: go: finding github.com/matttproud/golang_protobuf_extensions v1.0.1
+kaniko/kaniko[kaniko]: CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go build -ldflags '' -o bin/go-demo-6 main.go
+kaniko/kaniko[kaniko]: INFO[0063] Taking snapshot of full filesystem...
+kaniko/kaniko[kaniko]: INFO[0133] Saving file /src/bin/go-demo-6 for later use.
+kaniko/kaniko[kaniko]: INFO[0133] Deleting filesystem...
+kaniko/kaniko[kaniko]: INFO[0135] No base image, nothing to extract
+kaniko/kaniko[kaniko]: INFO[0135] Unpacking rootfs as cmd COPY --from=build-env /src/bin/go-demo-6 / requires it.
+kaniko/kaniko[kaniko]: INFO[0135] Taking snapshot of full filesystem...
+kaniko/kaniko[kaniko]: INFO[0135] EXPOSE 8080
+kaniko/kaniko[kaniko]: INFO[0135] cmd: EXPOSE
+kaniko/kaniko[kaniko]: INFO[0135] Adding exposed port: 8080/tcp
+kaniko/kaniko[kaniko]: INFO[0135] ENTRYPOINT ["/go-demo-6"]
+kaniko/kaniko[kaniko]: INFO[0135] COPY --from=build-env /src/bin/go-demo-6 /
+kaniko/kaniko[kaniko]: INFO[0135] Taking snapshot of files...
+```
+
+kaniko currently can cache layers created by RUN commands in a remote repository. Before executing a command, kaniko checks the cache for the layer. If it exists, kaniko will pull and extract the cached layer instead of executing the command. If not, kaniko will execute the command and then push the newly created layer to the cache.
+
+If we were to run the same build again we would notice how the layers are pulled instead of rebuilt.
+
+
+### Deploying to Amazon Elastic Container Registry (ECR)
+
+To deploy to Amazon Elastic Container Registry (ECR) we can create a secret with AWS credentials or we can run with more secure IAM node instance roles.
+
+When running on EKS we would have an EKS worker node IAM role (`NodeInstanceRole`), we need to add the IAM permissions to be able to pull and push from ECR. These permissions are grouped in the `arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser` policy, that can be attached to the node instance role.
+
+When using instance roles we no longer need a secret, but we still need to configure kaniko to authenticate to AWS, by using a `config.json` containing just `{ "credsStore": "ecr-login" }`, mounted in `/kaniko/.docker/`.
+
+We also need to create the ECR repository beforehand, and, if using caching, another one for the cache.
+
+```bash
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+REPOSITORY=jx
+REGION=us-east-1
+# create the repository to push to
+aws ecr create-repository --repository-name ${REPOSITORY}/go-demo-6 --region ${REGION}
+# when using cache we need another repository for it
+aws ecr create-repository --repository-name ${REPOSITORY}/go-demo-6/cache --region ${REGION}
+
+cat << EOF | kubectl create -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko-eks
+spec:
+  restartPolicy: Never
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor
+    imagePullPolicy: Always
+    args: ["--dockerfile=Dockerfile",
+            "--context=git://github.com/carlossg/go-demo-6.git#refs/heads/kaniko",
+            "--destination=${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/jx/go-demo-6:latest",
+            "--cache=true"]
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker/
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
+  volumes:
+    - name: docker-config
+      configMap:
+        name: docker-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-config
+data:
+  config.json: |-
+    { "credsStore": "ecr-login" }
+EOF
+```
+
+
+```
+jx/kaniko-eks[kaniko]: Enumerating objects: 4036, done.
+jx/kaniko-eks[kaniko]: Total 4036 (delta 0), reused 0 (delta 0), pack-reused 4036
+jx/kaniko-eks[kaniko]: INFO[0003] Resolved base name golang to golang
+jx/kaniko-eks[kaniko]: INFO[0003] Resolved base name scratch to scratch
+jx/kaniko-eks[kaniko]: INFO[0003] Using dockerignore file: /kaniko/buildcontext/.dockerignore
+jx/kaniko-eks[kaniko]: INFO[0003] Resolved base name golang to golang
+jx/kaniko-eks[kaniko]: INFO[0003] Resolved base name scratch to scratch
+jx/kaniko-eks[kaniko]: INFO[0003] Retrieving image manifest golang
+jx/kaniko-eks[kaniko]: INFO[0003] Image golang not found in cache
+jx/kaniko-eks[kaniko]: INFO[0003] Retrieving image manifest golang
+jx/kaniko-eks[kaniko]: INFO[0004] Built cross stage deps: map[0:[/src/bin/go-demo-6]]
+jx/kaniko-eks[kaniko]: INFO[0004] Retrieving image manifest golang
+jx/kaniko-eks[kaniko]: INFO[0004] Image golang not found in cache
+jx/kaniko-eks[kaniko]: INFO[0004] Retrieving image manifest golang
+jx/kaniko-eks[kaniko]: INFO[0004] Using files from context: [/kaniko/buildcontext]
+jx/kaniko-eks[kaniko]: INFO[0004] Checking for cached layer 601253276071.dkr.ecr.us-east-1.amazonaws.com/test/go-demo-6/cache:9fd2d546c8ff05664b9de61e91b1612155734726ae3190653d5ca4e708c2b5af...
+jx/kaniko-eks[kaniko]: INFO[0004] No cached layer found for cmd RUN cd /src && make
+jx/kaniko-eks[kaniko]: INFO[0004] Unpacking rootfs as cmd ADD . /src requires it.
+jx/kaniko-eks[kaniko]: INFO[0018] Taking snapshot of full filesystem...
+jx/kaniko-eks[kaniko]: INFO[0021] Using files from context: [/kaniko/buildcontext]
+jx/kaniko-eks[kaniko]: INFO[0021] ADD . /src
+jx/kaniko-eks[kaniko]: INFO[0021] Taking snapshot of files...
+jx/kaniko-eks[kaniko]: INFO[0022] RUN cd /src && make
+jx/kaniko-eks[kaniko]: INFO[0022] cmd: /bin/sh
+jx/kaniko-eks[kaniko]: INFO[0022] args: [-c cd /src && make]
+jx/kaniko-eks[kaniko]: go: downloading github.com/prometheus/client_golang v0.9.2
+jx/kaniko-eks[kaniko]: go: downloading gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+jx/kaniko-eks[kaniko]: go: extracting github.com/prometheus/client_golang v0.9.2
+jx/kaniko-eks[kaniko]: go: extracting gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+jx/kaniko-eks[kaniko]: go: downloading github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+jx/kaniko-eks[kaniko]: go: downloading github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+jx/kaniko-eks[kaniko]: go: downloading github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+jx/kaniko-eks[kaniko]: go: downloading github.com/golang/protobuf v1.2.0
+jx/kaniko-eks[kaniko]: go: downloading github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+jx/kaniko-eks[kaniko]: go: extracting github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+jx/kaniko-eks[kaniko]: go: extracting github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+jx/kaniko-eks[kaniko]: go: extracting github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+jx/kaniko-eks[kaniko]: go: downloading github.com/matttproud/golang_protobuf_extensions v1.0.1
+jx/kaniko-eks[kaniko]: go: extracting github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+jx/kaniko-eks[kaniko]: go: extracting github.com/golang/protobuf v1.2.0
+jx/kaniko-eks[kaniko]: go: extracting github.com/matttproud/golang_protobuf_extensions v1.0.1
+jx/kaniko-eks[kaniko]: go: finding gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+jx/kaniko-eks[kaniko]: go: finding github.com/prometheus/client_golang v0.9.2
+jx/kaniko-eks[kaniko]: go: finding github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+jx/kaniko-eks[kaniko]: go: finding github.com/golang/protobuf v1.2.0
+jx/kaniko-eks[kaniko]: go: finding github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+jx/kaniko-eks[kaniko]: go: finding github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+jx/kaniko-eks[kaniko]: go: finding github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+jx/kaniko-eks[kaniko]: go: finding github.com/matttproud/golang_protobuf_extensions v1.0.1
+jx/kaniko-eks[kaniko]: CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go build -ldflags '' -o bin/go-demo-6 main.go
+jx/kaniko-eks[kaniko]: INFO[0035] Taking snapshot of full filesystem...
+jx/kaniko-eks[kaniko]: INFO[0041] Pushing layer 601253276071.dkr.ecr.us-east-1.amazonaws.com/test/go-demo-6/cache:9fd2d546c8ff05664b9de61e91b1612155734726ae3190653d5ca4e708c2b5af to cache now
+jx/kaniko-eks[kaniko]: INFO[0046] Saving file /src/bin/go-demo-6 for later use.
+jx/kaniko-eks[kaniko]: INFO[0046] Deleting filesystem...
+jx/kaniko-eks[kaniko]: INFO[0047] No base image, nothing to extract
+jx/kaniko-eks[kaniko]: INFO[0047] cmd: EXPOSE
+jx/kaniko-eks[kaniko]: INFO[0047] Adding exposed port: 8080/tcp
+jx/kaniko-eks[kaniko]: INFO[0047] Checking for cached layer 601253276071.dkr.ecr.us-east-1.amazonaws.com/test/go-demo-6/cache:e0d4a1e5b33d217556457912bf205b5c0c42c4b3b55d93ec261a4cd947f563ae...
+jx/kaniko-eks[kaniko]: INFO[0047] No cached layer found for cmd COPY --from=build-env /src/bin/go-demo-6 /
+jx/kaniko-eks[kaniko]: INFO[0047] Unpacking rootfs as cmd COPY --from=build-env /src/bin/go-demo-6 / requires it.
+jx/kaniko-eks[kaniko]: INFO[0047] Taking snapshot of full filesystem...
+jx/kaniko-eks[kaniko]: INFO[0047] EXPOSE 8080
+jx/kaniko-eks[kaniko]: INFO[0047] cmd: EXPOSE
+jx/kaniko-eks[kaniko]: INFO[0047] Adding exposed port: 8080/tcp
+jx/kaniko-eks[kaniko]: INFO[0047] No files changed in this command, skipping snapshotting.
+jx/kaniko-eks[kaniko]: INFO[0047] ENTRYPOINT ["/go-demo-6"]
+jx/kaniko-eks[kaniko]: INFO[0047] No files changed in this command, skipping snapshotting.
+jx/kaniko-eks[kaniko]: INFO[0047] COPY --from=build-env /src/bin/go-demo-6 /
+jx/kaniko-eks[kaniko]: INFO[0047] Taking snapshot of files...
+jx/kaniko-eks[kaniko]: INFO[0048] Pushing layer 601253276071.dkr.ecr.us-east-1.amazonaws.com/test/go-demo-6/cache:e0d4a1e5b33d217556457912bf205b5c0c42c4b3b55d93ec261a4cd947f563ae to cache now
+```
+
+### Deploying to Azure Container Registry (ACR)
+
+To push to Azure Container Registry (ACR)
+
+```bash
+RESOURCE_GROUP=sanchezg
+REGISTRY_NAME=sanchezgtest # TODO
+az login
+az acr create --resource-group $RESOURCE_GROUP --name $REGISTRY_NAME --sku Basic
+# az acr login --name $REGISTRY_NAME
+curl https://aadacr.blob.core.windows.net/acr-docker-credential-helper/docker-credential-acr-linux-amd64.tar.gz | tar xvz
+
+cat << EOF > config.json
+{
+	"auths": {
+		"${REGISTRY_NAME}.azurecr.io": {}
+	},
+	"credsStore": "acr"
+}
+EOF
+docker run \
+    -v $HOME/.azure:/root/.azure \
+    -v `pwd`/docker-credential-acr-linux:/kaniko/docker-credential-acr:ro \
+    -v `pwd`/config.json:/kaniko/.docker/config.json:ro \
+    -v `pwd`:/workspace \
+    gcr.io/kaniko-project/executor:latest \
+    --destination $REGISTRY_NAME.azurecr.io/go-demo-6:kaniko-docker \
+    --cache
+```
+
 
 
 ## What Now?
 
-```bash
-cd ..
-
-GH_USER=[...]
-
-hub delete -y \
-  $GH_USER/environment-jx-rocks-staging
-
-hub delete -y \
-  $GH_USER/environment-jx-rocks-production
-  
-hub delete -y $GH_USER/jx-kaniko
-
-rm -rf jx-kaniko
-
-rm -rf ~/.jx/environments/$GH_USER/environment-jx-rocks-*
-```
+TODO
