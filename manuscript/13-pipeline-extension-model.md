@@ -155,6 +155,8 @@ cd ..
 I> If you destroyed the cluster at the end of the previous chapter, you'll need to import the *go-demo-6* application again. Please execute the commands that follow only if you created a new cluster specifically for the exercises from this chapter.
 
 ```bash
+cd go-demo-6
+
 jx import --batch-mode
 
 jx get activities \
@@ -171,6 +173,8 @@ Now we can explore Jenkins X Pipeline Extension Model.
 As a reminder, we'll take another quick look at the `jenkins-x.yml` file.
 
 ```bash
+cd go-demo-6
+
 cat jenkins-x.yml
 ```
 
@@ -339,33 +343,32 @@ Now that we fixed the problem with the tests and increased the number of replica
 
 As it is now, the pipeline inherited from the build pack does not contain validations. It does almost everything else we need it to do except to run tests. We'll start with unit tests.
 
-Where should we add unit tests? We need to choose the pipeline, the lifecycle, and the mode. Typically, this would be the moment when I'd need to explain in greater detail the syntax of the new pipeline format. Given that would be a lengthy process, we'll take a shortcut provided with the `jx create step` command that will help us make the right choices and update `jenkins-x.yml` for us.
+Where should we add unit tests? We need to choose the pipeline, the lifecycle, and the mode. Typically, this would be the moment when I'd need to explain in greater detail the syntax of the new pipeline format. Given that it would be a lengthy process, we'll add the step first, and explain what we did.
 
 ```bash
-jx create step
+echo "buildPack: go
+pipelineConfig:
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - command: make unittest" \
+    | tee jenkins-x.yml
 ```
 
-Now we need to answer a series of question. The first one is to `pick the pipeline kind`. We can choose between `release`, `pullrequest`, and `feature`. We already explored under which conditions each of those are executed, so all we have to do is pick one. Unit tests should probably be executed when we create a pull request, so please choose `pullrequest` and press the enter key.
+What did we do?
 
-Next, we need to `pick the lifecycle`. Each time a pipeline is executed, it goes through a series of lifecycles. The `setup` lifecycle prepares the pipeline environment, `setversion` configures the version of the release, `prebuild` prepares the environment for the build steps, `build` builds the binaries and other artifacts, `postbuild` is usually used for additional validations like security scanning, and, finally, `promote` executes the process of installing the release to one or more environments.
+ Unit tests should probably be executed when we create a pull request, so we defined a step inside the `pullrequest` pipeline. It could have been `release` or `feature` as well. We already explored under which conditions each of those are executed.
 
-In most cases, running unit tests does not require compilation nor a live application, so we can execute them early. The right moment is probably just before we build the binaries. That might compel you to think that we should select the `prebuild` lifecycle assuming that building is done in the `build` phase. That would be true only if we would be choosing the lifecycle we want to replace. While that is possible as well, we'll opt for extending one of the phases. So, please select `build` and press the enter key.
+Each time a pipeline is executed, it goes through a series of lifecycles. The `setup` lifecycle prepares the pipeline environment, `setversion` configures the version of the release, `prebuild` prepares the environment for the build steps, `build` builds the binaries and other artifacts, `postbuild` is usually used for additional validations like security scanning, and, finally, `promote` executes the process of installing the release to one or more environments.
 
-We already commented that we want to extend the existing `build` lifecycle, so the next question comes just in time. We are asked to `pick the create mode`. We could choose between `pre`, `post`, and `replace`. The `pre` mode would add a new step before those in the `build` lifecycle inherited from the build pack. Similarly, `post` would add a new step after. Finally, we can use the `replace` mode to replace the steps inherited from the build pack. Since we already argued that we should execute our unit tests even before we build the artifacts, please select the `pre` mode and press the enter key.
+In most cases, running unit tests does not require compilation nor a live application, so we can execute them early. The right moment is probably just before we build the binaries. That might compel you to think that we should select the `prebuild` lifecycle assuming that building is done in the `build` phase. That would be true only if we would be choosing the lifecycle we want to replace. While that is possible as well, we'll opt for extending one of the phases. So, please defined our step inside the `build`.
 
-We came to the last question asking us to specify the `command for the new step`. We already went through the exercises of adding unit tests to Jenkinsfile in static Jenkins X, so you probably remember the command. If you don't, here's the reminder. Please type `make unittest` and press the enter key.
+We already commented that we want to extend the existing `build` lifecycle, so we chose to use `preSteps` mode. There are others, and we'll discuss them later. The `preSteps` mode will add a new step before those in the `build` lifecycle inherited from the build pack. That way, our unit tests will run before we build the artifacts.
 
-The final output from which you can see all the choices we selected is as follows.
+The last entry is the `command` that will be executed as a step. It will run `make unittest`.
 
-```
-? Pick the pipeline kind:  pullrequest
-? Pick the lifecycle:  build
-? Pick the create mode:  pre
-? Command for the new step:  make unittest
-Updated Jenkins X Pipeline file: jenkins-x.yml
-```
-
-That's it. We added a new step to our `jenkins-x.yml`, and we can see from the output that the command `updated Jenkins X Pipeline file`.
+That's it. We added a new step to our `jenkins-x.yml`.
 
 Let's see what we got.
 
@@ -388,8 +391,6 @@ pipelineConfig:
 We can see that the `buildPack: go` is still there so our pipeline will continue doing whatever is defined in that build pack. Below is the `pipelineConfig` section that, in this context, extends the one defined in build pack. The `agent` is empty (`{}`), so it will continue using the agent defined in the build pack.
 
 The `pipelines` section extends the `build` lifecycle of the `pullRequest` pipeline. By specifying `preStep`, we know that it will execute `make unittest` before any of the out-of-the-box steps defined in the same lifecycle.
-
-Before we proceed, please note that the `jx create step` command does not offer all the options we can specify in our pipelines. At the time of this writing (May 2019) it provides a convenient way to define the most commonly used elements (`pipeline`, `lifecycle`, `mode`, and the command). That's all we need for most use cases. Nevertheless, we will go through more advanced or, to be more precise, less commonly used constructs later. For now, what `jx create step` offers should be enough.
 
 Now that we extended our pipeline, we'll push the changes to GitHub, create a pull request, and observe the outcome.
 
@@ -478,18 +479,15 @@ Now we can add the `functest`  target to the `pullrequest` pipeline. But, before
 
 But, there is a problem that we need to solve or, to be more precise, there is an improvement we could do.
 
-Functional tests need to know the address of the application under tests. Since each pull request is deployed into its own namespace and the app is exposed through a dynamically created address, we need to figure out how to retrieve that URL. In the past, when we used Jenkinsfile, we had a command that combines quite a few environment variables (e.g., `ORG`, `HELM_RELEASE`, etc.) and retrieves the address by querying Ingress. Fortunately, there is a command that allows us to retrieve the address of the current pull request. The bad news is that we cannot (easily) run it locally, so you'll need to trust me when I say that `jx get preview --current` will return the full address of the PR deployed with the `jx preview` command executed as the last step in the `promote` lifecycle of the `pullrequest` pipeline.
-
-Finally, we might want to skip the questions and provide all the answers by executing `jx create step` in batch mode.
+Functional tests need to know the address of the application under tests. Since each pull request is deployed into its own namespace and the app is exposed through a dynamically created address, we need to figure out how to retrieve that URL. Fortunately, there is a command that allows us to retrieve the address of the current pull request. The bad news is that we cannot (easily) run it locally, so you'll need to trust me when I say that `jx get preview --current` will return the full address of the PR deployed with the `jx preview` command executed as the last step in the `promote` lifecycle of the `pullrequest` pipeline.
 
 Having all that in mind, the command we will execute is as follows.
 
 ```bash
-jx create step \
-    --pipeline pullrequest \
-    --lifecycle promote \
-    --mode post \
-    --sh 'ADDRESS=`jx get preview --current 2>&1` make functest'
+echo '      promote:
+        steps:
+        - command: ADDRESS=`jx get preview --current 2>&1` make functest' | \
+    tee -a jenkins-x.yml
 ```
 
 Just as before, the output confirms that `jenkins-x.yml` was updated, so let's take a peek at how it looks now.
@@ -566,11 +564,8 @@ ok      go-demo-6       0.271s
 While we are still exploring the basics of extending build pack pipelines, we might just as well take a quick look at what happens if a pipeline run fails. Instead of deliberately introducing a bug in the code of the application, we'll add another round of tests, but this time in a way that will certainly fail.
 
 ```bash
-jx create step \
-    --pipeline pullrequest \
-    --lifecycle promote \
-    --mode post \
-    --sh 'ADDRESS=http://this-domain-does-not-exist.com make functest'
+echo '        - command: ADDRESS=http://this-domain-does-not-exist.com make functest' | \
+    tee -a jenkins-x.yml
 ```
 
 As you can see, we added the execution of the same tests. The only difference is that the address of the application under test is now `http://this-domain-does-not-exist.com`. That will surely fail and allow us to see what happens when something goes wrong.
@@ -716,11 +711,14 @@ If our mission is to add integration tests, they should probably run after the a
 Please execute the command that follows.
 
 ```bash
-jx create step \
-    --pipeline release \
-    --lifecycle postbuild \
-    --mode post \
-    --sh 'echo "Running integ tests!!!"'
+cat jenkins-x.yml \
+    | sed -e \
+    's@pipelines: {}@pipelines:\
+    release:\
+      postBuild:\
+        steps:\
+        - command: echo "Running integ tests!!!"@g' \
+    | tee jenkins-x.yml
 ```
 
 As you can see, we won't run "real" tests, but simulate them through a simple `echo`. Our goal is to explore serverless Jenkins X pipelines and not to dive into testing, so I believe that a simple message like that one should be enough.

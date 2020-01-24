@@ -58,6 +58,8 @@ cat skaffold.yaml \
 # If GKE
 cd ..
 
+cd go-demo-6
+
 jx import --batch-mode
 
 jx get activities \
@@ -65,6 +67,8 @@ jx get activities \
     --watch
 
 cd ..
+
+cd go-demo-6
 
 cat jenkins-x.yml
 
@@ -97,7 +101,14 @@ cat production_test.go \
     's@fmt.Sprintf("http://@fmt.Sprintf("@g' \
     | tee production_test.go
 
-jx create step
+echo "buildPack: go
+pipelineConfig:
+  pipelines:
+    pullRequest:
+      build:
+        preSteps:
+        - command: make unittest" \
+    | tee jenkins-x.yml
 
 cat jenkins-x.yml
 
@@ -127,11 +138,10 @@ echo 'functest:
 	--cover
 ' | tee -a Makefile
 
-jx create step \
-    --pipeline pullrequest \
-    --lifecycle promote \
-    --mode post \
-    --sh 'ADDRESS=`jx get preview --current 2>&1` make functest'
+echo '      promote:
+        steps:
+        - command: ADDRESS=`jx get preview --current 2>&1` make functest' | \
+    tee -a jenkins-x.yml
 
 cat jenkins-x.yml
 
@@ -146,11 +156,8 @@ jx get build logs \
     --filter go-demo-6 \
     --branch $BRANCH
 
-jx create step \
-    --pipeline pullrequest \
-    --lifecycle promote \
-    --mode post \
-    --sh 'ADDRESS=http://this-domain-does-not-exist.com make functest'
+echo '        - command: ADDRESS=http://this-domain-does-not-exist.com make functest' | \
+    tee -a jenkins-x.yml
 
 git add .
 
@@ -189,11 +196,14 @@ cat jenkins-x.yml
 
 curl https://raw.githubusercontent.com/jenkins-x-buildpacks/jenkins-x-kubernetes/master/packs/environment/pipeline.yaml
 
-jx create step \
-    --pipeline release \
-    --lifecycle postbuild \
-    --mode post \
-    --sh 'echo "Running integ tests!!!"'
+cat jenkins-x.yml \
+    | sed -e \
+    's@pipelines: {}@pipelines:\
+    release:\
+      postBuild:\
+        steps:\
+        - command: echo "Running integ tests!!!"@g' \
+    | tee jenkins-x.yml
 
 cat jenkins-x.yml
 
