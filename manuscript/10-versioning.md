@@ -65,28 +65,35 @@ cd go-demo-6
 git checkout master
 ```
 
-W> Please execute the commands that follow only if you are using **GKE** and if you ever restored a branch at the beginning of a chapter (like in the snippet above).
+W> Please execute the commands that follow only if you restored a branch at the beginning of a chapter (like in the snippet above). Please note the comments within the snipper that follows.
 
 ```bash
+# If GKE
+export REGISTRY_OWNER=$PROJECT
+
+# If EKS or AKS
+# Replace `[...]` with your GitHub user
+export REGISTRY_OWNER=[...]
+
 cat charts/go-demo-6/Makefile \
     | sed -e \
-    "s@vfarcic@$PROJECT@g" \
+    "s@vfarcic@$REGISTRY_OWNER@g" \
     | sed -e \
-    "s@devops-26@$PROJECT@g" \
+    "s@devops-26@$REGISTRY_OWNER@g" \
     | tee charts/go-demo-6/Makefile
 
 cat charts/preview/Makefile \
     | sed -e \
-    "s@vfarcic@$PROJECT@g" \
+    "s@vfarcic@$REGISTRY_OWNER@g" \
     | sed -e \
-    "s@devops-26@$PROJECT@g" \
+    "s@devops-26@$REGISTRY_OWNER@g" \
     | tee charts/preview/Makefile
 
 cat skaffold.yaml \
     | sed -e \
-    "s@vfarcic@$PROJECT@g" \
+    "s@vfarcic@$REGISTRY_OWNER@g" \
     | sed -e \
-    "s@devops-26@$PROJECT@g" \
+    "s@devops-26@$REGISTRY_OWNER@g" \
     | tee skaffold.yaml
 ```
 

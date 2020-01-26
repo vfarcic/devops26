@@ -21,6 +21,7 @@
 - [X] 18-boot.md
 - [X] 19-apps.md
 - [ ] 99-boot-upgrade.md
+- [ ] 99-vault.md (http://sharepointoscar.com/2020-01-23-Interpolate-Vault-Secrets-Helm/)
 - [ ] Add the book to the jx docs
 - [ ] Add EKS to 18-boot.md
 - [ ] Add AKS to 18-boot.md
@@ -64,7 +65,6 @@
 - [ ] 99-gitops.md
 - [ ] 99-ui.md
 - [ ] 99-build-notifications.md
-- [ ] 99-vault.md
 - [ ] 99-ng-arg.md
 - [ ] 99-security.md
 - [ ] 99-chatops-from-slack-to-jx.md

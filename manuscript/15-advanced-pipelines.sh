@@ -22,34 +22,36 @@ git push
 
 cd ..
 
-# If GKE
 cd go-demo-6
 
 # If GKE
+export REGISTRY_OWNER=$PROJECT
+
+# If EKS or AKS
+# Replace `[...]` with your GitHub user
+export REGISTRY_OWNER=[...]
+
 cat charts/go-demo-6/Makefile \
     | sed -e \
-    "s@vfarcic@$PROJECT@g" \
+    "s@vfarcic@$REGISTRY_OWNER@g" \
     | sed -e \
-    "s@devops-26@$PROJECT@g" \
+    "s@devops-26@$REGISTRY_OWNER@g" \
     | tee charts/go-demo-6/Makefile
 
-# If GKE
 cat charts/preview/Makefile \
     | sed -e \
-    "s@vfarcic@$PROJECT@g" \
+    "s@vfarcic@$REGISTRY_OWNER@g" \
     | sed -e \
-    "s@devops-26@$PROJECT@g" \
+    "s@devops-26@$REGISTRY_OWNER@g" \
     | tee charts/preview/Makefile
 
-# If GKE
 cat skaffold.yaml \
     | sed -e \
-    "s@vfarcic@$PROJECT@g" \
+    "s@vfarcic@$REGISTRY_OWNER@g" \
     | sed -e \
-    "s@devops-26@$PROJECT@g" \
+    "s@devops-26@$REGISTRY_OWNER@g" \
     | tee skaffold.yaml
 
-# If GKE
 cd ..
 
 cd go-demo-6
