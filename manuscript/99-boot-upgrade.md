@@ -84,7 +84,31 @@ export BRANCH=[...] # e.g., PR-4
 jx get activities \
     --filter environment-$CLUSTER_NAME-dev/$BRANCH \
     --watch
+```
 
+```
+...
+vfarcic/environment-vfarcic2-dev/PR-4 #1                   2m46s    2m42s Succeeded 
+  meta pipeline                                            2m46s      15s Succeeded 
+    Credential Initializer 2hr2k                           2m46s       0s Succeeded 
+    Working Dir Initializer 9qhmk                          2m46s       1s Succeeded 
+    Place Tools                                            2m45s       1s Succeeded 
+    Git Source Meta Vfarcic Environment Vfarci Gzc28       2m44s       4s Succeeded https://github.com/vfarcic/environment-vfarcic2-dev.git
+    Git Merge                                              2m40s       2s Succeeded 
+    Merge Pull Refs                                        2m38s       1s Succeeded 
+    Create Effective Pipeline                              2m37s       4s Succeeded 
+    Create Tekton Crds                                     2m33s       2s Succeeded 
+  pr checks                                                2m30s    2m26s Succeeded 
+    Credential Initializer Mph2h                           2m30s       0s Succeeded 
+    Working Dir Initializer Hk8xz                          2m30s       1s Succeeded 
+    Place Tools                                            2m29s       1s Succeeded 
+    Git Source Vfarcic Environment Vfarcic2 De Kl5hr       2m28s      28s Succeeded https://github.com/vfarcic/environment-vfarcic2-dev.git
+    Git Merge                                               2m0s       4s Succeeded 
+    Verify Parameters                                      1m56s       1s Succeeded 
+    Lint Env Helm                                          1m55s    1m51s Succeeded 
+```
+
+```bash
 # Stop watching by pressing ctrl+c when statuses of all the steps are `Succeeded`
 
 # Open the PR
@@ -98,7 +122,50 @@ jx get activities \
 jx get activities \
     --filter environment-$CLUSTER_NAME-dev/master \
     --watch
+```
 
+```
+...
+vfarcic/environment-vfarcic2-dev/master #12                5m25s    5m13s Succeeded 
+  meta pipeline                                            5m25s      28s Succeeded 
+    Credential Initializer R7q8g                           5m25s       0s Succeeded 
+    Working Dir Initializer 2d6bd                          5m25s       1s Succeeded 
+    Place Tools                                            5m24s       1s Succeeded 
+    Git Source Meta Vfarcic Environment Vfarci Hbw2p       5m23s       4s Succeeded https://github.com/vfarcic/environment-vfarcic2-dev.git
+    Git Merge                                              5m19s       1s Succeeded 
+    Merge Pull Refs                                        5m18s       0s Succeeded 
+    Create Effective Pipeline                              5m18s       4s Succeeded 
+    Create Tekton Crds                                     5m14s      17s Succeeded 
+  release                                                  4m56s    4m44s Succeeded 
+    Credential Initializer J2g8g                           4m56s       0s Succeeded 
+    Working Dir Initializer L4pv5                          4m56s       1s Succeeded 
+    Place Tools                                            4m55s       1s Succeeded 
+    Git Source Vfarcic Environment Vfarcic2 De R98zs       4m54s       9s Succeeded https://github.com/vfarcic/environment-vfarcic2-dev.git
+    Git Merge                                              4m45s       1s Succeeded 
+    Validate Git                                           4m44s       1s Succeeded 
+    Verify Preinstall                                      4m43s      34s Succeeded 
+    Install Jx Crds                                         4m9s      17s Succeeded 
+    Install Velero                                         3m52s      32s Succeeded 
+    Install Velero Backups                                 3m20s       8s Succeeded 
+    Install Nginx Controller                               3m12s      17s Succeeded 
+    Create Install Values                                  2m55s       1s Succeeded 
+    Install External Dns                                   2m54s      20s Succeeded 
+    Install Cert Manager Crds                              2m34s       1s Succeeded 
+    Install Cert Manager                                   2m33s      18s Succeeded 
+    Install Acme Issuer And Certificate                    2m15s       3s Succeeded 
+    Install Vault                                          2m12s      10s Succeeded 
+    Create Helm Values                                      2m2s       2s Succeeded 
+    Create Jx Auth Config                                   2m0s       1s Succeeded 
+    Install Jx Auth Config                                 1m59s       4s Succeeded 
+    Install Jenkins X                                      1m55s    1m20s Succeeded 
+    Verify Jenkins X Environment                             35s       5s Succeeded 
+    Install Repositories                                     30s       6s Succeeded 
+    Install Pipelines                                        24s       1s Succeeded 
+    Update Webhooks                                          23s      10s Succeeded 
+    Verify Installation                                      13s       1s Succeeded 
+```
+
+```bash
 # Stop watching by pressing ctrl+c when statuses of all the steps are `Succeeded`
 
 git pull

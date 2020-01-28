@@ -86,11 +86,9 @@ Let's take a look at the repository.
 open "https://github.com/jenkins-x/jenkins-x-boot-config.git"
 ```
 
-We'll explore the files in it a bit later. Or, to be more precise, we'll explore those that you are supposed to customize. For now, what matters is that you should fork the repository since we'll make some modifications and use it as yet another environment repo firing webhooks to Jenkins X.
+We'll explore the files in it a bit later. Or, to be more precise, we'll explore those that you are supposed to customize.
 
-![Figure 18-1: Forking Jenkins X Boot repository](images/ch18/jx-boot-github.png)
-
-Now that you forked the repository, we'll define a variable `CLUSTER_NAME` that will, as you can guess, hold the name of the cluster we created a short while ago.
+Next, we'll define a variable `CLUSTER_NAME` that will, as you can guess, hold the name of the cluster we created a short while ago.
 
 W> In the commands that follow, please replace the first occurrence of `[...]` with the name of the cluster and the second with your GitHub user.
 
@@ -104,7 +102,7 @@ Now that we forked the Boot repo and we know how our cluster is called, we can c
 
 ```bash
 git clone \
-    https://github.com/$GH_USER/jenkins-x-boot-config.git \
+    https://github.com/jenkins-x/jenkins-x-boot-config.git \
     environment-$CLUSTER_NAME-dev
 ```
 
@@ -268,6 +266,8 @@ Now we need to answer quite a few questions. In the past, we tried to avoid answ
 
 I> The Boot process might change by the time you read this. If that happens, do your best to answer by yourself the additional questions that are not covered here.
 
+The first input is asking for a `comma-separated git provider usernames of approvers for development environment repository`. That will create the list of users who can approve pull requests to the development repository managed by Jenkins X Boot. For now, type your GitHub user and hit the enter key.
+
 We can see that, after a while, we were presented with two warnings stating that TLS is not enabled for `Vault` and `webhooks`. If we specified a "real" domain, Boot would install Let's Encrypt and generate certificates. But, since I couldn't be sure that you have a domain at hand, we did not specify it, and, as a result, we will not get certificates. While that would be unacceptable in production, it is quite OK as an exercise.
 
 As a result of those warnings, the Boot is asking us whether we `wish to continue`. Type `y` and press the enter key to continue.
@@ -301,10 +301,12 @@ That's it. Jenkins X is now up-and-running. On the surface, the end result is th
 Now, let's take a look at the changes Jenkins X Boot did to the local copy of the repository.
 
 ```bash
-git --no-pager diff origin/master..HEAD
+jx repo --batch-mode
 ```
 
-That's a long output, isn't it? Jenkins X Boot changed a few files. Some of those changes are based on our answers, while others are specific to the Kubernetes cluster and the vendor we're using.
+Please click the *commits* tab and open the last one. You'll see a long list of the files that changed.
+
+That's a long list, isn't it? Jenkins X Boot changed a few files. Some of those changes are based on our answers, while others are specific to the Kubernetes cluster and the vendor we're using.
 
 We won't comment on all the changes that were done, but rather on the important ones, especially those that we might choose to modify in the future.
 

@@ -17,9 +17,9 @@
 - [X] 15-advanced-pipelines.md
 - [X] 16-serverless-apps.md
 - [X] 17-progressive-delivery.md
-- [X] 99-the-end.md
 - [X] 18-boot.md
 - [X] 19-apps.md
+- [X] 99-the-end.md
 - [ ] 99-boot-upgrade.md
 - [ ] 99-vault.md (http://sharepointoscar.com/2020-01-23-Interpolate-Vault-Secrets-Helm/)
 - [ ] Add the book to the jx docs

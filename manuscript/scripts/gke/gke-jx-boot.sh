@@ -31,6 +31,7 @@ kubectl create clusterrolebinding \
 # Install Jenkins X #
 #####################
 
+# Assumes that you kept the repo from the previous chapter
 cd environment-$CLUSTER_NAME-dev
 
 git pull
