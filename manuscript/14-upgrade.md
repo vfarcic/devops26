@@ -286,6 +286,8 @@ DOMAIN=$LB_IP.nip.io
 
 If you do have a domain available, as I hope you do, please change your DNS records in your domain registrar to the IP of the cluster (output of `echo $LB_IP`). It might take an hour or even more until DNS records are propagated so you'll need to wait for a while. This would be an excellent time to have lunch, do some exercise, or see a movie. But, before you go, please execute the command that follows.
 
+I> Because Jenkins X uses subdomains for ingress routes, you will need to use wildcard definitions. For the main tools, we need `*.jx` (e.g. static Jenkins becomes jenkins.jx.play-with-jx.com), for our staging and production environments we need `*.jx-staging` and `*.jx-production` respectively.
+
 W> Execute the command that follows only if you do have a fully qualified domain pointing to your cluster. Make sure to replace `[...]` with the domain (e.g., play-with-jx.com).
 
 ```bash
