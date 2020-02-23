@@ -26,6 +26,8 @@ https://github.com/jenkins-x/jx/issues/6067
 https://github.com/jenkins-x/jx/issues/6066
 https://github.com/jenkins-x/jx/issues/6132
 
+NOTE: Should wait for a while until a new version is released
+
 ## Cluster
 
 * Create new **GKE** cluster with Jenkins X: [gke-jx-boot.sh](TODO:)
@@ -33,7 +35,7 @@ https://github.com/jenkins-x/jx/issues/6132
 ## Upgrades
 
 ```bash
-CLUSTER_NAME=[...]
+export CLUSTER_NAME=[...]
 
 cd environment-$CLUSTER_NAME-dev
 

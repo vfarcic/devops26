@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/8cef206b4df0b1bbec3060d1d45c2a80
+
 # If macOS
 brew tap jenkins-x/jx
 
@@ -110,7 +112,7 @@ helm template charts/cluster-autoscaler \
     --output-dir k8s-specs/aws \
     --namespace kube-system \
     --set autoDiscovery.clusterName=jx-rocks \
-    --set awsRegion=us-west-2 \
+    --set awsRegion=$AWS_DEFAULT_REGION \
     --set sslCertPath=/etc/kubernetes/pki/ca.crt \
     --set rbac.create=true
 

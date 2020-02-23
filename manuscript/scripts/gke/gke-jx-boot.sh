@@ -31,18 +31,17 @@ kubectl create clusterrolebinding \
 # Install Jenkins X #
 #####################
 
-# Assumes that you kept the repo from the previous chapter
+git clone \
+    https://github.com/jenkins-x/jenkins-x-boot-config.git \
+    environment-$CLUSTER_NAME-dev
+
 cd environment-$CLUSTER_NAME-dev
 
-git pull
+# Modify `jx-requirements.yaml`
 
 jx boot
 
 # Repeat the `jx boot` command if the process is aborted because of upgrading the `jx` CLI
-
-git --no-pager diff origin/master..HEAD
-
-# It likely modified the IP to match the one of the LB of the new cluster
 
 cd ..
 

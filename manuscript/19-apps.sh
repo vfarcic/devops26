@@ -1,6 +1,8 @@
+# Source: https://gist.github.com/422c42cf08eaf9df0e8d18f1dc93a0bd
+
 # Links to gists for creating a Kubernetes cluster with Jenkins X
 # gke-jx-boot.sh: https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f
-# eks-jx-serverless.sh: https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd
+# eks-jx-boot.sh: https://gist.github.com/cdc18fd7c439d4b39cd810e999dd8ce6
 # aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
 # install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 

@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/97184bedebfdc91628b87da7c0f07d43
+
 ####################
 # Create a cluster #
 ####################
@@ -82,7 +84,7 @@ helm template charts/cluster-autoscaler \
     --output-dir k8s-specs/aws \
     --namespace kube-system \
     --set autoDiscovery.clusterName=$CLUSTER_NAME \
-    --set awsRegion=us-west-2 \
+    --set awsRegion=$AWS_DEFAULT_REGION \
     --set sslCertPath=/etc/kubernetes/pki/ca.crt \
     --set rbac.create=true
 

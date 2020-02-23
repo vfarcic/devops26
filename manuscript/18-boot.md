@@ -1,6 +1,6 @@
 # Applying GitOps Principles To Jenkins X
 
-W> At the time of this writing (October 2019), the examples in this chapter are validated only with **serverless Jenkins X** in **GKE**. Jenkins X Boot is currently verified by the community to work only there, even though it likely works in EKS, AKS, and other Kubernetes flavors. Over time, the community will be adding support for all Kubernetes distributions, and, with a slight delay, I will be updating this chapter to reflect that. Still, there will be an inevitable delay between the progress of that support and me incorporating it into this book, so I strongly advise you to check the official documentation to see whether your Kubernetes flavor is added.
+W> At the time of this writing (February 2020), the examples in this chapter are validated only with **serverless Jenkins X** in **GKE** and **EKS**. Jenkins X Boot is currently verified by the community to work only there, even though it likely works in AKS and other Kubernetes flavors. Over time, the community will be adding support for all Kubernetes distributions, and, with a slight delay, I will be updating this chapter to reflect that. Still, there will be an inevitable delay between the progress of that support and me incorporating it into this book, so I strongly advise you to check the official documentation to see whether your Kubernetes flavor is added.
 
 If there is a common theme in Jenkins X, that is GitOps. The platform was designed and built around the idea that everything is defined as code, that everything is stored in Git, and that every change to the system is initiated by a Git webhook. It's a great concept, and we should ask ourselves whether we were applying it in all our examples. What do you think?
 
@@ -34,7 +34,7 @@ Now that we got that out of the way, let's create a Kubernetes cluster and start
 
 ## Creating A Kubernetes Cluster (Without Jenkins X)
 
-W> As mentioned at the beginning of this chapter, the examples are verified only in GKE, given that's the only currently (October 2019) supported platform for `jx boot`. Double-check the documentation to see whether that changed or be brave and try it out yourself with other Kubernetes flavors.
+W> As mentioned at the beginning of this chapter, the examples are verified only in GKE and EKS, given those are the only currently (February 2020) supported platforms for `jx boot`. Double-check the documentation to see whether that changed or be brave and try it out yourself with other Kubernetes flavors.
 
 From now on, we will not use `jx create cluster` to create a Kubernetes cluster and install Jenkins X. Instead, I will assume that you will create a cluster any way you like (e.g., Terraform, `gcloud`, etc.) and we'll focus only on how to set up Jenkins X. If you're lazy and do not yet want to figure out the best way to create a cluster, the Gists that follow can get you up-to-speed fast. Just remember that the commands in them are not the recommended way to create a cluster, but rather the easiest and fastest method I could come up with.
 
@@ -47,6 +47,7 @@ I> All the commands from this chapter are available in the [18-boot.sh](https://
 The Gists are as follows.
 
 * Create new **GKE** cluster: [gke.sh](https://gist.github.com/1b7a1c833bae1d5da02f4fd7b3cd3c17)
+* Create new **EKS** cluster: [eks.sh](https://gist.github.com/3eaa9b10cb59424fc0447a563112f32e)
 
 Now that we have a Kubernetes cluster, we can turn our attention to Jenkins X Boot.
 
@@ -93,9 +94,9 @@ Next, we'll define a variable `CLUSTER_NAME` that will, as you can guess, hold t
 W> In the commands that follow, please replace the first occurrence of `[...]` with the name of the cluster and the second with your GitHub user.
 
 ```bash
-CLUSTER_NAME=[...]
+export CLUSTER_NAME=[...]
 
-GH_USER=[...]
+export GH_USER=[...]
 ```
 
 Now that we forked the Boot repo and we know how our cluster is called, we can clone the repository with a proper name that will reflect the naming scheme of our soon-to-be-installed Jenkins X.
@@ -165,7 +166,7 @@ Please open `jx-requirements.yml` in your favorite editor and change the followi
 * Set `cluster.environmentGitOwner` to your GitHub user. It should be the same as the one we previously declared as the environment variable `$GH_USER`.
 * Set `cluster.project` to the name of your GKE project, only if that's where your Kubernetes cluster is running. Otherwise, leave that value intact (empty). If you used one my Gist to create a GKE cluster, the name of the project should be in the environment variable `PROJECT`, so feel free to output it with `echo $PROJECT` if you are forgetful.
 * Set `cluster.provider` to `gke` or to `eks` or to any other provider if you decided that you are brave and want to try currently unsupported platforms. Or, the things might have changed since I wrote this chapter, and your provider is indeed supported now.
-* Set `cluster.zone` to whichever zone your cluster is running in. If you're running a regional cluster (as you should) than the value should be the region, not the zone. If, for example, you used my Gist to create a GKE cluster, the value should be `us-east1`.
+* Set `cluster.zone` to whichever zone your cluster is running in. If you're running a regional cluster (as you should) than the value should be the region, not the zone. If, for example, you used my Gist to create a GKE cluster, the value should be `us-east1`. Similarly, the one for EKS is `us-east-1`.
 
 We're finished with the `cluster` section, and the next in line is the `gitops` value. It instructs the system how to treat the Boot process. I don't believe it makes sense to change it to `false`, so we'll leave it as-is (`true`).
 
@@ -200,6 +201,27 @@ As you already know, Prow supports only GitHub. If that's not your Git provider,
 So, what can we do if `prow` is not a choice if you do not use GitHub, and `jenkins` days are numbered? To make things more complicated, even Prow will be deprecated sometime in the future (or past depending when you read this). It will be replaced with *Lighthouse*, which, at least at the beginning, will provide similar functionality as Prow. Its primary advantage when compared with Prow is that Lighthouse will (or already does) support all major Git providers (e.g., GitHub, GitHub Enterprise, Bitbucket Server, Bitbucket Cloud, GitLab, etc.). At some moment, the default value of `webhook` will be `lighthouse`. But, at the time of this writing (October 2019), that's not the case since `Lighthouse` is not yet stable and production-ready. It will be soon. Or, maybe it already is, and I did not yet rewrite this chapter to reflect that.
 
 In any case, we'll keep `prow` as our `webhook` (for now).
+
+W> Please execute the commands that follow only if you are using **EKS**. They will add additional information related to Vault, namely the IAM user that has sufficient permissions to interact with it. Make sure to replace `[...]` with your IAM user that has sufficient permissions (being admin always works).
+
+```bash
+export IAM_USER=[...] # e.g., jx-boot
+
+echo "vault:
+  aws:
+    autoCreate: true
+    iamUserName: \"$IAM_USER\"" \
+    | tee -a jx-requirements.yml
+```
+
+W> Please execute the command that follows only if you are using **EKS**. The `jx-requirements.yaml` file contains `zone` entry and for AWS we need a `region`. That command will replace one with the other.
+
+```bash
+cat jx-requirements.yml \
+    | sed -e \
+    's@zone@region@g' \
+    | tee jx-requirements.yml
+```
 
 Let's take a peek at how `jx-requirements.yml` looks like now.
 
@@ -316,7 +338,7 @@ If you take a closer look at the output, you'll see that it created the `env/par
 cat env/parameters.yaml
 ```
 
-The output is as follows.
+The output, in my case, is as follows.
 
 ```yaml
 adminUser:
@@ -406,7 +428,7 @@ Another file that changed is `jx-requirements.yml`. Part of the changes are thos
 cat jx-requirements.yml
 ```
 
-The output is as follows.
+My output is as follows (yours will likely differ).
 
 ```yaml
 autoUpdate:
@@ -695,7 +717,11 @@ hub delete -y \
     $GH_USER/environment-$CLUSTER_NAME-production
 
 hub delete -y \
-    $GH_USER/jx-boot
+    $GH_USER/environment-$CLUSTER_NAME-dev
+
+rm -rf $GH_USER/environment-$CLUSTER_NAME-dev
+
+hub delete -y $GH_USER/jx-boot
 
 rm -rf jx-boot
 ```

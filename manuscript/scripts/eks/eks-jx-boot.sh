@@ -1,4 +1,4 @@
-# Source: https://gist.github.com/3eaa9b10cb59424fc0447a563112f32e
+# Source: https://gist.github.com/cdc18fd7c439d4b39cd810e999dd8ce6
 
 ####################
 # Create a cluster #
@@ -66,6 +66,24 @@ helm template charts/cluster-autoscaler \
 kubectl apply \
     -n kube-system \
     -f k8s-specs/aws/cluster-autoscaler/*
+
+#####################
+# Install Jenkins X #
+#####################
+
+git clone \
+    https://github.com/jenkins-x/jenkins-x-boot-config.git \
+    environment-$CLUSTER_NAME-dev
+
+cd environment-$CLUSTER_NAME-dev
+
+# Modify `jx-requirements.yaml`
+
+jx boot
+
+# Repeat the `jx boot` command if the process is aborted because of upgrading the `jx` CLI
+
+cd ..
 
 #######################
 # Destroy the cluster #

@@ -241,7 +241,7 @@ export AWS_DEFAULT_REGION=us-east-1
 
 Please replace the first `[...]` with the AWS Access Key ID, and the second with the AWS Secret Access Key. I am assuming that you are already familiar with AWS and you know how to create those keys, or that you already have them. If that's not the case, please follow the instructions from the [Managing Access Keys for Your AWS Account Root User](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) page.
 
-Now we're ready to create an EKS cluster. We'll name it `jx-rocks` (`--cluster-name`). It will run inside `us-west-2` region (`--region`) and on `t2.large` (2 CPUs and 8 GB RAM) machines (`--node-type`). Unlike with GKE, we won't get a Cluster Autoscaler out of the box, but we'll fix that later. For now, you can assume that there eventually will be autoscaling, so there's no need to worry whether the current capacity is enough. If anything, it is likely more than we will need from the start. Still, even though autoscaling will come later, we'll set the current (`--nodes`) and the minimum (`--nodes-min`) number of nodes to three, and the maximum to six ( `--nodes-max`). That will be converted into AWS Auto-Scaling Groups and, in case of a misstep, it'll protect us from ending up with more nodes than we can afford.
+Now we're ready to create an EKS cluster. We'll name it `jx-rocks` (`--cluster-name`). It will run inside `us-east-1` region (`--region`) and on `t2.large` (2 CPUs and 8 GB RAM) machines (`--node-type`). Unlike with GKE, we won't get a Cluster Autoscaler out of the box, but we'll fix that later. For now, you can assume that there eventually will be autoscaling, so there's no need to worry whether the current capacity is enough. If anything, it is likely more than we will need from the start. Still, even though autoscaling will come later, we'll set the current (`--nodes`) and the minimum (`--nodes-min`) number of nodes to three, and the maximum to six ( `--nodes-max`). That will be converted into AWS Auto-Scaling Groups and, in case of a misstep, it'll protect us from ending up with more nodes than we can afford.
 
 We'll also set the default Jenkins X password to `admin` (`--default-admin-password`). Otherwise, the process will create a random one. Finally, we'll set `jx-rocks` as the default environment prefix (`--default-environment-prefix`). A part of the process will create a few repositories (one for staging and the other for production), and that prefix will be used to form their names. We won't go into much detail about those environments and repositories just yet. That's reserved for one of the follow-up chapters.
 
@@ -357,7 +357,7 @@ helm template charts/cluster-autoscaler \
     --output-dir k8s-specs/aws \
     --namespace kube-system \
     --set autoDiscovery.clusterName=jx-rocks \
-    --set awsRegion=us-west-2 \
+    --set awsRegion=$AWS_DEFAULT_REGION \
     --set sslCertPath=/etc/kubernetes/pki/ca.crt \
     --set rbac.create=true
 

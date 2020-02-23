@@ -31,7 +31,7 @@ I> All the commands from this chapter are available in the [19-apps.sh](https://
 For your convenience, the Gists with different cluster creation and Jenkins X installation combinations are provided below. Choose one that best fits your needs and run it as-is, or modify it to fit your use-case. Alternatively, feel free to create a cluster and install Jenkins X in any other way. At this point, you should be able to install Jenkins X, not the way I tell you, but in the way that best fits your situation, so Gists might not be needed at all. Nevertheless, they are here just in case. What matters is that you have a cluster with Jenkins X up-and-running.
 
 * Create a new serverless **GKE** cluster created **with the Boot**: [gke-jx-boot.sh](https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f)
-* Create a new serverless **EKS** cluster created **without the Boot**: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new serverless **EKS** cluster created **with the Boot**: [eks-jx-boot.sh](https://gist.github.com/cdc18fd7c439d4b39cd810e999dd8ce6)
 * Create a new serverless **AKS** cluster created **without the Boot**: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
 * Use an **existing** serverless cluster created **without the Boot**: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
