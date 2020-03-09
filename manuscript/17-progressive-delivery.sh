@@ -229,13 +229,15 @@ export ISTIO_IP="$(dig +short $ISTIO_HOST \
 
 echo $ISTIO_IP
 
-jx create addon flagger
+kubectl apply \
+    --kustomize github.com/weaveworks/flagger/kustomize/istio
 
 kubectl --namespace istio-system \
     get pods
 
-kubectl describe namespace \
-    jx-production
+kubectl label namespace jx-production \
+    istio-injection=enabled \
+    --overwrite
 
 kubectl describe namespace \
     jx-staging
