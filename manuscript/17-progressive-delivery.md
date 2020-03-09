@@ -1066,7 +1066,7 @@ spec:
     - {{ template "fullname" . }}
     hosts:
     - {{ .Values.canary.host }}
-  canaryAnalysis:
+  analysis:
     interval: {{ .Values.canary.canaryAnalysis.interval }}
     threshold: {{ .Values.canary.canaryAnalysis.threshold }}
     maxWeight: {{ .Values.canary.canaryAnalysis.maxWeight }}
@@ -1112,7 +1112,7 @@ The next in line is `spec.progressDeadlineSeconds`. Think of it as a safety net.
 
 The `spec.service` entry provides the information on how to access the application, both internally (`port`) and externally (`gateways`), as well as the `hosts` through which the end-users can communicate with the app.
 
-The `spec.canaryAnalysis` entries are probably the most interesting ones. They define the analysis that should be done to decide whether to progress with the deployment or to roll back. Earlier I mentioned that the interval between progress iterations is thirty seconds. That's specified in the `interval` entry. The `threshold` defined how many failed metric checks are allowed before rolling back. The `maxWeight` sets the percentage of requests routed to the canary deployment before it gets converted to the primary. After that percentage is reached, all users will see the new release. More often than not, we do not need to wait until the process reaches 100% through smaller increments. We can say that, for example, when 50% of users are using the new release, there is no need to proceed with validations of the metrics. The system can move forward and make the new release available to everyone right away. The `stepWeight` entry defines how big roll out increments should be (e.g., 20% at a time). Finally, `metrics` can host an array of entries, one for each metric and threshold that should be evaluated continuously during the process.
+The `spec.analysis` entries are probably the most interesting ones. They define the analysis that should be done to decide whether to progress with the deployment or to roll back. Earlier I mentioned that the interval between progress iterations is thirty seconds. That's specified in the `interval` entry. The `threshold` defined how many failed metric checks are allowed before rolling back. The `maxWeight` sets the percentage of requests routed to the canary deployment before it gets converted to the primary. After that percentage is reached, all users will see the new release. More often than not, we do not need to wait until the process reaches 100% through smaller increments. We can say that, for example, when 50% of users are using the new release, there is no need to proceed with validations of the metrics. The system can move forward and make the new release available to everyone right away. The `stepWeight` entry defines how big roll out increments should be (e.g., 20% at a time). Finally, `metrics` can host an array of entries, one for each metric and threshold that should be evaluated continuously during the process.
 
 The second definition is a "standard" Istio `Gateway`. We won't go into it in detail since that would derail us from our mission by leading us into a vast subject of Istio. For now, think of the `Gateway` as being equivalent to nginx Ingress we've been using so far. It allows Istio-managed applications to be accessible from outside the cluster.
 
@@ -1131,7 +1131,7 @@ The relevant parts of the output are as follows.
 canary:
   enabled: false
   progressDeadlineSeconds: 60
-  canaryAnalysis:
+  analysis:
     interval: "1m"
     threshold: 5
     maxWeight: 60
@@ -1152,9 +1152,9 @@ canary:
 
 We can set the address through which the application should be accessible through the `host` entry at the bottom of the `canary` section. The feature of creating Istio Gateway addresses automatically, like Jenkins X is doing with Ingress, is not available. So, we'll need to define the address of our application for each of the environments. We'll do that later. 
 
-The `canaryAnalysis` sets the interval to `1m`. So, it will progress with the rollout every minute. Similarly, it will roll back it encounters failures (e.g., reaches metrics thresholds) `5` times. It will finish rollout when it reaches `60` percent of users (`maxWeight`), and it will increase the number of requests forwarded to the new release with increments of `20` percent (`stepWeight`).
+The `analysis` sets the interval to `1m`. So, it will progress with the rollout every minute. Similarly, it will roll back it encounters failures (e.g., reaches metrics thresholds) `5` times. It will finish rollout when it reaches `60` percent of users (`maxWeight`), and it will increase the number of requests forwarded to the new release with increments of `20` percent (`stepWeight`).
 
-Finally, it will use two metrics to validate rollouts and decide whether to proceed, to halt, or to roll back. The first metric is `requestSuccessRate` (`request-success-rate`) calculated throughout `1m`. If less than `99` percent of requests are successful (are not 5xx responses), it will be considered an error. Remember, that does not necessarily mean that it will rollback right away since the `canaryAnalysis.threshold` is set to `5`. There must be five failures for the rollback to initiate. The second metric is `requestDuration` (`request-duration`). It is also measured throughout `1m` with the threshold of a second (`1000` milliseconds). It does not take into account every request but rather the 99th percentile.
+Finally, it will use two metrics to validate rollouts and decide whether to proceed, to halt, or to roll back. The first metric is `requestSuccessRate` (`request-success-rate`) calculated throughout `1m`. If less than `99` percent of requests are successful (are not 5xx responses), it will be considered an error. Remember, that does not necessarily mean that it will rollback right away since the `analysis.threshold` is set to `5`. There must be five failures for the rollback to initiate. The second metric is `requestDuration` (`request-duration`). It is also measured throughout `1m` with the threshold of a second (`1000` milliseconds). It does not take into account every request but rather the 99th percentile.
 
 We added the `istio-injection=enabled` label to the staging and the production environment Namespaces. As a result, everything running in those Namespaces will automatically use Istio for networking.
 

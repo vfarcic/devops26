@@ -83,10 +83,6 @@ aws iam detach-role-policy \
     --role-name $IAM_ROLE \
     --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
 
-aws iam delete-role-policy \
-    --role-name $IAM_ROLE \
-    --policy-name $CLUSTER_NAME-AutoScaling
-
 eksctl delete cluster \
     --name $CLUSTER_NAME
 
