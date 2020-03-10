@@ -859,7 +859,7 @@ There are quite a few ways we can implement canary deployments, ranging from cus
 
 We will explore how Jenkins X integrates with Flagger, Istio, and Prometheus which, when combined, can be used to facilitate canary deployments. Each will start by getting a small percentage of the traffic and analyzing metrics such as response errors and duration. If these metrics fit a predefined requirement, the deployment of the new release will continue, and more and more traffic will be forwarded to it until everything goes through the new release. If these metrics are not successful for any reason, our deployment will be rolled back and marked as a failure. To do all that, we'll start with a rapid overview of those tools. Just remember that what you'll read next is a high-level overview, not an in-depth description. A whole book can be written on Istio alone, and this chapter is already too big.
 
-## A Quick Introduction To Istio, Prometheus, Flagger, And Grafana
+## A Quick Introduction To Istio, Prometheus, And Flagger
 
 [Istio](https://istio.io) is a service mesh that runs on top of Kubernetes. Quickly after the project was created, it became one of the most commonly used in Kubernetes. It allows traffic management that enables us to control the flow of traffic and other advanced networking such as point to point security, policy enforcement, automated tracing, monitoring, and logging.
 
@@ -869,13 +869,11 @@ We can configure Istio to expose metrics that can be pulled by specialized tools
 
 [Flagger](https://github.com/stefanprodan/flagger) is a project sponsored by WeaveWorks. It can use service mesh solutions like Istio, Linkerd, Gloo (which we used with Knative), and quite a few others. Together with a service mesh, we can use Flagger to automate deployments and rollback using a few different strategies. Even though the focus right now is canary deployments, you should be able to adapt the examples that follow into other strategies as well. To make things easier, Flagger even offers a Grafana dashboard to monitor the deployment progress.
 
-[Grafana](https://grafana.com) provides a user interface that allows us to visualize metrics through dashboards. Just like the other tools we chose, it is probably the most commonly used among the solutions we can run inside our Kubernetes clusters.
-
 I> Please note that we could have used Gloo instead of Istio, just as we did in the [Using Jenkins X To Define And Run Serverless Deployments](#knative) chapter. But, I thought that this would be an excellent opportunity to introduce you to Istio. Also, you should be aware that none of the tools are the focus of the book and that the main goal is to show you one possible implementation of canary deployments. Once you understand the logic behind it, you should be able to switch to whichever toolset you prefer.
 
 I> This book is dedicated to continuous delivery with Jenkins X. All the other tools we use are chosen mostly to demonstrate integrations with Jenkins X. We are not providing an in-depth analysis of those tools beyond their usefulness to continuous delivery.
 
-## Installing Istio, Prometheus, Flagger, And Grafana
+## Installing Istio, Prometheus, And Flagger
 
 We'll install all the tools we need as Jenkins X addons. They are an excellent way to install and integrate tools. However, addons might not provide you with all the options you can use to tweak those tools to your specific needs. Later on, once you adopt Jenkins X in production, you should evaluate whether you want to continue using the addons or you prefer to set up those tools in some other way. The latter might give you more freedom. For now, addons are the easiest way to set up what we need so we'll roll with them.
 
@@ -1508,82 +1506,6 @@ The summary of the fulfillment of our requirements for the `Recreate` deployment
 |Progressive rollout|Fully     |
 |Rollback           |Fully     |
 |Cost-effectiveness |Not       |
-
-The last piece of the canary puzzle is to figure out how to visualize canary deployments.
-
-## Visualizing Rollouts Of Canary Deployments
-
-Jenkins X Flagger addon includes Grafana with a dashboard that we can use to see metrics related to canary deployments visually. However, there is a tiny problem. Grafana Ingress was not created so, for now, Grafana's UI is not accessible. We'll fix that easily by creating an Ingress pointing to the Grafana service. For that, first we need to find out the IP of the Ingress controller.
-
-Please note that the commands that follow will differ depending on whether you are using EKS or some other Kubernetes provider.
-
-W> Please run the command that follows only if you are **NOT** using **EKS** (e.g., **GKE**, **AKS**, etc.).
-
-```bash
-LB_IP=$(kubectl \
-    --namespace kube-system \
-    get svc jxing-nginx-ingress-controller \
-    -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
-```
-
-W> Please run the commands that follow only if you are using **EKS**.
-
-```bash
-LB_HOST=$(kubectl \
-    --namespace kube-system \
-    get svc jxing-nginx-ingress-controller \
-    --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-
-export LB_IP="$(dig +short $LB_HOST \
-    | tail -n 1)"
-```
-
-Finally, you might not be using Ingress controller installed by Jenkins X. For example, you might be using the "official" NGINX Ingress (the one from Jenkins X is a variation of it). If that's the case, you'll have to modify the command(s) to fit your situation.
-
-No matter how we retrieved the IP of the external load balancer, we'll output it as a way to have a visual confirmation that it looks OK.
-
-```bash
-echo $LB_IP
-```
-
-Now that we have the IP, we can create the missing Ingress.
-
-```bash
-echo "apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  annotations:
-    kubernetes.io/ingress.class: nginx
-  name: flagger-grafana
-  namespace: istio-system
-spec:
-  rules:
-  - host: flagger-grafana.$LB_IP.nip.io
-    http:
-      paths:
-      - backend:
-          serviceName: flagger-grafana
-          servicePort: 80
-" | kubectl create -f -
-```
-
-I> Do not create resources with ad-hoc commands like the one we just executed. That is undocumented and hard to reproduce. Store everything in a declarative format (e.g., YAML) in a Git repository and let Jenkins X deal with its deployment. We did what we did only to make it easy, not as a suggestion to follow the same practice in "real world" situations.
-
-With Ingress defined, we can, finally, open Grafana UI.
-
-```bash
-open "http://flagger-grafana.$LB_IP.nip.io"
-```
-
-Just as Istio is not the main subject of this book, neither is Grafana. So, we won't go into details. I expect you to figure them out yourself. Instead, we'll take a quick look at the predefined Flagger dashboard.
-
-Please select *Dashboards* from the left-hand menu, click the *Manage* button, and select *Istio Canary*,
-
-The dashboard is in front of us, and I'll leave you to explore it. But, before I go, please note that to visualize the process, you should make yet another change to the source code, push it to GitHub, and wait until the pipeline-initiated canary deployment starts. From there on, please select `jx-staging` as the *namespace*, choose `jx-progressive-primary` as *primary* and `jx-progressive` as *canary*. Now you should be able to visualize the process.
-
-![Figure 17-9: The dashboard with visualizations related to canary deployments](images/ch17/canary-grafana.png)
-
-That's all I'm going to say about Grafana. It's not the focus of this book, so you're on your own if you're not already familiar with it. Right now, we are left with the last and potentially the most important discussion.
 
 ## Which Deployment Strategy Should We Choose?
 

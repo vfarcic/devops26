@@ -205,9 +205,9 @@ PRODUCTION_ADDR=[...]
 
 curl "$PRODUCTION_ADDR"
 
-######################################################
-# Installing Istio, Prometheus, Flagger, And Grafana #
-######################################################
+#############################################
+# Installing Istio, Prometheus, And Flagger #
+#############################################
 
 jx create addon istio
 
@@ -354,47 +354,6 @@ kubectl --namespace jx-staging \
 
 kubectl --namespace jx-staging \
     describe canary jx-jx-progressive
-
-##############################################
-# Visualizing Rollouts Of Canary Deployments #
-##############################################
-
-# If NOT EKS
-LB_IP=$(kubectl \
-    --namespace kube-system \
-    get svc jxing-nginx-ingress-controller \
-    -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
-
-# If EKS
-LB_HOST=$(kubectl \
-    --namespace kube-system \
-    get svc jxing-nginx-ingress-controller \
-    --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-
-# If EKS
-export LB_IP="$(dig +short $LB_HOST \
-    | tail -n 1)"
-
-echo $LB_IP
-
-echo "apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  annotations:
-    kubernetes.io/ingress.class: nginx
-  name: flagger-grafana
-  namespace: istio-system
-spec:
-  rules:
-  - host: flagger-grafana.$LB_IP.nip.io
-    http:
-      paths:
-      - backend:
-          serviceName: flagger-grafana
-          servicePort: 80
-" | kubectl create -f -
-
-open "http://flagger-grafana.$LB_IP.nip.io"
 
 #############
 # What Now? #
