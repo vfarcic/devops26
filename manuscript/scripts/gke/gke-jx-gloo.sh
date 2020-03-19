@@ -12,10 +12,6 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
-
 jx create cluster gke \
     --cluster-name jx-rocks \
     --project-id $PROJECT \
@@ -25,8 +21,7 @@ jx create cluster gke \
     --max-num-nodes 2 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
-    --git-provider-kind github \
-    --batch-mode
+    --git-provider-kind github
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 

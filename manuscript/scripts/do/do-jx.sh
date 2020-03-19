@@ -35,10 +35,6 @@ echo $LB_IP # It might take a while until LB is created. Repeat the `export` com
 # Install jx #
 ##############
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
-
 # Static
 jx install \
     --provider kubernetes \
@@ -48,8 +44,7 @@ jx install \
     --ingress-namespace ingress-nginx \
     --ingress-deployment nginx-ingress-controller \
     --default-environment-prefix jx-rocks \
-    --git-provider-kind github \
-    -b
+    --git-provider-kind github
 
 # Serverless
 jx install \
@@ -63,8 +58,7 @@ jx install \
     --git-provider-kind github \
     --namespace cd \
     --prow \
-    --tekton \
-    --batch-mode
+    --tekton
 
 #######################
 # Destroy the cluster #

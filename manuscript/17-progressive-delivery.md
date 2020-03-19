@@ -879,19 +879,20 @@ We'll install all the tools we need as Jenkins X addons. They are an excellent w
 
 Let's start with Istio.
 
-```bash
-jx create addon istio
-```
+Before we install Istio in our cluster, we'll need to install `istioctl` (its command-line tool). Instead of showing you the instructions on how to do that, please go to the [Istio Releases](https://github.com/istio/istio/releases), download the package for your operating system, unpack it, move it to the folder that is in your `PATH`, and make sure that it is executable. If you already have `istioctl`, make sure that it is version 1.5+. If it's not, please upgrade it.
 
-W> In some cases, the previous command may fail due to the order Helm applies CRD resources. If that happens, re-run the command again to fix the issue.
+Now we're ready to install Istio in our cluster.
+
+```bash
+istioctl manifest apply \
+    --set profile=demo
+```
 
 I> Istio is resource-heavy. It is the reason why we increased the size of the VMs that compose our cluster.
 
 When installing Istio, a new Ingress gateway service is created. It is used for sending all the incoming traffic to services based on Istio rules (`VirtualServices`). That achieves a similar functionality as the one provided by Ingress. While Ingress has the advantage of being simple, it is also very limited in its capabilities. Istio, on the other hand, allows us to create advanced rules for incoming traffic, and that's what we'll need for canary deployments.
 
-For now, we need to find the external IP address of the Istio Ingress gateway service. We can get it from the output of the `jx create addon istio` command. But, given that I don't like copying and pasting outputs, we'll use the commands that follow to retrieve the address and store it in environment variable `ISTIO_IP`.
-
-Just as with Ingress, the way to retrieve the IP differs depending on whether you're using EKS or some other Kubernetes flavor.
+For now, we need to find the external IP address of the Istio Ingress gateway service. Just as with Ingress, the way to retrieve the IP differs depending on whether you're using EKS or some other Kubernetes flavor.
 
 W> Please run the command that follows only if you are **NOT** using **EKS** (e.g., GKE, AKS, etc.).
 
@@ -920,7 +921,7 @@ To be on the safe side, we'll output the environment variable to confirm that th
 echo $ISTIO_IP
 ```
 
-When we created the `istio` addon, Prometheus was installed alongside it, so the only tool left for us to add is Flagger. Later on, we'll see why I skipped Grafana.
+When we installed Istio, Prometheus was installed alongside it, so the only tool left for us to add is Flagger. Later on, we'll see why I skipped Grafana.
 
 ```bash
 kubectl apply \
@@ -937,18 +938,15 @@ kubectl --namespace istio-system \
 The output is as follows.
 
 ```
-NAME                       READY STATUS    RESTARTS AGE
-flagger-5bdbccc7f4-...     1/1   Running   0        110s
-istio-citadel-...          1/1   Running   0        3m22s
-istio-galley-...           1/1   Running   0        4m46s
-istio-ingressgateway-...   1/1   Running   0        4m40s
-istio-init-crd-10-...      0/1   Completed 0        5m8s
-istio-init-crd-11-...      0/1   Completed 0        5m7s
-istio-pilot-...            2/2   Running   0        3m35s
-istio-policy-...           2/2   Running   6        4m38s
-istio-sidecar-injector-... 1/1   Running   0        3m14s
-istio-telemetry-...        2/2   Running   6        4m38s
-prometheus-...             1/1   Running   0        3m28s
+NAME                     READY STATUS  RESTARTS AGE
+flagger-...              0/1   Running 0        10s
+grafana-...              1/1   Running 0        98s
+istio-egressgateway-...  1/1   Running 0        110s
+istio-ingressgateway-... 1/1   Running 0        108s
+istio-tracing-...        1/1   Running 0        98s
+istiod-...               1/1   Running 0        2m12s
+kiali-...                1/1   Running 0        97s
+prometheus-...           2/2   Running 0        97s
 ```
 
 We won't go into details of what each of those Pods does. I expect you to consult the documentation if you are curious. For now, we'll note that Flagger, Istio, and Prometheus Pods were created in the `istio-system` Namespace and that, by the look of it, they are all running. If any of those are in the pending state, you either need to increase the number of nodes in your cluster or none of the nodes is big enough to meet the demand of the requested resources. The former case should be solved with the Cluster Autoscaler if you have it running in your Kubernetes cluster. The latter, on the other hand, probably means that you did not follow the instructions to create a cluster with bigger VMs. In any case, the next step would be to describe the pending Pod, see the root cause of the issue, and act accordingly.
@@ -1026,7 +1024,7 @@ The output is as follows.
 
 ```yaml
 {{- if .Values.canary.enabled }}
-apiVersion: flagger.app/v1alpha3
+apiVersion: flagger.app/v1beta1
 kind: Canary
 metadata:
   name: {{ template "fullname" . }}
@@ -1243,8 +1241,7 @@ The output should say `Hello from:  Jenkins X golang http rolling update`.
 Now that we confirmed that the application released with the new definition is accessible through the Istio gateway, we can take a quick look at the Pods running in the staging Namespace.
 
 ```bash
-kubectl \
-    --namespace jx-staging \
+kubectl --namespace jx-staging \
     get pods
 ```
 
@@ -1294,9 +1291,8 @@ We can see from the output that the gateway `jx-gateway.istio-system.svc.cluster
 Finally, we can output Flagger logs if we want to see more details about the deployment process.
 
 ```bash
-kubectl \
-    --namespace istio-system logs \
-    --selector app.kubernetes.io/name=flagger
+kubectl --namespace istio-system logs \
+    --selector app=flagger
 ```
 
 I'll leave it to you to interpret those logs. Don't get stressed if you don't understand what each event means. We'll explore what's going on in the background as soon as we deploy the second release.

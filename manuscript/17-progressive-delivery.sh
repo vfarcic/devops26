@@ -209,7 +209,8 @@ curl "$PRODUCTION_ADDR"
 # Installing Istio, Prometheus, And Flagger #
 #############################################
 
-jx create addon istio
+istioctl manifest apply \
+    --set profile=demo
 
 # If NOT EKS
 ISTIO_IP=$(kubectl \
@@ -306,8 +307,7 @@ jx get activities \
 
 curl $STAGING_ADDR
 
-kubectl \
-    --namespace jx-staging \
+kubectl --namespace jx-staging \
     get pods
 
 kubectl --namespace jx-staging \
@@ -316,9 +316,8 @@ kubectl --namespace jx-staging \
 kubectl --namespace jx-staging \
     get virtualservices.networking.istio.io
 
-kubectl \
-    --namespace istio-system logs \
-    --selector app.kubernetes.io/name=flagger
+kubectl --namespace istio-system logs \
+    --selector app=flagger
 
 cat main.go | sed -e \
     "s@rolling update@progressive@g" \

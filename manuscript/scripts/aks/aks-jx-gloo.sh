@@ -13,6 +13,9 @@ echo "nexus:
 # The name of the cluster must conform to the following pattern: '^[a-zA-Z0-9]*$'.
 CLUSTER_NAME=[...]
 
+# Replace `[...]` with your GitHub username
+export GH_USER=[...]
+
 jx create cluster aks \
     --cluster-name $CLUSTER_NAME \
     --resource-group-name jxrocks-group \
@@ -22,7 +25,7 @@ jx create cluster aks \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
     --git-provider-kind github \
-    --batch-mode
+    --git-username $GH_USER
 
 #######################
 # Destroy the cluster #

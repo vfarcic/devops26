@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
+
 #####################
 # Install Jenkins X #
 #####################
@@ -31,11 +33,6 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `-b` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `-b` from the command if this is NOT the first time you're creating a cluster with `jx`.
-# Remove `--ingress-*` arguments if you would like Jenkins X to install the NGINX Ingress controller
-
 jx install \
     --provider $PROVIDER \
     --external-ip $LB_IP \
@@ -47,8 +44,7 @@ jx install \
     --git-provider-kind github \
     --namespace jx \
     --prow \
-    --tekton \
-    --batch-mode
+    --tekton
 
 #######################
 # Uninstall Jenkins X #

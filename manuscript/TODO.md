@@ -21,129 +21,49 @@
 - [X] 19-apps.md
 - [X] 99-the-end.md
 - [ ] 99-boot-upgrade.md
-- [ ] 99-vault.md (http://sharepointoscar.com/2020-01-23-Interpolate-Vault-Secrets-Helm/)
-- [ ] Add the book to the jx docs
-- [ ] Add EKS to 18-boot.md
-- [ ] Add AKS to 18-boot.md
-- [ ] Replace `jx create cluster` and `jx install` with `jx boot`
-- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
-- [ ] Remove *At the time of this writing (September 2019),...* warning
-- [ ] Remove *For now (April 2019)* paragraph
-- [ ] Remove *There is a bug (undocumented feature) in...* warning
-- [ ] Remove *If you do see the new domain...* warning
-- [ ] Rewrite *At the time of this writing (July 2019)...*
-- [ ] Change *At the time of this writing (October 2019)...* to the "real" month in 99-the-end.md
-- [ ] Remove *At the time of this writing (October 2019)...*
-- [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
-- [ ] Rewrite *But, at the time of this writing (October 2019)...*
-- [ ] Rewrite *As mentioned at the beginning of this chapter...*
-- [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
-- [ ] Replace `jx create cluster` with `jx boot` in the workshop
-- [ ] Monitor [https://github.com/jenkins-x/jx/issues/5782](https://github.com/jenkins-x/jx/issues/5782)
-- [ ] Remove *The `--auto-merge` argument might not work due to the...*
-- [ ] Remove *At the time of this writing (November 2019)...*
-- [ ] Create a course on [udemy.com](https://www.udemy.com/)
-- [ ] 99-lighthouse.md
-- [ ] Replace prow with lighthouse across the book
-- [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
-- [ ] Packt
-- [ ] 99-jx-create-domain.md
-- [ ] 99-multi-cluster.md
-- [ ] jenkins-x.io
-- [ ] 99-ui.md
-- [ ] 99-distribution.md
-- [ ] 99-contributors.md (Joost, Darin, Carlos)
-- [ ] 99-monitoring-with-prometheus.md
-- [ ] 99-logging.md
-- [ ] 99-feature-flags-rollout.md
-- [ ] 99-container-registry.md
-- [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-nexus-integration.md
-- [ ] 99-share-jx-access.md
-- [ ] 99-advanced-pipelines-2.md
-- [ ] 99-env-in-separate-cluster.md
-- [ ] 99-gitops.md
-- [ ] 99-ui.md
-- [ ] 99-build-notifications.md
-- [ ] 99-ng-arg.md
-- [ ] 99-security.md
-- [ ] 99-chatops-from-slack-to-jx.md
-- [ ] 99-rbac.md
-- [ ] 99-apps.md
-- [ ] 99-git-server.md
-- [ ] 99-prow2.md (`/retest` command, the location of the PR message, connection with issues, change PR approval rules, change plugins)
-- [ ] 99-running-multiple-pipelines.md (https://github.com/jenkins-x/prow-config-tekton/blob/master/prow/config.yaml#L628-L646)
-- [ ] 99-integration-with-uptimerobot.md
-- [ ] 99-codified-infrastructure.md
-- [ ] 99-cjxd.md
-
-## The DevOps 2.6 Toolkit Course
-
-- [ ] 01-preface.md
-- [ ] 02-intro.md
-- [ ] 03-quickstart.md
-- [ ] 04-import.md
-- [ ] 05-buildpacks.md
-- [ ] 06-env.md
-- [ ] 07-dev.md
-- [ ] 08-pr.md
-- [ ] 09-promote.md
-- [ ] 10-versioning.md
-- [ ] 11-serverless.md
-- [ ] 12-prow.md
-- [ ] 13-pipeline-extension-model.md
-- [ ] 14-upgrade.md
-- [ ] 15-advanced-pipelines.md
-- [ ] 16-serverless-apps.md
-- [ ] 17-progressive-delivery.md
-- [ ] 99-the-end.md
-- [ ] 18-boot.md
-- [ ] 19-apps.md
-- [ ] 99-boot-upgrade.md
-- [ ] Add the book to the jx docs
-- [ ] Add EKS to 18-boot.md
-- [ ] Add AKS to 18-boot.md
-- [ ] Replace `jx create cluster` and `jx install` with `jx boot`
-- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
-- [ ] Remove *At the time of this writing (September 2019),...* warning
-- [ ] Remove *For now (April 2019)* paragraph
-- [ ] Remove *There is a bug (undocumented feature) in...* warning
-- [ ] Remove *If you do see the new domain...* warning
-- [ ] Rewrite *At the time of this writing (July 2019)...*
-- [ ] Change *At the time of this writing (October 2019)...* to the "real" month in 99-the-end.md
-- [ ] Remove *At the time of this writing (October 2019)...*
-- [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
-- [ ] Rewrite *But, at the time of this writing (October 2019)...*
-- [ ] Rewrite *As mentioned at the beginning of this chapter...*
-- [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
-- [ ] Replace `jx create cluster` with `jx boot` in the workshop
-- [ ] Monitor [https://github.com/jenkins-x/jx/issues/5782](https://github.com/jenkins-x/jx/issues/5782)
-- [ ] Remove *The `--auto-merge` argument might not work due to the...*
-- [ ] Remove *At the time of this writing (November 2019)...*
-- [ ] Create a course on [udemy.com](https://www.udemy.com/)
-- [ ] 99-lighthouse.md
-- [ ] Replace prow with lighthouse across the book
-- [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
-- [ ] Packt
-- [ ] 99-jx-create-domain.md
-- [ ] 99-multi-cluster.md
-- [ ] jenkins-x.io
-- [ ] 99-ui.md
-- [ ] 99-distribution.md
-- [ ] 99-contributors.md (Joost, Darin, Carlos)
-- [ ] 99-monitoring-with-prometheus.md
-- [ ] 99-logging.md
-- [ ] 99-feature-flags-rollout.md
-- [ ] 99-container-registry.md
-- [ ] 99-other-quickstart-buildpacks.md
-- [ ] 99-nexus-integration.md
-- [ ] 99-share-jx-access.md
-- [ ] 99-advanced-pipelines-2.md
-- [ ] 99-env-in-separate-cluster.md
-- [ ] 99-gitops.md
-- [ ] 99-ui.md
-- [ ] 99-build-notifications.md
 - [ ] 99-vault.md
+- [ ] Add the book to the jx docs
+- [ ] Add AKS to 18-boot.md
+- [ ] Replace `jx create cluster` and `jx install` with `jx boot`
+- [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
+- [ ] Remove *At the time of this writing (September 2019),...* warning
+- [ ] Remove *For now (April 2019)* paragraph
+- [ ] Remove *There is a bug (undocumented feature) in...* warning
+- [ ] Remove *If you do see the new domain...* warning
+- [ ] Rewrite *At the time of this writing (July 2019)...*
+- [ ] Change *At the time of this writing (October 2019)...* to the "real" month in 99-the-end.md
+- [ ] Remove *At the time of this writing (October 2019)...*
+- [ ] Rewrite *Finally, at the time of this writing (October 2019)...*
+- [ ] Rewrite *But, at the time of this writing (October 2019)...*
+- [ ] Rewrite *As mentioned at the beginning of this chapter...*
+- [ ] Rewrite the bullet point starting with *Set `clusterName` to the name of your cluster...*
+- [ ] Replace `jx create cluster` with `jx boot` in the workshop
+- [ ] Monitor [https://github.com/jenkins-x/jx/issues/5782](https://github.com/jenkins-x/jx/issues/5782)
+- [ ] Remove *The `--auto-merge` argument might not work due to the...*
+- [ ] Remove *At the time of this writing (November 2019)...*
+- [ ] Create a course on [udemy.com](https://www.udemy.com/)
+- [ ] 99-lighthouse.md
+- [ ] Replace prow with lighthouse across the book
+- [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
+- [ ] Packt
+- [ ] 99-jx-create-domain.md
+- [ ] 99-multi-cluster.md
+- [ ] jenkins-x.io
+- [ ] 99-ui.md
+- [ ] 99-distribution.md
+- [ ] 99-contributors.md (Joost, Darin, Carlos)
+- [ ] 99-monitoring-with-prometheus.md
+- [ ] 99-logging.md
+- [ ] 99-feature-flags-rollout.md
+- [ ] 99-container-registry.md
+- [ ] 99-other-quickstart-buildpacks.md
+- [ ] 99-nexus-integration.md
+- [ ] 99-share-jx-access.md
+- [ ] 99-advanced-pipelines-2.md
+- [ ] 99-env-in-separate-cluster.md
+- [ ] 99-gitops.md
+- [ ] 99-ui.md
+- [ ] 99-build-notifications.md
 - [ ] 99-ng-arg.md
 - [ ] 99-security.md
 - [ ] 99-chatops-from-slack-to-jx.md

@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/cf939640f2af583c3a12d04affa67923
+
 ####################
 # Create a cluster #
 ####################
@@ -6,15 +8,11 @@
 
 # Open https://console.cloud.google.com/cloud-resource-manager to create a new GCP project if you do not have one available already. Make sure to enable billing for that project.
 
-PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
+export PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
 echo "nexus:
   enabled: false
 " | tee myvalues.yaml
-
-# The command that follows uses `--batch-mode` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `--batch-mode` from the command if this is NOT the first time you're creating a cluster with `jx`.
 
 jx create cluster gke \
     --cluster-name jx-rocks \
@@ -28,8 +26,7 @@ jx create cluster gke \
     --git-provider-kind github \
     --namespace jx \
     --prow \
-    --tekton \
-    --batch-mode
+    --tekton
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 

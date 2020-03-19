@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/6e01717c398a5d034ebe05b195514060
+
 ####################
 # Create a cluster #
 ####################
@@ -21,8 +23,7 @@ jx create cluster aks \
     --nodes 3 \
     --default-admin-password=admin \
     --default-environment-prefix jx-rocks \
-    --git-provider-kind github \
-    --batch-mode
+    --git-provider-kind github
 
 #######################
 # Destroy the cluster #

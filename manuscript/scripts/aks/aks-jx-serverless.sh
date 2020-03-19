@@ -26,8 +26,7 @@ jx create cluster aks \
     --git-provider-kind github \
     --namespace jx \
     --prow \
-    --tekton \
-    --batch-mode
+    --tekton
 
 #######################
 # Destroy the cluster #

@@ -1,3 +1,5 @@
+# Source: https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8
+
 ####################
 # Create a cluster #
 ####################
@@ -12,9 +14,8 @@ echo "nexus:
   enabled: false
 " | tee myvalues.yaml
 
-# The command that follows uses `--batch-mode` to run in the batch mode and it assumes that this is not the first time you create a cluster with `jx`.
-# If that's not the case and this is indeed the first time you're creating a `jx` cluster, it will not have some of the default values like GitHub user and the installation might fail.
-# Please remove `--batch-mode` from the command if this is NOT the first time you're creating a cluster with `jx`.
+# Replace `[...]` with your GitHub username
+export GH_USER=[...]
 
 jx create cluster gke \
     --cluster-name jx-rocks \
@@ -28,8 +29,7 @@ jx create cluster gke \
     --git-provider-kind github \
     --namespace jx \
     --prow \
-    --tekton \
-    --batch-mode
+    --tekton
 
 # If asked for input, use the default answers unless you're sure you want a non-standard setup.
 
