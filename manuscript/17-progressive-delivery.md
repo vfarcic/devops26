@@ -154,7 +154,7 @@ The output is as follows.
 
 ```
 NAME                  READY STATUS  RESTARTS AGE
-jx-jx-progressive-... 1/1   Running 0        45s
+jx-jx-progressive-... 2/2   Running 0        45s
 ```
 
 In your case, `jx-progressive` deployment might not be there. If that's the case, it's been a while since you used the application and Knative made the decision to scale it to zero replicas. We'll go through a scaling-to-zero example later. For now, imagine that you do have that Pod running.
@@ -174,7 +174,7 @@ STAGING_ADDR=$(kubectl \
 curl "$STAGING_ADDR"
 ```
 
-We retrieved the address through which we can reach the application running in the staging environment, and we used `curl` to send a request. The output should be `hello, PR!` which is the message we defined in one of the previous chapters. 
+We retrieved the address through which we can reach the application running in the staging environment, and we used `curl` to send a request. The output should be `Hello from:  Jenkins X golang http example`. 
 
 So far, the significant difference when compared with "normal" Kubernetes deployments is that the access to the application is not controlled through Ingress any more. Instead, it goes through a new resource type abbreviated as `ksvc` (short for Knative Service). Apart from that, everything else seems to be the same, except if we left the application unused for a while. If that's the case, we still got the same output, but there was a slight delay between sending the request and receiving the response. The reason for such a delay lies in Knative's scaling capabilities. It saw that the application is not used and scaled it to zero replicas. But, the moment we sent a request, it noticed that zero replicas is not the desired state and scaled it back to one replica. All in all, the request entered into a gateway (in our case served by Gloo Envoy) and waited there until a new replica was created and initialized, unless one was already running. After that, it forwarded the request to it, and the rest is the "standard" process of our application responding and that response being forwarded to us (back to `curl`).
 
@@ -187,7 +187,7 @@ kubectl --namespace jx-staging \
     get pods
 ```
 
-Assuming that sufficient time passed, the output should be as follows state that `no resources` were `found` in the namespace, unless you have other applications there. The application is now gone. If we ignore other resources and focus only on Pods, it seems like the application is wiped out completely. That is true in terms that nothing application-specific is running. All that's left are a few Knative definitions and the common resources used for all applications (not specific to *jx-progressive*).
+Assuming that sufficient time passed, the output should state that `no resources` were `found` in the Namespace, unless you have other applications there. The application is now gone. If we ignore other resources and focus only on Pods, it seems like the application is wiped out completely. That is true in terms that nothing application-specific is running. All that's left are a few Knative definitions and the common resources used for all applications (not specific to *jx-progressive*).
 
 I> If you still see the *jx-progressive* Pod, all I can say is that you are impatient and you did not wait long enough. If that's what happened, wait for a while longer and repeat the `get pods` command.
 
@@ -380,7 +380,7 @@ kubectl --namespace jx-staging \
 
 The output, limited to the relevant part, is as follows.
 
-```yaml
+```
 ...
 StrategyType:       Recreate
 ...
@@ -939,7 +939,6 @@ The output is as follows.
 ```
 NAME                       READY STATUS    RESTARTS AGE
 flagger-5bdbccc7f4-...     1/1   Running   0        110s
-flagger-grafana-...        1/1   Running   0        78s
 istio-citadel-...          1/1   Running   0        3m22s
 istio-galley-...           1/1   Running   0        4m46s
 istio-ingressgateway-...   1/1   Running   0        4m40s
