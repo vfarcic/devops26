@@ -85,10 +85,10 @@ I> All the commands from this chapter are available in the [17-progressive-deliv
 
 The new Gists are as follows.
 
-* Create a new serverless **GKE** cluster with Gloo: [gke-jx-serverless-gloo.sh](https://gist.github.com/cf939640f2af583c3a12d04affa67923)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
-* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
+* Create a new **GKE** cluster with Gloo: [gke-jx-serverless-gloo.sh](https://gist.github.com/cf939640f2af583c3a12d04affa67923)
+* Create a new **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/f4a1df244d1852ee250e751c7191f5bd)
+* Create a new **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410)
+* Use an **existing** cluster: [install-serverless.sh](https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037)
 
 Now that we have a cluster with Jenkins X, we'll create a sample application.
 

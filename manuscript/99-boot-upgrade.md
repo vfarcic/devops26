@@ -30,8 +30,8 @@ NOTE: Should wait for a while until a new version is released
 
 ## Cluster
 
-* Create a new serverless **GKE** cluster created **with the Boot**: [gke-jx-boot.sh](https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f)
-* Create a new serverless **EKS** cluster created **with the Boot**: [eks-jx-boot.sh](https://gist.github.com/cdc18fd7c439d4b39cd810e999dd8ce6)
+* Create a new **GKE** cluster created **with the Boot**: [gke-jx-boot.sh](https://gist.github.com/1eff2069aa68c4aee29c35b94dd9467f)
+* Create a new **EKS** cluster created **with the Boot**: [eks-jx-boot.sh](https://gist.github.com/cdc18fd7c439d4b39cd810e999dd8ce6)
 
 ## Upgrades
 

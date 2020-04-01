@@ -32,10 +32,10 @@ I> All the commands from this chapter are available in the [TODO: Viktor](TODO: 
 
 For your convenience, the Gists from the previous chapter are available below as well.
 
-* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
-* Create a new serverless **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
-* Create a new serverless **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
-* Use an **existing** serverless cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
+* Create a new **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/a04269d359685bbd00a27643b5474ace)
+* Create a new **EKS** cluster: [eks-jx-serverless.sh](https://gist.github.com/69a4cbc65d8cb122d890add5997c463b)
+* Create a new **AKS** cluster: [aks-jx-serverless.sh](https://gist.github.com/a7cb7a28b7e84590fbb560b16a0ee98c)
+* Use an **existing** cluster: [install-serverless.sh](https://gist.github.com/f592c72486feb0fb1301778de08ba31d)
 
 TODO: Intro to the next section
 

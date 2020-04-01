@@ -90,7 +90,7 @@ I> All the commands from this chapter are available in the [16-serverless-apps.s
 
 For your convenience, the Gists from the previous chapter are available below, as well.
 
-* Create a new serverless **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
+* Create a new **GKE** cluster: [gke-jx-serverless.sh](https://gist.github.com/fe18870a015f4acc34d91c106d0d43c8)
 
 Now we are ready to work on creating the first serverless application using Knative.
 
