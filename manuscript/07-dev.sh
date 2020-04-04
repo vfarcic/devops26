@@ -103,19 +103,28 @@ nohup ./watch.sh &
 
 exit
 
-jx get applications
+export GH_USER=[...]
 
-URL=[...]
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8085:80 &
 
-curl "$URL/demo/hello"
+curl "http://localhost:8085/demo/hello"
 
-jx open
+kubectl port-forward \
+    service/$GH_USER-go-ide 8086:80 &
 
-jx open [...]
+open "http://localhost:8086"
 
-curl "$URL/demo/hello"
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8087:80 &
 
-jx delete devpod
+curl "http://localhost:8087/demo/hello"
+
+pkill kubectl
+
+jx delete devpod $GH_USER-go
 
 echo 'unittest: 
 	CGO_ENABLED=$(CGO_ENABLED) $(GO) \\
@@ -148,7 +157,11 @@ chmod +x watch.sh
 
 ./watch.sh
 
-curl "$URL/demo/hello"
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8085:80 &
+
+curl "localhost:8085/demo/hello"
 
 cat main.go | sed -e \
     's@hello, world@hello, devpod with tests@g' \
@@ -158,7 +171,11 @@ cat main_test.go | sed -e \
     's@hello, world@hello, devpod with tests@g' \
     | tee main_test.go
 
-curl "$URL/demo/hello"
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8086:80 &
+
+curl "localhost:8085/demo/hello"
 
 git add .
 
@@ -180,6 +197,8 @@ curl "$STAGING_URL/demo/hello"
 jx delete devpod
 
 cd ..
+
+pkill kubectl
 
 GH_USER=[...]
 

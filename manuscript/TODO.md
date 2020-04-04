@@ -106,3 +106,16 @@
 - [ ] Publish on TechnologyConversations.com
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com 
+
+
+
+
+* kubectl port-forward svc/vfarcic-go-ide 8080:80
+
+You can access the DevPod locally with the following commands:
+* kubectl port-forward svc/vfarcic-go-port-2345 8081:80
+* kubectl port-forward svc/vfarcic-go-port-8080 8082:80
+
+
+kubectl --namespace jx-edit-vfarcic \
+    port-forward service/go-demo-6 8085:80

@@ -8,7 +8,7 @@
 
 # Open https://console.cloud.google.com/cloud-resource-manager to create a new GCP project if you do not have one available already. Make sure to enable billing for that project.
 
-PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
+export PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
 echo "nexus:
   enabled: false

@@ -147,13 +147,7 @@ Right now, a Jenkins X DevPod is being created in the batch mode (no questions a
 
 First, Jenkins X created the `jx-edit-YOUR_USER` Namespace in your cluster. That'll be your personal piece of the cluster where we'll deploy your changes to *go-demo-6*.
 
-Next, Jenkins X installed the `ExposecontrollerService`. It will communicate with Ingress and make the application accessible for viewing and testing.
-
-Further on, it updated the Helm repository in the DevPod so that we can utilize the charts available in ChartMuseum running inside the cluster.
-
-It also ran Visual Studio Code. We'll keep it a mystery for now.
-
-Finally, it cloned the *go-demo-6* code inside the Pod.
+You'll see instructions on how to access Web IDE as well as the DevPod itself.
 
 Many other things happened in the background. We'll explore them in due time. For now, assuming that the process finished, we'll enter inside the Pod and explore the newly created development environment.
 
@@ -321,7 +315,6 @@ The output is as follows.
 
 ```
 NAME                               READY STATUS  RESTARTS AGE
-exposecontroller-service-...       1/1   Running 0        16m
 go-demo-6-go-demo-6-...            1/1   Running 3        4m
 go-demo-6-go-demo-6-db-arbiter-0   1/1   Running 0        4m
 go-demo-6-go-demo-6-db-primary-0   1/1   Running 0        4m
@@ -377,30 +370,27 @@ Now, let's exit the DevPod and confirm that what's happening inside it indeed re
 exit
 ```
 
-Before we change our code, we'll confirm that the application indeed runs. For that, we'll need to know the address `exposecontroller` assigned to it. We could do that by retrieving JSON of the associated Ingress, or we can introduce yet another `jx` helper command. We'll go with the former.
+Before we change our code, we'll confirm that the application indeed runs. To do that, we'll create port forwarding to our app, instead of bothering to set up "proper" Ingress.
+
+I> Please replace `[...]` in the command that follows with your GitHub user.
 
 ```bash
-jx get applications
+export GH_USER=[...]
+
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8085:80 &
 ```
 
-The output is as follows.
+We created port forwarding from localhost on port `8085` to the Pod of our application accessible through the Service `go-demo-6`. Now we should be able to access the application in the personal development Namespace.
 
-```
-APPLICATION EDIT     PODS URL                                                   STAGING PODS URL
-go-demo-6   SNAPSHOT 1/1  http://go-demo-6.jx-edit-vfarcic.35.196.94.247.nip.io 0.0.159 1/1  http://go-demo-6.jx-staging.35.196.94.247.nip.io
-```
-
-We listed all the applications installed through Jenkins X. For now, there's only one, so the output is rather sparse.
-
-We can see that the `go-demo-6` application is available as a `SNAPSHOT` as well as a specific release in the `STAGING` environment (e.g., `0.0.159`). `SNAPSHOT` is the release running in our personal development environment (DevPod). Please copy its `URL`, and paste it instead of `[...]` in the command that follows.
+W> We're running port forwarding as a background process. Please press the enter key if the terminal input is not released.
 
 ```bash
-URL=[...]
-
-curl "$URL/demo/hello"
+curl "http://localhost:8085/demo/hello"
 ```
 
-The result of the `curl` command should output `hello, world!` thus confirming that we are still running the initial version of the application. Our next mission is to change the source code and confirm that the new release gets deployed in the personal development environment.
+The result of the `curl` command should output `hello, world!`, thus confirming that we are still running the initial version of the application. Our next mission is to change the source code and confirm that the new release gets deployed in the personal development environment.
 
 I> If the output is HTML with `503 Service Temporarily Unavailable`, you were too fast, and you did not give the process enough time. Please wait for a few moments until the application is up-and-running, and repeat the `curl` command.
 
@@ -414,33 +404,21 @@ We could go back to the DevPod and modify the code from a terminal. We could use
 
 The problem is that the code we're interested is in a DevPod running inside our cluster. That means that we need to synchronize our local files from a laptop to the DevPod or we can work with the code remotely. For now, we're interested in the latter option (we'll explore the former later). If we are to work with remote files, and we are not (yet) going to synchronize files between our laptop and the DevPod, the only available option is to use a remote IDE (unless you want to stick to `vi` or some other terminal-based editor).
 
-If you remember, I already stated a couple of times that Jenkins X hopes to give you everything you might need to develop your applications. That even includes an IDE. We only need to figure out where it is or, to be more precise, how to access it. We'll do that by introducing yet another `jx` command.
+We can open the IDE through the command that was given to us when we created the DevPod. But, since we already saw how easy it is to port forward with Kubernetes, we don't need to go back to that output. We can just as easily construct our own command.
 
 ```bash
-jx open
+kubectl port-forward \
+    service/$GH_USER-go-ide 8086:80 &
 ```
 
-The output is as follows.
+We created yet another port forwarding. Now we should be able to open the IDE through localhost on the port 8086.
 
-```
-NAME                  URL
-deck                  http://deck.jx.34.206.148.101.nip.io
-hook                  http://hook.jx.34.206.148.101.nip.io
-jenkins-x-chartmuseum http://chartmuseum.jx.34.206.148.101.nip.io
-tide                  http://tide.jx.34.206.148.101.nip.io
-vfarcic-go-ide        http://vfarcic-go-ide.jx.34.206.148.101.nip.io
-vfarcic-go-port-2345  http://vfarcic-go-port-2345.jx.34.206.148.101.nip.io
-vfarcic-go-port-8080  http://vfarcic-go-port-8080.jx.34.206.148.101.nip.io
-```
-
-The `open` command lists all the applications managed by Jenkins X and running inside our cluster. We can see that one of them is `ide` prefixed with our username and the programming language we're using. In my case that's `vfarcic-go-ide`.
-
-If we add the name of the application as an argument to the `jx open` command, it'll (surprise, surprise) open that application in the default browser. Let's try it out.
-
-Please replace `[...]` with the name of the `*-ide` application before executing the command that follows.
+W> ## A note to Windows users
+W> 
+W> Git Bash might not be able to use the `open` command. If that's the case, replace `open` with `echo`. As a result, you'll get the full address that should be opened directly in your browser of choice.
 
 ```bash
-jx open [...]
+open "http://localhost:8086"
 ```
 
 What you see in front of you is Visual Studio Code. It is a browser-based IDE (it can run as a desktop app as well). It is, in my experience, the best browser-based IDE today (March 2019). If you've already used Visual Studio Code on your laptop, what you see should feel familiar. If you haven't, it's intuitive and straightforward, and you'll have no problem adopting it (if you think it's useful).
@@ -449,16 +427,20 @@ Let's give Visual Studio Code a spin.
 
 Our next mission is to modify a few Go files and observe that the changes are build and deployed without us executing any additional commands. Remember that the watcher (`watch.sh`) is still running.
 
-Please open the *Files* section located in the left-hand menu, expand the *go-demo-6* directory, and double-click the *main.go* file to open it in the main body of the IDE. Next, change `hello, world` (or whatever else you changed it to previously) to `hello, devpod`.
+Please expand the *go-demo-6* directory, and double-click the *main.go* file to open it in the main body of the IDE. Next, change `hello, world` (or whatever else you changed it to previously) to `hello, devpod`.
 
 Since we have tests that validate that the correct message is returned, we'll need to change them as well. Open the *main_test.go* file next, search for `hello, world` (or whatever else you changed it to previously), and change it to `hello, devpod`.
 
-Make sure to save the changes.
+Make sure to save the changes to both files.
 
-Now we can confirm that our changes are automatically built and deployed every time we change a Go source code.
+Now we can confirm that our changes are automatically built and deployed every time we change a Go source code. However, since a new Pod was created as a result of the change, we'll need to port forward again.
 
 ```bash
-curl "$URL/demo/hello"
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8087:80 &
+
+curl "http://localhost:8087/demo/hello"
 ```
 
 The output should be `hello, devpod!`
@@ -470,10 +452,12 @@ We saw how we can work using personal development environments and modifying the
 I used Visual Studio Code quite a few times. It is beneficial when we do not have all the tools running inside our laptops (except `jx` CLI). But, a browser-based editor might not be your cup of tea. You might find a desktop IDE easier and faster. Or, maybe you are emotionally attached to a desktop version of Visual Studio Code, IntelliJ, or whatever else is your coding weapon of choice. Fear not, we can use them as well. Our next mission is to connect your favorite IDE with DevPods. But, before we do that, we'll delete the DevPod we're currently running and start a new one with a twist.
 
 ```bash
-jx delete devpod
+pkill kubectl
+
+jx delete devpod $GH_USER-go
 ```
 
-Please type `y` when asked whether you want `to delete the DevPods` and press the enter key.
+The first command deleted all the processes that were doing port forwarding, while the second started the process of deleting the DevPod. Please type `y` when asked whether you want `to delete the DevPods` and press the enter key.
 
 The DevPod is no more.
 
@@ -512,6 +496,8 @@ Now that we added unit tests both to `Makefile` and `watch.sh`, we can go back t
 We'll use [ksync](https://github.com/vapor-ware/ksync). It transparently updates containers running inside a cluster from a local checkout. That will enable us to use our favorite IDE to work with local files that will be synchronized with those inside the cluster.
 
 To make things simpler, `jx` has its own implementation of ksync that will connect it with a DevPod. Let's fire it up.
+
+W> At the time of this writing, there is an open issue that prevents the command that follows from working correctly. If it fails, please consult the [issue 7015](https://github.com/jenkins-x/jx/issues/7015).
 
 ```bash
 jx sync --daemon
@@ -559,7 +545,11 @@ The last time we modified the files in the DevPod, we did not push them to Git. 
 Please return to the first terminal.
 
 ```bash
-curl "$URL/demo/hello"
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8085:80 &
+
+curl "localhost:8085/demo/hello"
 ```
 
 The output is `hello, world!` thus confirming that our source code is indeed intact and that the watcher did its job by deploying a new release based on the original code. If the output is `hello, devpod!`, the new deployment did not yet roll out. In that case, wait for a few moments and repeat the `curl` command.
@@ -581,7 +571,11 @@ Since we changed the file, and if you are quick, we should see the result of the
 Now that we observed that the process run through yet another iteration, we can send a request to the application and confirm that the new release indeed rolled out. Please go to the first terminal to execute the `curl` command that follows.
 
 ```bash
-curl "$URL/demo/hello"
+kubectl --namespace jx-edit-$GH_USER \
+    port-forward service/go-demo-6 \
+    8086:80 &
+
+curl "localhost:8085/demo/hello"
 ```
 
 This time, the output is `hello, devpod with tests!`. From now on, every time we change any of the local Go files, the process will repeat. We will be notified if something (e.g., tests) fail by the output from the second terminal. Otherwise, the application running in our personal environment (Namespace) will always be up-to-date.
@@ -682,6 +676,8 @@ If you destroyed the cluster or you uninstalled Jenkins X, please remove the rep
 W> Please replace `[...]` with your GitHub user before executing the commands that follow.
 
 ```bash
+pkill kubectl
+
 GH_USER=[...]
 
 hub delete -y \
