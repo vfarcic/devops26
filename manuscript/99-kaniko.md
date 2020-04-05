@@ -63,7 +63,7 @@ docker run \
 Building by itself is not very useful, so we want to push to a remote Docker registry.
 
 To push to DockerHub or any other username and password Docker registries we need to mount the Docker `config.json` file that contains the credentials.
-Caching will not work for DockerHub as it does not support repositories with more than 2 path sections (`acme/myimage/cache`).
+Caching will not work for DockerHub as it does not support repositories with more than 2 path sections (`acme/myimage/cache`), but it will work in Artifactory and maybe other registry implementations.
 
 ```bash
 DOCKER_USERNAME=[...]
@@ -409,29 +409,69 @@ To push to Azure Container Registry (ACR)
 ```bash
 RESOURCE_GROUP=sanchezg
 REGISTRY_NAME=sanchezgtest # TODO
+LOCATION=eastus2
 az login
+# Create a resource group
+az group create --name $RESOURCE_GROUP -l $LOCATION
+# Create the ACR registry
 az acr create --resource-group $RESOURCE_GROUP --name $REGISTRY_NAME --sku Basic
-# az acr login --name $REGISTRY_NAME
+az acr update -n $REGISTRY_NAME --admin-enabled true
 curl https://aadacr.blob.core.windows.net/acr-docker-credential-helper/docker-credential-acr-linux-amd64.tar.gz | tar xvz
+# curl https://aadacr.blob.core.windows.net/acr-docker-credential-helper/docker-credential-acr-darwin-amd64.tar.gz | tar xvz
+```
 
+Using credentials
+
+```
 cat << EOF > config.json
 {
-	"auths": {
+  "auths": {
 		"${REGISTRY_NAME}.azurecr.io": {}
 	},
 	"credsStore": "acr"
 }
 EOF
+token=$(az acr login --name $REGISTRY_NAME --expose-token | jq -r '.accessToken')
+cat << EOF > config-acr.json
+{
+	"auths": {
+		"${REGISTRY_NAME}.azurecr.io": {
+			"identitytoken": "${token}"
+		}
+	}
+}
+EOF
 docker run \
-    -v $HOME/.azure:/root/.azure \
-    -v `pwd`/docker-credential-acr-linux:/kaniko/docker-credential-acr:ro \
     -v `pwd`/config.json:/kaniko/.docker/config.json:ro \
+    -v `pwd`/config-acr.json:/kaniko/.docker/acr/config.json:ro \
     -v `pwd`:/workspace \
     gcr.io/kaniko-project/executor:latest \
     --destination $REGISTRY_NAME.azurecr.io/go-demo-6:kaniko-docker \
     --cache
 ```
 
+```
+INFO[0001] Resolved base name scratch to scratch
+INFO[0001] Using dockerignore file: /workspace/.dockerignore
+INFO[0001] Resolved base name scratch to scratch
+INFO[0001] Built cross stage deps: map[]
+INFO[0001] No base image, nothing to extract
+INFO[0001] cmd: EXPOSE
+INFO[0001] Adding exposed port: 8080/tcp
+INFO[0001] Checking for cached layer sanchezgtest.azurecr.io/go-demo-6/cache:cb282629f3a069bf5ed19ca6afb33485d929dbdeb52bc66feb48f3fc636fdce5...
+INFO[0004] Using caching version of cmd: COPY ./bin/ /
+INFO[0004] Skipping unpacking as no commands require it.
+INFO[0004] Taking snapshot of full filesystem...
+INFO[0004] Resolving paths
+INFO[0004] EXPOSE 8080
+INFO[0004] cmd: EXPOSE
+INFO[0004] Adding exposed port: 8080/tcp
+INFO[0004] No files changed in this command, skipping snapshotting.
+INFO[0004] ENTRYPOINT ["/go-demo-6"]
+INFO[0004] No files changed in this command, skipping snapshotting.
+INFO[0004] COPY ./bin/ /
+INFO[0004] Found cached layer, extracting to filesystem
+```
 
 
 ## What Now?
