@@ -50,7 +50,7 @@ With Docker daemon image builds (`docker build`) we have caching. Each layer gen
 
 We can run kaniko from a machine with Docker daemon installed for testing or validation.
 
-```bash
+```shell
 cd go-demo-6 # If you're not already there
 make
 
@@ -65,7 +65,7 @@ Building by itself is not very useful, so we want to push to a remote Docker reg
 To push to DockerHub or any other username and password Docker registries we need to mount the Docker `config.json` file that contains the credentials.
 Caching will not work for DockerHub as it does not support repositories with more than 2 path sections (`acme/myimage/cache`), but it will work in Artifactory and maybe other registry implementations.
 
-```bash
+```shell
 DOCKER_USERNAME=[...]
 DOCKER_PASSWORD=[...]
 AUTH=$(echo -n "${DOCKER_USERNAME}:${DOCKER_PASSWORD}" | base64)
@@ -88,7 +88,7 @@ docker run \
 To push to Google Container Registry (GCR) we need to login to Google Cloud and mount our local `$HOME/.config/gcloud` containing our credentials into the kaniko container so it can push to GCR.
 GCR does support caching and so it will push the intermediate layers to `gcr.io/$PROJECT/go-demo-6/cache:_some_large_uuid_` to be reused in subsequent builds.
 
-```bash
+```shell
 PROJECT=$(gcloud config get-value project 2> /dev/null) # Your Google Cloud project id
 gcloud auth application-default login # get the Google Cloud credentials
 docker run \
@@ -99,6 +99,39 @@ docker run \
     --cache
 ```
 
+
+To push to Azure Container Registry (ACR) we need to login to Azure ACR and get a token that can be used to push the image.
+We use that token to craft both the standard Docker config file at `/kaniko/.docker/config.json` plus the ACR specific file used by the Docker ACR credential helper in `/kaniko/.docker/acr/config.json`.
+ACR does support caching and so it will push the intermediate layers to `${REGISTRY_NAME}.azurecr.io/go-demo-6/cache:_some_large_uuid_` to be reused in subsequent builds.
+
+```shell
+REGISTRY_NAME=myACR
+cat << EOF > config.json
+{
+  "auths": {
+		"${REGISTRY_NAME}.azurecr.io": {}
+	},
+	"credsStore": "acr"
+}
+EOF
+token=$(az acr login --name $REGISTRY_NAME --expose-token | jq -r '.accessToken')
+cat << EOF > config-acr.json
+{
+	"auths": {
+		"${REGISTRY_NAME}.azurecr.io": {
+			"identitytoken": "${token}"
+		}
+	}
+}
+EOF
+docker run \
+    -v `pwd`/config.json:/kaniko/.docker/config.json:ro \
+    -v `pwd`/config-acr.json:/kaniko/.docker/acr/config.json:ro \
+    -v `pwd`:/workspace \
+    gcr.io/kaniko-project/executor:latest \
+    --destination $REGISTRY_NAME.azurecr.io/go-demo-6:kaniko-docker \
+    --cache
+```
 
 ## Kaniko in Kubernetes
 
@@ -126,7 +159,7 @@ We are going to show examples building from a git repository as it will be the m
 
 We will need the Docker registry credentials in a `config.json` file, the same way that we need them to pull images from a private registry in Kubernetes.
 
-```bash
+```shell
 DOCKER_USERNAME=[...]
 DOCKER_PASSWORD=[...]
 DOCKER_SERVER=https://index.docker.io/v1/
@@ -178,7 +211,7 @@ When creating the GKE node pool the default configuration only includes read-onl
 
 If the nodes have the correct service account with full storage access scope then we do not need to do anything extra on our kaniko pod, as it will be able to push to GCR just fine.
 
-```bash
+```shell
 PROJECT=$(gcloud config get-value project 2> /dev/null)
 
 cat << EOF | kubectl create -f -
@@ -282,7 +315,7 @@ When using instance roles we no longer need a secret, but we still need to confi
 
 We also need to create the ECR repository beforehand, and, if using caching, another one for the cache.
 
-```bash
+```shell
 ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
 REPOSITORY=jx
 REGION=us-east-1
@@ -404,73 +437,143 @@ jx/kaniko-eks[kaniko]: INFO[0048] Pushing layer 601253276071.dkr.ecr.us-east-1.a
 
 ### Deploying to Azure Container Registry (ACR)
 
-To push to Azure Container Registry (ACR)
+To push to Azure Container Registry (ACR) we can create an admin password for the ACR registry and use the standard Docker registry method or better we can use a token.
+We assume you already have a AKS cluster running in a resource group.
 
-```bash
-RESOURCE_GROUP=sanchezg
-REGISTRY_NAME=sanchezgtest # TODO
-LOCATION=eastus2
+```shell
+RESOURCE_GROUP=jxrocks
+REGISTRY_NAME=jxrocks
+LOCATION=eastus
 az login
-# Create a resource group
-az group create --name $RESOURCE_GROUP -l $LOCATION
 # Create the ACR registry
 az acr create --resource-group $RESOURCE_GROUP --name $REGISTRY_NAME --sku Basic
-az acr update -n $REGISTRY_NAME --admin-enabled true
-curl https://aadacr.blob.core.windows.net/acr-docker-credential-helper/docker-credential-acr-linux-amd64.tar.gz | tar xvz
-# curl https://aadacr.blob.core.windows.net/acr-docker-credential-helper/docker-credential-acr-darwin-amd64.tar.gz | tar xvz
+# If we want to enable password based authentication
+# az acr update -n $REGISTRY_NAME --admin-enabled true
 ```
 
-Using credentials
-
-```
-cat << EOF > config.json
-{
-  "auths": {
-		"${REGISTRY_NAME}.azurecr.io": {}
-	},
-	"credsStore": "acr"
-}
-EOF
+```shell
 token=$(az acr login --name $REGISTRY_NAME --expose-token | jq -r '.accessToken')
-cat << EOF > config-acr.json
-{
-	"auths": {
-		"${REGISTRY_NAME}.azurecr.io": {
-			"identitytoken": "${token}"
-		}
-	}
-}
+cat << EOF | kubectl create -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko-aks
+spec:
+  restartPolicy: Never
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor
+    imagePullPolicy: Always
+    args: ["--dockerfile=Dockerfile",
+            "--context=git://github.com/carlossg/go-demo-6.git#refs/heads/kaniko",
+            "--destination=${REGISTRY_NAME}.azurecr.io/jx/go-demo-6:latest",
+            "--cache=true"]
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker/
+    - name: docker-acr-config
+      mountPath: /kaniko/.docker/acr/
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
+  volumes:
+  - name: docker-config
+    configMap:
+      name: docker-config
+  - name: docker-acr-config
+    configMap:
+      name: docker-acr-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-config
+data:
+  config.json: |-
+    {
+      "auths": {
+    		"${REGISTRY_NAME}.azurecr.io": {}
+    	},
+    	"credsStore": "acr"
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-acr-config
+data:
+  config.json: |-
+    {
+    	"auths": {
+    		"${REGISTRY_NAME}.azurecr.io": {
+    			"identitytoken": "${token}"
+    		}
+    	}
+    }
 EOF
-docker run \
-    -v `pwd`/config.json:/kaniko/.docker/config.json:ro \
-    -v `pwd`/config-acr.json:/kaniko/.docker/acr/config.json:ro \
-    -v `pwd`:/workspace \
-    gcr.io/kaniko-project/executor:latest \
-    --destination $REGISTRY_NAME.azurecr.io/go-demo-6:kaniko-docker \
-    --cache
 ```
 
 ```
-INFO[0001] Resolved base name scratch to scratch
-INFO[0001] Using dockerignore file: /workspace/.dockerignore
-INFO[0001] Resolved base name scratch to scratch
-INFO[0001] Built cross stage deps: map[]
-INFO[0001] No base image, nothing to extract
-INFO[0001] cmd: EXPOSE
-INFO[0001] Adding exposed port: 8080/tcp
-INFO[0001] Checking for cached layer sanchezgtest.azurecr.io/go-demo-6/cache:cb282629f3a069bf5ed19ca6afb33485d929dbdeb52bc66feb48f3fc636fdce5...
-INFO[0004] Using caching version of cmd: COPY ./bin/ /
-INFO[0004] Skipping unpacking as no commands require it.
-INFO[0004] Taking snapshot of full filesystem...
-INFO[0004] Resolving paths
-INFO[0004] EXPOSE 8080
-INFO[0004] cmd: EXPOSE
-INFO[0004] Adding exposed port: 8080/tcp
-INFO[0004] No files changed in this command, skipping snapshotting.
-INFO[0004] ENTRYPOINT ["/go-demo-6"]
-INFO[0004] No files changed in this command, skipping snapshotting.
-INFO[0004] COPY ./bin/ /
-INFO[0004] Found cached layer, extracting to filesystem
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Compressing objects: 100% (4/4), done.
+Total 5063 (delta 1), reused 2 (delta 0), pack-reused 5059
+INFO[0004] Resolved base name golang to golang
+INFO[0004] Resolved base name scratch to scratch
+INFO[0004] Using dockerignore file: /kaniko/buildcontext/.dockerignore
+INFO[0004] Resolved base name golang to golang
+INFO[0004] Resolved base name scratch to scratch
+INFO[0004] Retrieving image manifest golang
+INFO[0004] Retrieving image manifest golang
+INFO[0004] Built cross stage deps: map[0:[/src/bin/go-demo-6]]
+INFO[0004] Retrieving image manifest golang
+INFO[0005] Retrieving image manifest golang
+INFO[0005] Using files from context: [/kaniko/buildcontext]
+INFO[0005] Checking for cached layer jxrocks.azurecr.io/jx/go-demo-6/cache:b4607a772e8ff6b8d5c99ce474c99b972cdd0249b0e850fe3f6bb4d2f4ba0bd5...
+INFO[0006] No cached layer found for cmd RUN cd /src && make
+INFO[0006] Unpacking rootfs as cmd ADD . /src requires it.
+INFO[0026] Taking snapshot of full filesystem...
+INFO[0052] Resolving paths
+INFO[0057] Using files from context: [/kaniko/buildcontext]
+INFO[0057] ADD . /src
+INFO[0058] Resolving paths
+INFO[0059] Taking snapshot of files...
+INFO[0060] RUN cd /src && make
+INFO[0060] cmd: /bin/sh
+INFO[0060] args: [-c cd /src && make]
+go: downloading github.com/prometheus/client_golang v0.9.2
+go: downloading gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+go: downloading github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+go: downloading github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a
+go: downloading github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+go: downloading github.com/golang/protobuf v1.2.0
+go: downloading github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
+go: downloading github.com/matttproud/golang_protobuf_extensions v1.0.1
+CGO_ENABLED=0 GO15VENDOREXPERIMENT=1 go build -ldflags '' -o bin/go-demo-6 main.go
+INFO[0080] Taking snapshot of full filesystem...
+INFO[0084] Resolving paths
+INFO[0096] Pushing layer jxrocks.azurecr.io/jx/go-demo-6/cache:b4607a772e8ff6b8d5c99ce474c99b972cdd0249b0e850fe3f6bb4d2f4ba0bd5 to cache now
+INFO[0101] Saving file /src/bin/go-demo-6 for later use
+INFO[0101] Deleting filesystem...
+INFO[0102] No base image, nothing to extract
+INFO[0102] cmd: EXPOSE
+INFO[0102] Adding exposed port: 8080/tcp
+INFO[0102] Checking for cached layer jxrocks.azurecr.io/jx/go-demo-6/cache:caaf358bbba1007fd435580fc1f1e5920b5f01587fccc3679a9c4ab23c43bb6f...
+INFO[0102] No cached layer found for cmd COPY --from=build-env /src/bin/go-demo-6 /
+INFO[0102] Unpacking rootfs as cmd COPY --from=build-env /src/bin/go-demo-6 / requires it.
+INFO[0102] Taking snapshot of full filesystem...
+INFO[0105] Resolving paths
+INFO[0105] EXPOSE 8080
+INFO[0105] cmd: EXPOSE
+INFO[0105] Adding exposed port: 8080/tcp
+INFO[0105] No files changed in this command, skipping snapshotting.
+INFO[0105] ENTRYPOINT ["/go-demo-6"]
+INFO[0105] No files changed in this command, skipping snapshotting.
+INFO[0105] COPY --from=build-env /src/bin/go-demo-6 /
+INFO[0105] Resolving paths
+INFO[0105] Taking snapshot of files...
+INFO[0106] Pushing layer jxrocks.azurecr.io/jx/go-demo-6/cache:caaf358bbba1007fd435580fc1f1e5920b5f01587fccc3679a9c4ab23c43bb6f to cache now
 ```
 
 
