@@ -193,7 +193,7 @@ Next, we should check whether our development environment indeed contains everyt
 make linux
 ```
 
-We created the initial module definition with `go mod init` and executed `make linux` to compile the binary. It was a success, so we proved that, as a minimum, our new environment contains Go compiler.
+We executed `make linux` to compile the binary. It was a success, so we proved that, as a minimum, our new environment contains Go compiler.
 
 Jenkins X pipelines use skaffold to create container images and deploy our applications. We won't go into all the details behind skaffold just yet, but only through the parts that matter for our current goals. So, let's take a quick look at `skaffold.yaml`.
 
