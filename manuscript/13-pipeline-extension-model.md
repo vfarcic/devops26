@@ -203,7 +203,7 @@ Open *packs* followed with the *go* directory. We can see that *pipeline.yaml* i
 curl "https://raw.githubusercontent.com/jenkins-x-buildpacks/jenkins-x-kubernetes/master/packs/go/pipeline.yaml"
 ```
 
-If you remember Jenkinsfile we used before, you'll notice that this pipeline is functionally the same. However, it is written in a different format. It's the same format used for pipelines in serverless Jenkins X. If we import that build pack into static Jenkins X, it gets translated into Jenkinsfile, mainly for compatibility reasons. On the other hand, if we are using serverless Jenkins X, it does not get translated into anything. Instead, we get the `jenkins-x.yml` file with the single line `buildPack: go` that tells the system to use the pipeline from the build pack, instead of copying it into the application repository.
+That pipeline is in the same format used for pipelines in serverless Jenkins X. Pipelines of our projects are referencing that one in the `jenkins-x.yml` file with the single line `buildPack: go` that tells the system to use the pipeline from the build pack, instead of copying it into the application repository.
 
 Let us quickly digest the key sections of the `pipeline.yaml` file. It starts with the `extends` instruction that is as follows.
 
