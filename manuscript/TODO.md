@@ -1,4 +1,4 @@
-## The DevOps 2.6 Toolkit Book
+## Book
 
 - [X] 01-preface.md
 - [X] 02-intro.md
@@ -20,12 +20,9 @@
 - [X] 18-boot.md
 - [X] 19-apps.md
 - [X] 99-the-end.md
-- [ ] 99-boot-upgrade.md
-- [ ] 99-vault.md
-- [ ] Add the book to the jx docs
-- [ ] Add AKS to 18-boot.md
 - [ ] Move 18-boot.md to 02-intro.md 
 - [ ] Replace `jx create cluster` and `jx install` with `jx boot`
+- [ ] Remove *At the time of this writing (April 2020),...*
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
 - [ ] Remove *At the time of this writing (September 2019),...* warning
 - [ ] Remove *For now (April 2019)* paragraph
@@ -45,7 +42,10 @@
 - [ ] 99-lighthouse.md
 - [ ] Replace prow with lighthouse across the book
 - [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
-- [ ] Packt
+- [ ] 99-boot-upgrade.md
+- [ ] 99-vault.md
+- [ ] Add the book to the jx docs
+- [ ] Add AKS to 18-boot.md
 - [ ] 99-jx-create-domain.md
 - [ ] 99-multi-cluster.md
 - [ ] jenkins-x.io
@@ -75,6 +75,29 @@
 - [ ] 99-integration-with-uptimerobot.md
 - [ ] 99-codified-infrastructure.md
 - [ ] 99-cjxd.md
+
+## Course
+
+- [ ] 01-preface.md
+- [ ] 02-intro.md
+- [ ] 03-quickstart.md
+- [ ] 04-import.md
+- [ ] 05-buildpacks.md
+- [ ] 06-env.md
+- [ ] 07-dev.md
+- [ ] 08-pr.md
+- [ ] 09-promote.md
+- [ ] 10-versioning.md
+- [ ] 11-serverless.md
+- [ ] 12-prow.md
+- [ ] 13-pipeline-extension-model.md
+- [-] 14-upgrade.md
+- [ ] 15-advanced-pipelines.md
+- [ ] 16-serverless-apps.md
+- [ ] 17-progressive-delivery.md
+- [ ] 18-boot.md
+- [ ] 19-apps.md
+- [ ] 99-the-end.md
 
 ## YouTube Live
 
@@ -106,16 +129,3 @@
 - [ ] Publish on TechnologyConversations.com
 - [ ] Add to Book.txt
 - [ ] Publish on LeanPub.com 
-
-
-
-
-* kubectl port-forward svc/vfarcic-go-ide 8080:80
-
-You can access the DevPod locally with the following commands:
-* kubectl port-forward svc/vfarcic-go-port-2345 8081:80
-* kubectl port-forward svc/vfarcic-go-port-8080 8082:80
-
-
-kubectl --namespace jx-edit-vfarcic \
-    port-forward service/go-demo-6 8085:80

@@ -87,11 +87,12 @@ Here we go.
 ```bash
 jx create quickstart \
     --filter golang-http \
-    --project-name jx-go \
-    --batch-mode
+    --project-name jx-go
 ```
 
 The output is too big to be presented here, so I'll walk you through the steps `jx` performed while you're looking at your screen.
+
+I> You might be asked a couple of questions. You probably don't need guidance to answer them.
 
 We got the `jx-go` directory for our new Go application. Later on, it was converted into a Git repository, and `jx` copied the files from the pack (quickstart) dedicated to Go. Once it finished, it pushed the files to GitHub, and it created a project in Jenkins. As a result, the first build of the new Jenkins pipeline started running immediately. We'll explore Jenkins projects in more detail later.
 

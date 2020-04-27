@@ -641,7 +641,7 @@ If, by any chance, you followed the instructions for GKE, EKS, or AKS, you'll no
 
 * Which kind do we want to install? Static or serverless? 
 
-Please answer with `Serverless Jenkins X Pipelines with Tekton`. We'll explore the serverless option later. 
+Please answer with `Serverless Jenkins X Pipelines with Tekton`, since the other options are deprecated.
 
 The process will create a `jx` Namespace. It will also modify your local `kubectl` context.
 

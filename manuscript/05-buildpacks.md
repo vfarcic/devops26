@@ -168,7 +168,7 @@ echo "REPLACE_ME_APP_NAME-db:
 " | tee -a packs/go-mongo/charts/values.yaml
 ```
 
-Just as with `requirements.yaml`, we used the "magic" string `code` that will be replaced with the name of the application during the import or the quickstart process. The `replicaSet.enabled` entry will make sure that the database is deployed as a multi-replica StatefulSet.
+Just as with `requirements.yaml`, we used the "magic" string `REPLACE_ME_APP_NAME` that will be replaced with the name of the application during the import or the quickstart process. The `replicaSet.enabled` entry will make sure that the database is deployed as a multi-replica StatefulSet.
 
 I> If you're interested in all the values available in the `mongodb` chart, please visit the [project README](https://github.com/helm/charts/tree/master/stable/mongodb).
 

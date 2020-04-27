@@ -497,7 +497,7 @@ We'll use [ksync](https://github.com/vapor-ware/ksync). It transparently updates
 
 To make things simpler, `jx` has its own implementation of ksync that will connect it with a DevPod. Let's fire it up.
 
-W> At the time of this writing, there is an open issue that prevents the command that follows from working correctly. If it fails, please consult the [issue 7015](https://github.com/jenkins-x/jx/issues/7015).
+W> At the time of this writing (April 2020), there is an open issue that prevents the command that follows from working correctly. If it fails, please consult the [issue 7015](https://github.com/jenkins-x/jx/issues/7015).
 
 ```bash
 jx sync --daemon
