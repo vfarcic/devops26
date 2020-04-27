@@ -558,7 +558,7 @@ Now you need to decide whether to continue using the cluster or to destroy it. I
 
 If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
 
-W> Please replace the first `[...]` with your GitHub user and the second `[...]` with the name of your environment (`tekton`) before executing the commands that follow.
+W> Please replace the first `[...]` with your GitHub user.
 
 ```bash
 cd ..
@@ -568,12 +568,12 @@ GH_USER=[...]
 ENVIRONMENT=[...]
 
 hub delete -y \
-  $GH_USER/environment-$ENVIRONMENT-staging
+  $GH_USER/environment-tekton-staging
 
 hub delete -y \
-  $GH_USER/environment-$ENVIRONMENT-production
+  $GH_USER/environment-tekton-production
 
-rm -rf environment-$ENVIRONMENT-production
+rm -rf environment-tekton-production
 
-rm -rf ~/.jx/environments/$GH_USER/environment-$ENVIRONMENT-*
+rm -rf ~/.jx/environments/$GH_USER/environment-tekton-*
 ```
