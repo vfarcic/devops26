@@ -155,7 +155,7 @@ Many other things happened in the background. We'll explore them in due time. Fo
 jx rsh --devpod
 ```
 
-The `jx rsh` command opens a terminal inside a Pod. The `-d` argument indicated that we want to connect to the DevPod we just created.
+The `jx rsh` command opens a terminal inside a Pod. The `--devpod` argument indicated that we want to connect to the DevPod we just created.
 
 Before we proceed, we'll confirm that the *go-demo-6* code was indeed cloned inside the Pod.
 
