@@ -22,7 +22,7 @@ By now, you should know that Jenkins X packages a lot of useful applications, to
 
 Given that new Jenkins X releases are made all the time, things would get messy very quickly if we would be using "latest" releases of all those charts and packages. It should come as no surprise that Jenkins X needs a place to store the information about stable versions of all packages and charts. That place is the [jenkins-x/jenkins-x-versions](https://github.com/jenkins-x/jenkins-x-versions) repository.
 
-I will not waste space by explaining how *jenkins-x-versions* work. If you're curious, please visit the [Version Stream](https://jenkins-x.io/architecture/version-stream/) page.
+I will not waste space by explaining how *jenkins-x-versions* work. If you're curious, please visit the [Version Stream](https://jenkins-x.io/docs/concepts/version-stream/) page.
 
 Let's take a quick look at the [jenkins-x/jenkins-x-versions](https://github.com/jenkins-x/jenkins-x-versions) repository.
 
@@ -558,7 +558,7 @@ Now you need to decide whether to continue using the cluster or to destroy it. I
 
 If you destroyed the cluster or you uninstalled Jenkins X, please remove the repositories and the local files we created. You can use the commands that follow for that.
 
-W> Please replace the first `[...]` with your GitHub user and the second `[...]` with the name of your environment (`jx-rocks` if static, `tekton` if serverless) before executing the commands that follow.
+W> Please replace the first `[...]` with your GitHub user and the second `[...]` with the name of your environment (`tekton`) before executing the commands that follow.
 
 ```bash
 cd ..
