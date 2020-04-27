@@ -128,7 +128,7 @@ go-demo-6   0.0.211 1/1  http://go-demo-6.jx-staging.52.42.36.56.nip.io
 
 In my case, `go-demo-6` version `0.0.211` is running in the staging environment. Your version is likely going to be different, and if you did not destroy the cluster at the end of the previous chapter, you are likely going to see that a release is running in production as well.
 
-I> If you forked *go-demo-6* after I wrote this chapter (April 2019), your version is likely going to be `1.x.x`. That's OK. It does not matter which version you're running right now.
+I> If you forked *go-demo-6* after I wrote this chapter (April 2019), your version is likely going to be `1.x.x` or `2.x.x`. That's OK. It does not matter which version you're running right now.
 
 Before we see how we can control versions through Jenkins X pipelines, we'll take a quick look at the `jx-release-version` CLI. It is already used inside our pipelines and understanding how it works will help us get a better grip at how we can combine it with our processes.
 
