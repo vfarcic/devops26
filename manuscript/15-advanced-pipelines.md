@@ -723,10 +723,6 @@ vfarcic/go-demo-6/master #5                        3m46s 2m45s Succeeded Version
 
 The first thing we can note is that the number of steps in the activity is closer to what we're used to. Now that we are not overriding the whole pipeline but only the `build` stage, almost all the steps inherited from the build pack are there. Only those related to the `build` stage are gone, simply because we limited the scope of the `overrides` instruction.
 
-Another notable difference is that the `Promote Rollout` step took too long to execute until it eventually `failed`. That's also to be expected. We removed all the steps from the `build` stage, so our binary was not created, and the container image was not built. Jenkins X did execute `promote` steps that are deploying the new release, but Kubernetes is bound to fail to pull the new image.
-
-That demonstrated the importance of executing `rollout`, no matter whether we run tests afterward. Without it, the pipeline would finish successfully since we are not running tests against the staging environment. Before we added the `rollout` step, the promotion was the last action executed as part of the pipeline.
-
 Please stop watching the activities by pressing *ctrl+c*.
 
 We are getting closer to our goal. We just need to figure out how to override a specific step with the new one that will build binaries for all operating systems. But, how are we going to override a particular step if we do not know which one it is? We could find all the steps of the pipeline by visiting the repositories that host build packs. But that would be tedious. We'd need to go to a few repositories, check the source code of the related pipelines, and combine the result with the one we're rewriting right now. There must be a better way to get an insight into the pipeline related to *go-demo-6*.
