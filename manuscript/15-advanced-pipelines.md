@@ -1138,7 +1138,7 @@ W> Please replace `[...]` with your GitHub user before executing the commands th
 ```bash
 cd ..
 
-GH_USER=[...]
+export GH_USER=[...]
 
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging

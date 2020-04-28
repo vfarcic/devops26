@@ -461,7 +461,7 @@ git push
 
 cd ..
 
-GH_USER=[...]
+export GH_USER=[...]
 
 hub delete -y \
   $GH_USER/environment-jx-rocks-staging
