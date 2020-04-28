@@ -102,7 +102,7 @@ jx create pullrequest \
     --body "What I can say?" \
     --batch-mode
 
-BRANCH=[...] # e.g., PR-72
+export BRANCH=[...] # e.g., PR-72
 
 jx get activities \
     --filter go-demo-6/$BRANCH \
@@ -115,7 +115,7 @@ curl -o Makefile \
 
 open "https://codecov.io/"
 
-CODECOV_TOKEN=[...]
+export CODECOV_TOKEN=[...]
 
 open "https://github.com/vfarcic/codecov"
 

@@ -222,7 +222,7 @@ Next, we'll explore the activities related to this pull request. We'll do that b
 W> Please replace `[...]` with `PR-[PR_ID]` (e.g., PR-72). You can extract the ID from the last segment of the pull request address.
 
 ```bash
-BRANCH=[...] # e.g., PR-72
+export BRANCH=[...] # e.g., PR-72
 ```
 
 Now we can, finally, take a look at the activities produced with the newly created pull request.
@@ -305,7 +305,7 @@ I will skip giving you instructions on how to add your *go-demo-6* fork into Cod
 W> Please replace `[...]` with the Codecov token for the *go-demo-6* repository.
 
 ```bash
-CODECOV_TOKEN=[...]
+export CODECOV_TOKEN=[...]
 ```
 
 There are a few ways we can provide the info Codecov needs to calculate code coverage. We'll use a Shell script they provide. To make things simple, I already created a container image that contains the script. It is a straightforward one, and you can explore Dockerfile used to create the image from the [vfarcic/codecov](https://github.com/vfarcic/codecov) repository.
@@ -431,6 +431,8 @@ https://codecov.io/upload/v4?package=bash-8a28df4&token=4384f439-9da1-4be3-af60-
     -> View reports at https://codecov.io/github/vfarcic/go-demo-6/commit/eb67f2a869f16ce1a02d4903f6eec0af124300dc
 ...
 ```
+
+W> You might see an error message `find: unrecognized: -execdir`. That's a bug in CodeCov, and you can ignore it, at least during the exercises in this chapter.
 
 As you can see, the coverage report was uploaded to Codecov for evaluation, and we got a link where we can see the result. Feel free to visit it. We won't be using it in the exercises since there is a better way to see the results. I'll explain it soon. For now, there is an important issue we need to fix.
 

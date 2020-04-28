@@ -212,13 +212,13 @@ dependencies:
   # !! "alias: preview" must be last entry in dependencies array !!
   # !! Place custom dependencies above !!
 - alias: preview
-  name: code
+  name: REPLACE_ME_APP_NAME
   repository: file://../code
 ```
 
 If we exclude the `exposecontroller` which we will ignore for now (it creates Ingress for our applications), the only dependency is the one aliased `preview`. It points to the directory where the application chart is located. As a result, whenever we create a preview (through a pull request), it'll deploy the associated application. However, it will not install dependencies of that dependency, so we'll need to add MongoDB there as well.
 
-Just as before, the `preview` uses `code` tag instead of a hard-coded name of the application.
+Just as before, the `preview` uses `REPLACE_ME_APP_NAME` tag instead of a hard-coded name of the application.
 
 If you take a look at the comments, you'll see that the file must end with an empty line. More importantly, the `preview` must be the last entry. That means that we need to add `mongodb` somewhere above it.
 
