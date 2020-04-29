@@ -6,11 +6,11 @@
 # aks-jx-serverless.sh: https://gist.github.com/b07f45f6907c2a1c71f45dbe0df8d410
 # install-serverless.sh: https://gist.github.com/7b3b3d90ecd7f343effe4fff5241d037
 
-ENVIRONMENT=[...]
+export ENVIRONMENT=[...]
 
 rm -rf environment-$ENVIRONMENT-staging
 
-GH_USER=[...]
+export GH_USER=[...]
 
 git clone \
     https://github.com/$GH_USER/environment-$ENVIRONMENT-staging.git
@@ -34,7 +34,7 @@ jx get activities \
     --filter environment-$ENVIRONMENT-staging \
     --watch
 
-NAMESPACE=$(kubectl config view \
+export NAMESPACE=$(kubectl config view \
     --minify \
     --output 'jsonpath={..namespace}')
 

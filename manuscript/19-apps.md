@@ -81,10 +81,10 @@ Let's say that we have several applications that will all use a shared PostgreSQ
 
 The first step is to clone the staging environment repository. Given that we have quite a few variations of Jenkins X setup and I cannot be sure which one you chose, the address of the staging environment repo will differ. So, the first thing we'll do is define a variable that contains the environment prefix.
 
-W> Please replace `[...]` in the command that follows with `jx-boot` if you used **Jenkins X Boot** to install Jenkins X. If that's not the case, use `jx-rocks` if you're running **static Jenkins X**, and `tekton` if it's **serverless**.
+W> Please replace `[...]` in the command that follows with the name of the cluster if you used **Jenkins X Boot** to install Jenkins X. If that's not the case, use `jx-rocks` if you're running **static Jenkins X**, and `tekton` if it's **serverless**.
 
 ```bash
-ENVIRONMENT=[...]
+export ENVIRONMENT=[...]
 ```
 
 To be on the safe side, we'll remove the local copy of the repository just in case it is a left-over from previous chapters.
@@ -98,7 +98,7 @@ Now we can clone the repo.
 W> Please replace `[...]` with your GitHub user in the commands that follow.
 
 ```bash
-GH_USER=[...]
+export GH_USER=[...]
 
 git clone \
     https://github.com/$GH_USER/environment-$ENVIRONMENT-staging.git
@@ -150,7 +150,7 @@ Once the activity is finished, the output of the activity should show that the s
 Let's see what we got.
 
 ```bash
-NAMESPACE=$(kubectl config view \
+export NAMESPACE=$(kubectl config view \
     --minify \
     --output 'jsonpath={..namespace}')
 
@@ -359,12 +359,8 @@ The output will not show you anything new. Those are the same components that we
 
 All the components that are currently running in the development environment were installed as dependencies defined in `requirements.yaml`. Let's take a look at what's defined there right now.
 
-W> Please replace `[...]` with the name of your cluster. If you used the gist to install Jenkins X using the Boot, the variable `CLUSTER_NAME` is already defined, and you can skip the first command from those that follow.
-
 ```bash
-CLUSTER_NAME=[...]
-
-cd environment-$CLUSTER_NAME-dev
+cd environment-$ENVIRONMENT-dev
 
 cat env/requirements.yaml
 ```
@@ -411,7 +407,6 @@ NAME             HOSTS                               ADDRESS       PORTS AGE
 chartmuseum      chartmuseum-jx.35.229.41.106.nip.io 35.229.41.106 80    23m
 deck             deck-jx.35.229.41.106.nip.io        35.229.41.106 80    23m
 hook             hook-jx.35.229.41.106.nip.io        35.229.41.106 80    23m
-jx-vault-jx-boot vault-jx.35.229.41.106.nip.io       35.229.41.106 80    27m
 nexus            nexus-jx.35.229.41.106.nip.io       35.229.41.106 80    23m
 tide             tide-jx.35.229.41.106.nip.io        35.229.41.106 80    23m
 ```
@@ -460,16 +455,20 @@ values.tmpl.yaml
 We can see that quite a few components are represented as directories inside `env`. You are probably familiar with most (if not all) of them. Since we are interested in Nexus or, to be more precise, in its removal, we should take a look inside the `env/nexus` directory. Given that Nexus is not defined separately in `env/requirements.yaml`, but it is part of the `jenkins-x-platform` dependency, there must be a value we can use to disable it. So, let's take a look at what's inside `env/nexus/values.yaml`.
 
 ```bash
-cat env/nexus/values.yaml
+cat env/nexus/values.tmpl.yaml
 ```
 
 The output is as follows.
 
 ```yaml
+{{- if  or (eq .Requirements.repository "nexus") (eq .Requirements.repository "") }}
 enabled: true
+{{- else }}
+enabled: false
+{{- end }}
 ```
 
-If you are familiar with Helm, this is probably the moment you got confused. If the dependencies are defined in `env/requirements.yaml`, only `env/values.yaml` should be the valid place Helm would use in search of customization values. Helm ignores `values.yaml` in any other location. Therefore, it stands to reason that `env/nexus/values.yaml` would be ignored and that setting `enabled` to `false` in that file would accomplish nothing. On the other hand, you can rest assured that the file is not there by accident.
+If you are familiar with Helm, this is probably the moment you got confused. If the dependencies are defined in `env/requirements.yaml`, only `env/values.yaml` should be the valid place Helm would use in search of customization values. Helm ignores `values.yaml` in any other location. Therefore, it stands to reason that `env/nexus/values.tmpl.yaml` would be ignored and that changing anything in that file would accomplish nothing. On the other hand, you can rest assured that the file is not there by accident.
 
 Jenkins X Boot extends Helm client capabilities in a few ways. In the context of values, it allows nested files. Instead of cramming `env/values.yaml` with deep-nested entries for all the applications, it allows us to use additional `values.yaml` files inside subdirectories. If we go back to the `env/nexus` directory, there is `values.yaml` file inside. At runtime, `jx` will read that and all other nested files and convert the values inside them into those expected by Helm.
 
@@ -1045,6 +1044,11 @@ rm -rf environment-$ENVIRONMENT-production
 
 hub delete -y \
     $GH_USER/environment-$ENVIRONMENT-production
+
+rm -rf $GH_USER/environment-$CLUSTER_NAME-dev
+
+hub delete -y \
+    $GH_USER/environment-$CLUSTER_NAME-dev
 ```
 
 Finally, delete the cluster. You can find the instructions at the end of the Gist you used at the beginning of the chapter. They are near the bottom.
