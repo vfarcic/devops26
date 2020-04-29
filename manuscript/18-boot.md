@@ -725,5 +725,3 @@ hub delete -y $GH_USER/jx-boot
 
 rm -rf jx-boot
 ```
-
-You'll notice that we did NOT delete the `dev` repository used with Jenkins X Boot. We'll keep it because that'll simplify the installation in the next chapter. That's the beauty of GitOps. The Jenkins X definition is in Git, and it can be used or reused whenever we need it.
