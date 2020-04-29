@@ -393,7 +393,7 @@ The list of the steps, sorted by order of execution, is as follows.
 |`verify-preinstall`        |`jx step verify preinstall`     |Validates that our infrastructure is set up correctly before the process installs or upgrades Jenkins X|
 |`install-jx-crds`          |`jx upgrade crd`                |Installs or upgrades Custom Resource Definitions required by Jenkins X|
 |`install-velero`           |`jx step helm apply`            |Installs or upgrades [Velero](https://velero.io) used for creating backups of the system|
-|`install-velero-backups`   |`jx step helm apply`            |Installs or upgrades Jenkins X nginx Ingress implementation|
+|`install-velero-backups`   |`jx step helm apply`            |Defines the schedule for Velero backups|
 |`install-nginx-controller` |`jx step helm apply`            |Installs nginx Ingress|
 |`create-install-values`    |`jx step create install values` |Adds missing values (if there are any) to the `cluster/values.yaml` file used to install cluster-specific charts|
 |`install-external-dns`     |`jx step helm apply`            |Installs or upgrades the support for external DNSes|
