@@ -32,9 +32,363 @@ All in all, we'll continue deploying our application and associated third-party 
 
 Now that we got that out of the way, let's create a Kubernetes cluster and start "playing" with `jx boot`.
 
-## Creating A Kubernetes Cluster (Without Jenkins X)
+## Using Jenkins X Terraform Modules
+
+TODO: Review
 
 W> As mentioned at the beginning of this chapter, the examples are verified only in GKE and EKS, given those are the only currently (February 2020) supported platforms for `jx boot`. Double-check the documentation to see whether that changed or be brave and try it out yourself with other Kubernetes flavors.
+
+We'll switch to Terraform to create a Kubernetes cluster. But, before we do that, you might be wondering why Terraform and not Ansible, Chef, Puppet, or any other similar tool.
+
+Terraform's ability to use different providers and manage various resources is combined with templating. Its system of variables allows us to easily modify aspects of our infrastructure without making changes to definitions of the resources. On top of that, it is idempotent. When we apply a set of definitions, it converges the actual into the desired state, no matter whether that means creation, destruction, or modification of our infrastructure and services.
+
+The feature I love the most is Terraform's ability to output a plan. It shows us which resources will be created, which will be modified, and which will be destroyed if we choose to apply the changes to the definitions. That allows us to gain insight into "what will happen before it happens." If we adopt GitOps principles and trigger Terraform only when we make a change to a repository, we can have a pipeline that would output the plan when we create a pull request. That way, we can easily review the changes that will be applied to our infrastructure and decide whether to merge the changes. If we do merge, another pipeline could apply those changes after being triggered through a webhook. That makes it a perfect candidate for a simple, yet very effective mix of Infrastructure as code principles combined with GitOps and automated through continuous delivery tools.
+
+Terraform stores the actual state in a file system. That allows it to be able to output plans and apply the changes to definitions by being able to compare the desired with the actual state. Nevertheless, storing its state locally is insecure, and it could prevent us from working as a team. Fortunately, Terraform allows us to utilize different backends where its state can be stored. Those can be a network drive, a database, or almost any other storage.
+
+Another really nice feature is Terraform's ability to untangle dependencies between different resources. As such, it is capable of figuring out by itself in which order resources should be created, modified, or destroyed.
+
+Nevertheless, those and other Terraform features are not unique. Other tools have them as well. What makes Terraform truly special is the ease with which we can leverage its features, and the robustness of the platform and the ecosystem around it. It is not an accident that it is the de-facto standard and popular choice of many.
+
+For us to leverage all the features Jenkins X offers, we need to create quite a few resources. That can be overwhelming, if we'd need to create them all by ourselves. Fortunately, Jenkins X team created Terraform modules that can greatly simplify all that. All we have to do is choose the one that fits our provider, create a simple Terraform definition, and apply it. Let's see that in action.
+
+Please follow the instructions for your hosting vendor (GCP or AWS).
+
+### Creating Jenkins X Infrastructure In Google Cloud Platform (GCP)
+
+TODO: Review
+
+TODO: [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
+
+```bash
+mkdir jx-infra
+
+cd jx-infra
+
+TODO: https://jenkins-x.io/docs/getting-started/setup/create-cluster/gke/#inputs
+
+export PROJECT=[...]
+
+export CLUSTER_NAME=[...]
+
+echo "module \"jx\" {
+  source         = \"jenkins-x/jx/google\"
+  gcp_project    = \"$PROJECT\"
+  cluster_name   = \"$CLUSTER_NAME\"
+  zone           = \"us-east1-b\"
+  min_node_count = 3
+  max_node_count = 6
+
+}" | tee main.tf
+
+terraform init
+```
+
+```
+Initializing modules...
+Downloading jenkins-x/jx/google 1.2.5 for jx...
+- jx in .terraform/modules/jx
+- jx.backup in .terraform/modules/jx/modules/backup
+- jx.cluster in .terraform/modules/jx/modules/cluster
+- jx.dns in .terraform/modules/jx/modules/dns
+- jx.vault in .terraform/modules/jx/modules/vault
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Checking for available provider plugins...
+- Downloading plugin for provider "google" (hashicorp/google) 2.12.0...
+- Downloading plugin for provider "google-beta" (terraform-providers/google-beta) 2.12.0...
+- Downloading plugin for provider "random" (hashicorp/random) 2.2.1...
+- Downloading plugin for provider "local" (hashicorp/local) 1.2.2...
+- Downloading plugin for provider "null" (hashicorp/null) 2.1.2...
+- Downloading plugin for provider "template" (hashicorp/template) 2.1.2...
+- Downloading plugin for provider "kubernetes" (hashicorp/kubernetes) 1.11.1...
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+```
+
+```bash
+gcloud auth application-default login
+
+# NOTE: Follow in-browser instructions
+
+terraform plan
+```
+
+```
+...
+Terraform will perform the following actions:
+
+  # module.jx.google_project_service.cloudbuild_api will be created
+  + resource "google_project_service" "cloudbuild_api" {
+      ...
+  # module.jx.google_project_service.cloudresourcemanager_api will be created
+  + resource "google_project_service" "cloudresourcemanager_api" {
+      ...
+  # module.jx.google_project_service.compute_api will be created
+  + resource "google_project_service" "compute_api" {
+      ...
+  # module.jx.google_project_service.containeranalysis_api will be created
+  + resource "google_project_service" "containeranalysis_api" {
+      ...
+  # module.jx.google_project_service.containerregistry_api will be created
+  + resource "google_project_service" "containerregistry_api" {
+      ...
+  # module.jx.google_project_service.iam_api will be created
+  + resource "google_project_service" "iam_api" {
+      ...
+  # module.jx.google_project_service.serviceusage_api will be created
+  + resource "google_project_service" "serviceusage_api" {
+      ...
+  # module.jx.local_file.jx-requirements will be created
+  + resource "local_file" "jx-requirements" {
+      ...
+  # module.jx.null_resource.kubeconfig will be created
+  + resource "null_resource" "kubeconfig" {
+      ...
+  # module.jx.random_id.random will be created
+  + resource "random_id" "random" {
+      ...
+  # module.jx.random_pet.current will be created
+  + resource "random_pet" "current" {
+      ...
+  # module.jx.module.backup.google_project_iam_member.velero_sa_storage_admin_binding will be created
+  + resource "google_project_iam_member" "velero_sa_storage_admin_binding" {
+      ...
+  # module.jx.module.backup.google_project_iam_member.velero_sa_storage_object_admin_binding will be created
+  + resource "google_project_iam_member" "velero_sa_storage_object_admin_binding" {
+      ...
+  # module.jx.module.backup.google_project_iam_member.velero_sa_storage_object_creator_binding will be created
+  + resource "google_project_iam_member" "velero_sa_storage_object_creator_binding" {
+      ...
+  # module.jx.module.backup.google_service_account.velero_sa will be created
+  + resource "google_service_account" "velero_sa" {
+      ...
+  # module.jx.module.backup.google_service_account_iam_member.velero_sa_workload_identity_user will be created
+  + resource "google_service_account_iam_member" "velero_sa_workload_identity_user" {
+      ...
+  # module.jx.module.backup.google_storage_bucket.backup_bucket will be created
+  + resource "google_storage_bucket" "backup_bucket" {
+      ...
+  # module.jx.module.backup.kubernetes_namespace.velero_namespace will be created
+  + resource "kubernetes_namespace" "velero_namespace" {
+      ...
+  # module.jx.module.backup.kubernetes_service_account.verlero_sa will be created
+  + resource "kubernetes_service_account" "verlero_sa" {
+      ...
+  # module.jx.module.cluster.google_container_cluster.jx_cluster will be created
+  + resource "google_container_cluster" "jx_cluster" {
+      ...
+  # module.jx.module.cluster.google_container_node_pool.jx_node_pool will be created
+  + resource "google_container_node_pool" "jx_node_pool" {
+      ...
+  # module.jx.module.cluster.google_project_iam_member.build_controller_sa_storage_admin_binding will be created
+  + resource "google_project_iam_member" "build_controller_sa_storage_admin_binding" {
+      ...
+  # module.jx.module.cluster.google_project_iam_member.build_controller_sa_storage_object_admin_binding will be created
+  + resource "google_project_iam_member" "build_controller_sa_storage_object_admin_binding" {
+      ...
+  # module.jx.module.cluster.google_project_iam_member.kaniko_sa_storage_admin_binding will be created
+  + resource "google_project_iam_member" "kaniko_sa_storage_admin_binding" {
+      ...
+  # module.jx.module.cluster.google_project_iam_member.tekton_sa_project_viewer_binding will be created
+  + resource "google_project_iam_member" "tekton_sa_project_viewer_binding" {
+      ...
+  # module.jx.module.cluster.google_project_iam_member.tekton_sa_storage_admin_binding will be created
+  + resource "google_project_iam_member" "tekton_sa_storage_admin_binding" {
+      ...
+  # module.jx.module.cluster.google_project_iam_member.tekton_sa_storage_object_admin_binding will be created
+  + resource "google_project_iam_member" "tekton_sa_storage_object_admin_binding" {
+      ...
+  # module.jx.module.cluster.google_service_account.build_controller_sa will be created
+  + resource "google_service_account" "build_controller_sa" {
+      ...
+  # module.jx.module.cluster.google_service_account.kaniko_sa will be created
+  + resource "google_service_account" "kaniko_sa" {
+      ...
+  # module.jx.module.cluster.google_service_account.tekton_sa will be created
+  + resource "google_service_account" "tekton_sa" {
+      ...
+  # module.jx.module.cluster.google_service_account_iam_member.build_controller_sa_workload_identity_user will be created
+  + resource "google_service_account_iam_member" "build_controller_sa_workload_identity_user" {
+      ...
+  # module.jx.module.cluster.google_service_account_iam_member.kaniko_sa_workload_identity_user will be created
+  + resource "google_service_account_iam_member" "kaniko_sa_workload_identity_user" {
+      ...
+  # module.jx.module.cluster.google_service_account_iam_member.tekton_sa_workload_identity_user will be created
+  + resource "google_service_account_iam_member" "tekton_sa_workload_identity_user" {
+      ...
+  # module.jx.module.cluster.google_storage_bucket.log_bucket[0] will be created
+  + resource "google_storage_bucket" "log_bucket" {
+      ...
+  # module.jx.module.cluster.google_storage_bucket.report_bucket[0] will be created
+  + resource "google_storage_bucket" "report_bucket" {
+      ...
+  # module.jx.module.cluster.google_storage_bucket.repository_bucket[0] will be created
+  + resource "google_storage_bucket" "repository_bucket" {
+      ...
+  # module.jx.module.cluster.kubernetes_namespace.jenkins_x_namespace will be created
+  + resource "kubernetes_namespace" "jenkins_x_namespace" {
+      ...
+  # module.jx.module.cluster.kubernetes_service_account.build_controller_sa will be created
+  + resource "kubernetes_service_account" "build_controller_sa" {
+      ...
+  # module.jx.module.cluster.kubernetes_service_account.kaniko_sa will be created
+  + resource "kubernetes_service_account" "kaniko_sa" {
+      ...
+  # module.jx.module.cluster.kubernetes_service_account.tekton_sa will be created
+  + resource "kubernetes_service_account" "tekton_sa" {
+      ...
+  # module.jx.module.dns.google_project_iam_member.externaldns_sa_dns_admin_binding will be created
+  + resource "google_project_iam_member" "externaldns_sa_dns_admin_binding" {
+      ...
+  # module.jx.module.dns.google_project_service.dns_api will be created
+  + resource "google_project_service" "dns_api" {
+      ...
+  # module.jx.module.dns.google_service_account.dns_sa will be created
+  + resource "google_service_account" "dns_sa" {
+      ...
+  # module.jx.module.vault.google_kms_crypto_key.vault_crypto_key will be created
+  + resource "google_kms_crypto_key" "vault_crypto_key" {
+      ...
+  # module.jx.module.vault.google_kms_key_ring.vault_keyring will be created
+  + resource "google_kms_key_ring" "vault_keyring" {
+      ...
+  # module.jx.module.vault.google_project_iam_member.vault_sa_cloudkms_admin_binding will be created
+  + resource "google_project_iam_member" "vault_sa_cloudkms_admin_binding" {
+      ...
+  # module.jx.module.vault.google_project_iam_member.vault_sa_cloudkms_crypto_binding will be created
+  + resource "google_project_iam_member" "vault_sa_cloudkms_crypto_binding" {
+      ...
+  # module.jx.module.vault.google_project_iam_member.vault_sa_storage_object_admin_binding will be created
+  + resource "google_project_iam_member" "vault_sa_storage_object_admin_binding" {
+      ...
+  # module.jx.module.vault.google_project_service.cloudkms_api will be created
+  + resource "google_project_service" "cloudkms_api" {
+      ...
+  # module.jx.module.vault.google_service_account.vault_sa will be created
+  + resource "google_service_account" "vault_sa" {
+      ...
+  # module.jx.module.vault.google_service_account_iam_member.vault_auth_workload_identity_user will be created
+  + resource "google_service_account_iam_member" "vault_auth_workload_identity_user" {
+      ...
+  # module.jx.module.vault.google_service_account_iam_member.vault_operator_workload_identity_user will be created
+  + resource "google_service_account_iam_member" "vault_operator_workload_identity_user" {
+      ...
+  # module.jx.module.vault.google_storage_bucket.vault_bucket will be created
+  + resource "google_storage_bucket" "vault_bucket" {
+      ...
+  # module.jx.module.vault.kubernetes_service_account.vault_sa will be created
+  + resource "kubernetes_service_account" "vault_sa" {
+      ...
+Plan: 54 to add, 0 to change, 0 to destroy.
+...
+```
+
+```bash
+terraform apply
+```
+
+```
+...
+Plan: 54 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: 
+```
+
+```
+Apply complete! Resources: 54 added, 0 changed, 0 destroyed.
+```
+
+```bash
+cat jx-requirements.yml
+```
+
+```yaml
+autoUpdate:
+  enabled: false
+  schedule: ""
+cluster:
+  clusterName: "jx-demo"
+  devEnvApprovers: []
+
+  environmentGitOwner: ""
+  project: "jx-demo-project"
+  provider: gke
+  zone: "us-east1-b"
+gitops: true
+environments:
+- key: dev
+- key: staging
+- key: production
+ingress:
+  domain: ""
+  externalDNS: false
+  tls:
+    email: ""
+    enabled: false
+    production: true
+kaniko: true
+storage:
+  backup:
+    enabled: true
+    url: gs://backup-jx-demo-4cabfed7eb9f
+  logs:
+    enabled: true
+    url: gs://logs-jx-demo-4cabfed7eb9f
+  reports:
+    enabled: true
+    url: gs://reports-jx-demo-4cabfed7eb9f
+  repository:
+    enabled: true
+    url: gs://repository-jx-demo-4cabfed7eb9f
+secretStorage: vault
+vault:
+  name: jx-demo
+  bucket: vault-jx-demo-4cabfed7eb9f
+  key: crypto-key-jx-demo-4cabfed7eb9f
+  keyring: keyring-jx-demo-4cabfed7eb9f
+  serviceAccount: jx-demo-vt
+velero:
+  namespace: velero
+  schedule: "0 * * * *"
+  serviceAccount: jx-demo-vo
+  ttl: "720h0m0s"  
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
+webhook: "prow"
+```
+
+```bash
+export PATH_TO_TERRAFORM=$PWD
+
+cd ..
+```
+
+### Creating Jenkins X Infrastructure In Amazon Web Services (AWS)
+
+TODO:
+
+### Using Existing Infrastructure
+
+TODO:
+
+TODO: Rewrite or remote
+
 
 From now on, we will not use `jx create cluster` to create a Kubernetes cluster and install Jenkins X. Instead, I will assume that you will create a cluster any way you like (e.g., Terraform, `gcloud`, etc.) and we'll focus only on how to set up Jenkins X. If you're lazy and do not yet want to figure out the best way to create a cluster, the Gists that follow can get you up-to-speed fast. Just remember that the commands in them are not the recommended way to create a cluster, but rather the easiest and fastest method I could come up with.
 
@@ -78,6 +432,8 @@ We could summarize all that by saying that ad-hoc commands are bad, that GitOps 
 Still confused? Let's see all that in practice.
 
 ## Installing Jenkins X Using GitOps Principles
+
+TODO: Rewrite
 
 How can we install Jenkins X in a better way than what we're used to? Jenkins X configuration should be defined as code and reside in a Git repository, and that's what the community created for us. It maintains a GitHub repository that contains the structure of the definition of the Jenkins X platform, together with a pipeline that will install it, as well as a requirements file that we can use to tweak it to our specific needs.
 
@@ -160,6 +516,12 @@ I> The format of the `jx-requirements.yml` file might have changed since I wrote
 
 First, there is a group of values that define our `cluster`. You should be able to figure out what it represents by looking at the variables inside it. It probably won't take you more than a few moments to see that we have to change at least some of those values, so that's what we'll do next.
 
+```bash
+# If GKE or EKS and if the cluster was created with Terraform
+
+cp $PATH_TO_TERRAFORM/jx-requirements.yml .
+```
+
 Please open `jx-requirements.yml` in your favorite editor and change the following values.
 
 * Set `cluster.clusterName` to the name of your cluster. It should be the same as the name of the environment variable `CLUSTER_NAME`. If you already forgot it, execute `echo $CLUSTER_NAME`.
@@ -229,15 +591,20 @@ Let's take a peek at how `jx-requirements.yml` looks like now.
 cat jx-requirements.yml
 ```
 
-In my case, the output is as follows (yours is likely going to be different).
+In my case, the output from using GKE is as follows (yours is likely going to be different).
 
 ```yaml
+autoUpdate:
+  enabled: false
+  schedule: ""
 cluster:
-  clusterName: "jx-boot"
-  environmentGitOwner: "vfarcic"
-  project: "devops-26"
+  clusterName: "jx-demo"
+  devEnvApprovers: []
+
+  environmentGitOwner: ""
+  project: "jx-demo-project"
   provider: gke
-  zone: "us-east1"
+  zone: "us-east1-b"
 gitops: true
 environments:
 - key: dev
@@ -249,23 +616,37 @@ ingress:
   tls:
     email: ""
     enabled: false
-    production: false
+    production: true
 kaniko: true
-secretStorage: vault
 storage:
+  backup:
+    enabled: true
+    url: gs://backup-jx-demo-4cabfed7eb9f
   logs:
     enabled: true
-    url: ""
+    url: gs://logs-jx-demo-4cabfed7eb9f
   reports:
     enabled: true
-    url: ""
+    url: gs://reports-jx-demo-4cabfed7eb9f
   repository:
     enabled: true
-    url: ""
+    url: gs://repository-jx-demo-4cabfed7eb9f
+secretStorage: vault
+vault:
+  name: jx-demo
+  bucket: vault-jx-demo-4cabfed7eb9f
+  key: crypto-key-jx-demo-4cabfed7eb9f
+  keyring: keyring-jx-demo-4cabfed7eb9f
+  serviceAccount: jx-demo-vt
+velero:
+  namespace: velero
+  schedule: "0 * * * *"
+  serviceAccount: jx-demo-vo
+  ttl: "720h0m0s"  
 versionStream:
-  ref: "master"
+  ref: master
   url: https://github.com/jenkins-x/jenkins-x-versions.git
-webhook: prow
+webhook: "prow"
 ```
 
 I> Feel free to modify some values further or to add those that we skipped. If you used my Gist to create a cluster, the current setup will work. On the other hand, if you created a cluster on your own, you will likely need to change some values.
@@ -287,6 +668,10 @@ jx boot
 Now we need to answer quite a few questions. In the past, we tried to avoid answering questions by specifying all answers as arguments to commands we were executing. That way, we had a documented method for doing things that do not end up in a Git repository. Someone else could reproduce what we did by running the same commands. This time, however, there is no need to avoid questions since everything we'll do will be stored in a Git repository. Later on, we'll see where exactly will Jenkins X Boot store the answers. For now, we'll do our best to provide the information is needs.
 
 I> The Boot process might change by the time you read this. If that happens, do your best to answer by yourself the additional questions that are not covered here.
+
+```
+? Git Owner name for environment repositories [? for help]
+```
 
 The first input is asking for a `comma-separated git provider usernames of approvers for development environment repository`. That will create the list of users who can approve pull requests to the development repository managed by Jenkins X Boot. For now, type your GitHub user and hit the enter key.
 
@@ -434,28 +819,33 @@ My output is as follows (yours will likely differ).
 autoUpdate:
   enabled: false
   schedule: ""
-bootConfigURL: https://github.com/vfarcic/jenkins-x-boot-config
+bootConfigURL: https://github.com/jenkins-x/jenkins-x-boot-config
 cluster:
-  clusterName: jx-boot
+  clusterName: jx-demo
+  devEnvApprovers:
+  - vfarcic
   environmentGitOwner: vfarcic
   gitKind: github
   gitName: github
   gitServer: https://github.com
   namespace: jx
-  project: devops-26
+  project: jx-demo-project
   provider: gke
   registry: gcr.io
-  zone: us-east1
+  vaultName: jx-demo
+  vaultSAName: jx-demo-vt
+  zone: us-east1-b
 environments:
 - ingress:
-    domain: 34.74.196.229.nip.io
+    domain: 34.74.88.151.nip.io
     externalDNS: false
     namespaceSubDomain: -jx.
     tls:
       email: ""
       enabled: false
-      production: false
+      production: true
   key: dev
+  repository: environment-jx-demo-dev
 - ingress:
     domain: ""
     externalDNS: false
@@ -465,6 +855,7 @@ environments:
       enabled: false
       production: false
   key: staging
+  repository: environment-jx-demo-staging
 - ingress:
     domain: ""
     externalDNS: false
@@ -474,35 +865,45 @@ environments:
       enabled: false
       production: false
   key: production
+  repository: environment-jx-demo-production
 gitops: true
 ingress:
-  domain: 34.74.196.229.nip.io
+  domain: 34.74.88.151.nip.io
   externalDNS: false
   namespaceSubDomain: -jx.
   tls:
     email: ""
     enabled: false
-    production: false
+    production: true
 kaniko: true
 repository: nexus
 secretStorage: vault
 storage:
   backup:
-    enabled: false
-    url: ""
+    enabled: true
+    url: gs://backup-jx-demo-4cabfed7eb9f
   logs:
     enabled: true
-    url: gs://jx-boot-logs-0976f0fd-80d0-4c02-b694-3896337e6c15
+    url: gs://logs-jx-demo-4cabfed7eb9f
   reports:
     enabled: true
-    url: gs://jx-boot-reports-8c2a58cc-6bcd-47aa-95c6-8868af848c9e
+    url: gs://reports-jx-demo-4cabfed7eb9f
   repository:
     enabled: true
-    url: gs://jx-boot-repository-2b84c8d7-b13e-444e-aa40-cce739e77028
-vault: {}
-velero: {}
+    url: gs://repository-jx-demo-4cabfed7eb9f
+vault:
+  bucket: vault-jx-demo-4cabfed7eb9f
+  key: crypto-key-jx-demo-4cabfed7eb9f
+  keyring: keyring-jx-demo-4cabfed7eb9f
+  name: jx-demo
+  serviceAccount: jx-demo-vt
+velero:
+  namespace: velero
+  schedule: 0 * * * *
+  serviceAccount: jx-demo-vo
+  ttl: 720h0m0s
 versionStream:
-  ref: v1.0.214
+  ref: v1.0.437
   url: https://github.com/jenkins-x/jenkins-x-versions.git
 webhook: prow
 ```
@@ -705,6 +1106,8 @@ I won't bother you with the commands that would confirm that the application is 
 
 ## What Now?
 
+TODO: Rewrite
+
 We did not dive into everything Jenkins X Boot offers. We still need to discuss how to use it to update or upgrade Jenkins X and the related components. There are also a few other features that we skipped. For now, I wanted you to get a taste of what can be done with it. We'll discuss it in more detail in the next chapter. Right now, you should have at least a basic understanding of how to install the platform using Jenkins X Boot. More will come soon.
 
 Just like in the previous chapters, now you need to choose whether you want to move to the next chapter right away or you'd like to have a break. If you choose the latter, the Gists we used to create the cluster contain the instructions on how to destroy it as well. Once the cluster is no more, use the commands that follow to delete (most of) the repositories. The next chapter will contain an explanation of how to create everything we need from scratch.
@@ -724,4 +1127,14 @@ rm -rf $GH_USER/environment-$CLUSTER_NAME-dev
 hub delete -y $GH_USER/jx-boot
 
 rm -rf jx-boot
+```
+
+```bash
+# If using Terraform
+cd $PATH_TO_TERRAFORM
+
+# If using Terraform
+terraform destroy
+
+# TODO: https://github.com/jenkins-x/terraform-google-jx/issues/80
 ```

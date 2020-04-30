@@ -2,9 +2,9 @@
 # Create a cluster #
 ####################
 
-PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
+export PROJECT=[...] # Replace `[...]` with the name of the GCP project (e.g. jx).
 
-CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-gke)
+export CLUSTER_NAME=[...] # Replace `[...]` with the name of the cluster (e.g., jx-gke)
 
 gcloud auth login
 

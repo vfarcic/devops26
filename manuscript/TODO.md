@@ -21,6 +21,7 @@
 - [X] 19-apps.md
 - [X] 99-the-end.md
 - [ ] Move 18-boot.md to 02-intro.md 
+- [ ] 99-lighthouse.md
 - [ ] Replace `jx create cluster` and `jx install` with `jx boot`
 - [ ] Remove *At the time of this writing (April 2020),...*
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
@@ -39,7 +40,6 @@
 - [ ] Monitor [https://github.com/jenkins-x/jx/issues/5782](https://github.com/jenkins-x/jx/issues/5782)
 - [ ] Remove *The `--auto-merge` argument might not work due to the...*
 - [ ] Remove *At the time of this writing (November 2019)...*
-- [ ] 99-lighthouse.md
 - [ ] Replace prow with lighthouse across the book
 - [ ] Switch from `jx create addon` to `jx add app` in the existing chapters
 - [ ] 99-boot-upgrade.md
