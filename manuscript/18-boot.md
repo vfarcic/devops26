@@ -1,3 +1,13 @@
+# TODO
+
+- [ ] Remove TODOs
+- [X] Test EKS
+- [ ] Test GKE
+- [ ] Test AKS
+- [ ] Write text
+- [ ] Review text
+- [ ] Proofread
+
 # Applying GitOps Principles To Jenkins X
 
 W> At the time of this writing (February 2020), the examples in this chapter are validated only with **serverless Jenkins X** in **GKE** and **EKS**. Jenkins X Boot is currently verified by the community to work only there, even though it likely works in AKS and other Kubernetes flavors. Over time, the community will be adding support for all Kubernetes distributions, and, with a slight delay, I will be updating this chapter to reflect that. Still, there will be an inevitable delay between the progress of that support and me incorporating it into this book, so I strongly advise you to check the official documentation to see whether your Kubernetes flavor is added.
@@ -65,7 +75,7 @@ mkdir jx-infra
 
 cd jx-infra
 
-TODO: https://jenkins-x.io/docs/getting-started/setup/create-cluster/gke/#inputs
+# TODO: https://jenkins-x.io/docs/getting-started/setup/create-cluster/gke/#inputs
 
 export PROJECT=[...]
 
@@ -78,7 +88,6 @@ echo "module \"jx\" {
   zone           = \"us-east1-b\"
   min_node_count = 3
   max_node_count = 6
-
 }" | tee main.tf
 
 terraform init
@@ -290,7 +299,7 @@ Terraform will perform the following actions:
   # module.jx.module.vault.kubernetes_service_account.vault_sa will be created
   + resource "kubernetes_service_account" "vault_sa" {
       ...
-Plan: 54 to add, 0 to change, 0 to destroy.
+Plan: 61 to add, 0 to change, 0 to destroy.
 ...
 ```
 
@@ -381,14 +390,533 @@ cd ..
 
 ### Creating Jenkins X Infrastructure In Amazon Web Services (AWS)
 
-TODO:
+TODO: Review
+
+TODO: [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
+
+```bash
+mkdir jx-infra
+
+cd jx-infra
+
+TODO: Create credentials
+
+cat creds
+```
+
+```
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_DEFAULT_REGION=us-east-1
+```
+
+```bash
+source creds
+
+TODO: https://jenkins-x.io/docs/getting-started/setup/create-cluster/eks/#inputs
+
+export CLUSTER_NAME=[...] # Replace with the name of the cluster 
+
+echo "module \"eks-jx\" {
+  source             = \"jenkins-x/eks-jx/aws\"
+  cluster_name       = \"$CLUSTER_NAME\"
+  region             = \"us-east-1\"
+  desired_node_count = 3
+  min_node_count     = 3
+  max_node_count     = 6
+}
+
+output \"vault_user_id\" {
+  value       = module.eks-jx.vault_user_id
+  description = \"The Vault IAM user id\"
+}
+
+output \"vault_user_secret\" {
+  value       = module.eks-jx.vault_user_secret
+  description = \"The Vault IAM user secret\"
+}" | tee main.tf
+
+terraform init
+```
+
+```
+Initializing modules...
+Downloading jenkins-x/eks-jx/aws 1.0.2 for eks-jx...
+- eks-jx in .terraform/modules/eks-jx
+- eks-jx.cluster in .terraform/modules/eks-jx/modules/cluster
+Downloading terraform-aws-modules/eks/aws 10.0.0 for eks-jx.cluster.eks...
+- eks-jx.cluster.eks in .terraform/modules/eks-jx.cluster.eks
+- eks-jx.cluster.eks.node_groups in .terraform/modules/eks-jx.cluster.eks/modules/node_groups
+Downloading terraform-aws-modules/iam/aws 2.6.0 for eks-jx.cluster.iam_assumable_role_cert_manager...
+- eks-jx.cluster.iam_assumable_role_cert_manager in .terraform/modules/eks-jx.cluster.iam_assumable_role_cert_manager/modules/iam-assumable-role-with-oidc
+Downloading terraform-aws-modules/iam/aws 2.6.0 for eks-jx.cluster.iam_assumable_role_cm_cainjector...
+- eks-jx.cluster.iam_assumable_role_cm_cainjector in .terraform/modules/eks-jx.cluster.iam_assumable_role_cm_cainjector/modules/iam-assumable-role-with-oidc
+Downloading terraform-aws-modules/iam/aws 2.6.0 for eks-jx.cluster.iam_assumable_role_controllerbuild...
+- eks-jx.cluster.iam_assumable_role_controllerbuild in .terraform/modules/eks-jx.cluster.iam_assumable_role_controllerbuild/modules/iam-assumable-role-with-oidc
+Downloading terraform-aws-modules/iam/aws 2.6.0 for eks-jx.cluster.iam_assumable_role_external_dns...
+- eks-jx.cluster.iam_assumable_role_external_dns in .terraform/modules/eks-jx.cluster.iam_assumable_role_external_dns/modules/iam-assumable-role-with-oidc
+Downloading terraform-aws-modules/iam/aws 2.6.0 for eks-jx.cluster.iam_assumable_role_jxui...
+- eks-jx.cluster.iam_assumable_role_jxui in .terraform/modules/eks-jx.cluster.iam_assumable_role_jxui/modules/iam-assumable-role-with-oidc
+Downloading terraform-aws-modules/iam/aws 2.6.0 for eks-jx.cluster.iam_assumable_role_tekton_bot...
+- eks-jx.cluster.iam_assumable_role_tekton_bot in .terraform/modules/eks-jx.cluster.iam_assumable_role_tekton_bot/modules/iam-assumable-role-with-oidc
+Downloading terraform-aws-modules/vpc/aws 2.6.0 for eks-jx.cluster.vpc...
+- eks-jx.cluster.vpc in .terraform/modules/eks-jx.cluster.vpc
+- eks-jx.dns in .terraform/modules/eks-jx/modules/dns
+- eks-jx.vault in .terraform/modules/eks-jx/modules/vault
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Checking for available provider plugins...
+- Downloading plugin for provider "local" (hashicorp/local) 1.4.0...
+- Downloading plugin for provider "null" (hashicorp/null) 2.1.2...
+- Downloading plugin for provider "template" (hashicorp/template) 2.1.2...
+- Downloading plugin for provider "kubernetes" (hashicorp/kubernetes) 1.11.1...
+- Downloading plugin for provider "random" (hashicorp/random) 2.2.1...
+- Downloading plugin for provider "aws" (hashicorp/aws) 2.61.0...
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+```
+
+```bash
+terraform plan
+```
+
+```
+...
+Terraform will perform the following actions:
+
+  # module.eks-jx.local_file.jx-requirements will be created
+  + resource "local_file" "jx-requirements" {
+      ...
+  # module.eks-jx.random_pet.current will be created
+  + resource "random_pet" "current" {
+      ...
+  # module.eks-jx.random_string.suffix will be created
+  + resource "random_string" "suffix" {
+      ...
+  # module.eks-jx.module.cluster.data.aws_eks_cluster.cluster will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_eks_cluster" "cluster"  {
+      ...
+  # module.eks-jx.module.cluster.data.aws_eks_cluster_auth.cluster will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_eks_cluster_auth" "cluster"  {
+      ...
+  # module.eks-jx.module.cluster.aws_iam_policy.cert-manager will be created
+  + resource "aws_iam_policy" "cert-manager" {
+      ...
+  # module.eks-jx.module.cluster.aws_iam_policy.external-dns will be created
+  + resource "aws_iam_policy" "external-dns" {
+      ...
+  # module.eks-jx.module.cluster.aws_iam_policy.tekton-bot will be created
+  + resource "aws_iam_policy" "tekton-bot" {
+      ...
+  # module.eks-jx.module.cluster.aws_s3_bucket.logs_jenkins_x[0] will be created
+  + resource "aws_s3_bucket" "logs_jenkins_x" {
+      ...
+  # module.eks-jx.module.cluster.aws_s3_bucket.reports_jenkins_x[0] will be created
+  + resource "aws_s3_bucket" "reports_jenkins_x" {
+      ...
+  # module.eks-jx.module.cluster.aws_s3_bucket.repository_jenkins_x[0] will be created
+  + resource "aws_s3_bucket" "repository_jenkins_x" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_namespace.cert_manager will be created
+  + resource "kubernetes_namespace" "cert_manager" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_namespace.jx will be created
+  + resource "kubernetes_namespace" "jx" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_service_account.cm-cainjector will be created
+  + resource "kubernetes_service_account" "cm-cainjector" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_service_account.cm-cert-manager will be created
+  + resource "kubernetes_service_account" "cm-cert-manager" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_service_account.exdns-external-dns will be created
+  + resource "kubernetes_service_account" "exdns-external-dns" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_service_account.jenkins-x-controllerbuild will be created
+  + resource "kubernetes_service_account" "jenkins-x-controllerbuild" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_service_account.jxui will be created
+  + resource "kubernetes_service_account" "jxui" {
+      ...
+  # module.eks-jx.module.cluster.kubernetes_service_account.tekton-bot will be created
+  + resource "kubernetes_service_account" "tekton-bot" {
+      ...
+  # module.eks-jx.module.cluster.null_resource.kubeconfig will be created
+  + resource "null_resource" "kubeconfig" {
+      ...
+  # module.eks-jx.module.cluster.random_string.suffix will be created
+  + resource "random_string" "suffix" {
+      ...
+  # module.eks-jx.module.vault.data.aws_iam_policy_document.vault_iam_user_policy_document will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "vault_iam_user_policy_document"  {
+      ...
+  # module.eks-jx.module.vault.data.aws_iam_user.vault_user will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_user" "vault_user"  {
+      ...
+  # module.eks-jx.module.vault.aws_dynamodb_table.vault-dynamodb-table will be created
+  + resource "aws_dynamodb_table" "vault-dynamodb-table" {
+      ...
+  # module.eks-jx.module.vault.aws_iam_access_key.jenkins-x-vault[0] will be created
+  + resource "aws_iam_access_key" "jenkins-x-vault" {
+      ...
+  # module.eks-jx.module.vault.aws_iam_policy.aws_vault_user_policy will be created
+  + resource "aws_iam_policy" "aws_vault_user_policy" {
+      ...
+  # module.eks-jx.module.vault.aws_iam_user.jenkins-x-vault[0] will be created
+  + resource "aws_iam_user" "jenkins-x-vault" {
+      ...
+  # module.eks-jx.module.vault.aws_iam_user_policy_attachment.attach_vault_policy_to_user will be created
+  + resource "aws_iam_user_policy_attachment" "attach_vault_policy_to_user" {
+      ...
+  # module.eks-jx.module.vault.aws_kms_key.kms_vault_unseal will be created
+  + resource "aws_kms_key" "kms_vault_unseal" {
+      ...
+  # module.eks-jx.module.vault.aws_s3_bucket.vault-unseal-bucket will be created
+  + resource "aws_s3_bucket" "vault-unseal-bucket" {
+      ...
+  # module.eks-jx.module.vault.random_string.suffix will be created
+  + resource "random_string" "suffix" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.data.null_data_source.node_groups[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "null_data_source" "node_groups"  {
+      ...
+  # module.eks-jx.module.cluster.module.eks.data.template_file.kubeconfig[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "template_file" "kubeconfig"  {
+      ...
+  # module.eks-jx.module.cluster.module.eks.data.template_file.userdata[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "template_file" "userdata"  {
+      ...
+  # module.eks-jx.module.cluster.module.eks.data.template_file.worker_role_arns[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "template_file" "worker_role_arns"  {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_autoscaling_group.workers[0] will be created
+  + resource "aws_autoscaling_group" "workers" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_eks_cluster.this[0] will be created
+  + resource "aws_eks_cluster" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_instance_profile.workers[0] will be created
+  + resource "aws_iam_instance_profile" "workers" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_openid_connect_provider.oidc_provider[0] will be created
+  + resource "aws_iam_openid_connect_provider" "oidc_provider" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role.cluster[0] will be created
+  + resource "aws_iam_role" "cluster" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role.workers[0] will be created
+  + resource "aws_iam_role" "workers" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy[0] will be created
+  + resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role_policy_attachment.cluster_AmazonEKSServicePolicy[0] will be created
+  + resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSServicePolicy" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role_policy_attachment.workers_AmazonEC2ContainerRegistryReadOnly[0] will be created
+  + resource "aws_iam_role_policy_attachment" "workers_AmazonEC2ContainerRegistryReadOnly" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role_policy_attachment.workers_AmazonEKSWorkerNodePolicy[0] will be created
+  + resource "aws_iam_role_policy_attachment" "workers_AmazonEKSWorkerNodePolicy" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role_policy_attachment.workers_AmazonEKS_CNI_Policy[0] will be created
+  + resource "aws_iam_role_policy_attachment" "workers_AmazonEKS_CNI_Policy" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_iam_role_policy_attachment.workers_additional_policies[0] will be created
+  + resource "aws_iam_role_policy_attachment" "workers_additional_policies" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_launch_configuration.workers[0] will be created
+  + resource "aws_launch_configuration" "workers" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group.cluster[0] will be created
+  + resource "aws_security_group" "cluster" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group.workers[0] will be created
+  + resource "aws_security_group" "workers" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group_rule.cluster_egress_internet[0] will be created
+  + resource "aws_security_group_rule" "cluster_egress_internet" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group_rule.cluster_https_worker_ingress[0] will be created
+  + resource "aws_security_group_rule" "cluster_https_worker_ingress" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group_rule.workers_egress_internet[0] will be created
+  + resource "aws_security_group_rule" "workers_egress_internet" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group_rule.workers_ingress_cluster[0] will be created
+  + resource "aws_security_group_rule" "workers_ingress_cluster" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group_rule.workers_ingress_cluster_https[0] will be created
+  + resource "aws_security_group_rule" "workers_ingress_cluster_https" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.aws_security_group_rule.workers_ingress_self[0] will be created
+  + resource "aws_security_group_rule" "workers_ingress_self" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.kubernetes_config_map.aws_auth[0] will be created
+  + resource "kubernetes_config_map" "aws_auth" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.local_file.kubeconfig[0] will be created
+  + resource "local_file" "kubeconfig" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.null_resource.wait_for_cluster[0] will be created
+  + resource "null_resource" "wait_for_cluster" {
+      ...
+  # module.eks-jx.module.cluster.module.eks.random_pet.workers[0] will be created
+  + resource "random_pet" "workers" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_cert_manager.data.aws_iam_policy_document.assume_role_with_oidc[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "assume_role_with_oidc"  {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_cert_manager.aws_iam_role.this[0] will be created
+  + resource "aws_iam_role" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_cert_manager.aws_iam_role_policy_attachment.custom[0] will be created
+  + resource "aws_iam_role_policy_attachment" "custom" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_cm_cainjector.data.aws_iam_policy_document.assume_role_with_oidc[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "assume_role_with_oidc"  {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_cm_cainjector.aws_iam_role.this[0] will be created
+  + resource "aws_iam_role" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_cm_cainjector.aws_iam_role_policy_attachment.custom[0] will be created
+  + resource "aws_iam_role_policy_attachment" "custom" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_controllerbuild.data.aws_iam_policy_document.assume_role_with_oidc[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "assume_role_with_oidc"  {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_controllerbuild.aws_iam_role.this[0] will be created
+  + resource "aws_iam_role" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_controllerbuild.aws_iam_role_policy_attachment.custom[0] will be created
+  + resource "aws_iam_role_policy_attachment" "custom" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_external_dns.data.aws_iam_policy_document.assume_role_with_oidc[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "assume_role_with_oidc"  {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_external_dns.aws_iam_role.this[0] will be created
+  + resource "aws_iam_role" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_external_dns.aws_iam_role_policy_attachment.custom[0] will be created
+  + resource "aws_iam_role_policy_attachment" "custom" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_jxui.data.aws_iam_policy_document.assume_role_with_oidc[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "assume_role_with_oidc"  {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_jxui.aws_iam_role.this[0] will be created
+  + resource "aws_iam_role" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_jxui.aws_iam_role_policy_attachment.custom[0] will be created
+  + resource "aws_iam_role_policy_attachment" "custom" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_tekton_bot.data.aws_iam_policy_document.assume_role_with_oidc[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "assume_role_with_oidc"  {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_tekton_bot.aws_iam_role.this[0] will be created
+  + resource "aws_iam_role" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.iam_assumable_role_tekton_bot.aws_iam_role_policy_attachment.custom[0] will be created
+  + resource "aws_iam_role_policy_attachment" "custom" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_internet_gateway.this[0] will be created
+  + resource "aws_internet_gateway" "this" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_route.public_internet_gateway[0] will be created
+  + resource "aws_route" "public_internet_gateway" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_route_table.public[0] will be created
+  + resource "aws_route_table" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_route_table_association.public[0] will be created
+  + resource "aws_route_table_association" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_route_table_association.public[1] will be created
+  + resource "aws_route_table_association" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_route_table_association.public[2] will be created
+  + resource "aws_route_table_association" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_subnet.public[0] will be created
+  + resource "aws_subnet" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_subnet.public[1] will be created
+  + resource "aws_subnet" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_subnet.public[2] will be created
+  + resource "aws_subnet" "public" {
+      ...
+  # module.eks-jx.module.cluster.module.vpc.aws_vpc.this[0] will be created
+  + resource "aws_vpc" "this" {
+      ...
+Plan: 74 to add, 0 to change, 0 to destroy.
+...
+```
+
+```bash
+terraform apply
+```
+
+```
+...
+Plan: 74 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: 
+...
+```
+
+```
+...
+Apply complete! Resources: 74 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+vault_user_id = ...
+vault_user_secret = ...
+```
+
+```bash
+cat jx-requirements.yml
+```
+
+```yaml
+autoUpdate:
+  enabled: false
+  schedule: ""
+terraform: true
+cluster:
+  clusterName: "jx-demo"
+  environmentGitOwner: ""
+  provider: eks
+  region: "us-east-1"
+gitops: true
+environments:
+  - key: dev
+  - key: staging
+  - key: production
+ingress:
+  domain: ""
+  ignoreLoadBalancer: true
+  externalDNS: false
+  tls:
+    email: ""
+    enabled: false
+    production: false
+kaniko: true
+secretStorage: vault
+vault:
+  aws:
+    iamUserName: ""
+    dynamoDBTable: "vault-unseal-jx-demo-y5y4CWGm"
+    dynamoDBRegion: "us-east-1"
+    kmsKeyId: "66e96a9d-fa37-4cb4-b823-9008c93787ce"
+    kmsRegion: "us-east-1"
+    s3Bucket: "vault-unseal-jx-demo-20200512162431427100000007"
+    s3Region: "us-east-1"
+storage:
+  logs:
+    enabled: true
+    url: s3://logs-jx-demo-20200512162431423600000005
+  reports:
+    enabled: true
+    url: s3://reports-jx-demo-20200512162431423200000004
+  repository:
+    enabled: true
+    url: s3://repository-jx-demo-20200512162431422400000003
+versionStream:
+  ref: master
+  url: https://github.com/jenkins-x/jenkins-x-versions.git
+webhook: lighthouse
+```
+
+```bash
+export VAULT_AWS_ACCESS_KEY_ID=$(\
+    terraform output vault_user_id)
+
+export VAULT_AWS_SECRET_ACCESS_KEY=$(\
+    terraform output vault_user_secret)
+
+export PATH_TO_TERRAFORM=$PWD
+
+cd ..
+```
+### Creating Jenkins X Infrastructure In Azure
+
+TODO: Review
+
+TODO: [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
+
+```bash
+mkdir -p jx-infra
+
+cd jx-infra
+
+# TODO: Add ACR to Terraform
+
+open https://gist.github.com/269331f15510f2a463a669278facdee7
+
+# Copy the contents of that Gist to `main.tf`
+
+az login
+
+az group create \
+    --name jxdemo \
+    --location eastus
+
+az aks get-versions --location eastus
+
+export K8S_VERSION=[...]
+
+terraform init
+
+terraform apply \
+    --var k8s_version=$K8S_VERSION # Should not be newer than 1.6
+
+export CLUSTER_NAME=jxdemo
+
+export KUBECONFIG=$PWD/kubeconfig
+
+az aks get-credentials \
+    --name \
+    $(terraform output cluster_name) \
+    --resource-group \
+    $(terraform output resource_group) \
+    --file \
+    $KUBECONFIG
+
+cd ..
+```
 
 ### Using Existing Infrastructure
 
-TODO:
-
-TODO: Rewrite or remote
-
+TODO: Rewrite or remove
 
 From now on, we will not use `jx create cluster` to create a Kubernetes cluster and install Jenkins X. Instead, I will assume that you will create a cluster any way you like (e.g., Terraform, `gcloud`, etc.) and we'll focus only on how to set up Jenkins X. If you're lazy and do not yet want to figure out the best way to create a cluster, the Gists that follow can get you up-to-speed fast. Just remember that the commands in them are not the recommended way to create a cluster, but rather the easiest and fastest method I could come up with.
 
@@ -507,7 +1035,7 @@ storage:
 versionStream:
   ref: "master"
   url: https://github.com/jenkins-x/jenkins-x-versions.git
-webhook: prow
+webhook: lighthouse
 ```
 
 As you can see, that file contains values in a format that resembles `requirements.yaml` file used with Helm charts. It is split into a few sections.
@@ -567,6 +1095,7 @@ In any case, we'll keep `prow` as our `webhook` (for now).
 W> Please execute the commands that follow only if you are using **EKS**. They will add additional information related to Vault, namely the IAM user that has sufficient permissions to interact with it. Make sure to replace `[...]` with your IAM user that has sufficient permissions (being admin always works).
 
 ```bash
+# TODO: If not EKS and Terraform
 export IAM_USER=[...] # e.g., jx-boot
 
 echo "vault:
@@ -579,6 +1108,7 @@ echo "vault:
 W> Please execute the command that follows only if you are using **EKS**. The `jx-requirements.yaml` file contains `zone` entry and for AWS we need a `region`. That command will replace one with the other.
 
 ```bash
+# TODO: Remove
 cat jx-requirements.yml \
     | sed -e \
     's@zone@region@g' \
@@ -671,6 +1201,8 @@ I> The Boot process might change by the time you read this. If that happens, do 
 
 ```
 ? Git Owner name for environment repositories [? for help]
+
+? Comma-separated git provider usernames of approvers for development environment repository [? for help] 
 ```
 
 The first input is asking for a `comma-separated git provider usernames of approvers for development environment repository`. That will create the list of users who can approve pull requests to the development repository managed by Jenkins X Boot. For now, type your GitHub user and hit the enter key.

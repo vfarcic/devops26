@@ -21,7 +21,7 @@
 - [X] 19-apps.md
 - [X] 99-the-end.md
 - [ ] Move 18-boot.md to 02-intro.md 
-- [ ] 99-lighthouse.md
+- [ ] Replace prow with lighthouse in 12-prow.md
 - [ ] Replace `jx create cluster` and `jx install` with `jx boot`
 - [ ] Remove *At the time of this writing (April 2020),...*
 - [ ] Remove *At the time of this writing (May 2019) `/retest` and `/test this` commands...*
