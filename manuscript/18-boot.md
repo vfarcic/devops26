@@ -1603,6 +1603,7 @@ Please answer the questions any way you like. Just bear in mind that I expect yo
 
 All that's left now is to wait until the activity of the pipeline created by the quickstart process is finished.
 
+
 ```bash
 jx get activity \
     --filter jx-boot/master \
