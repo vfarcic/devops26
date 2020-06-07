@@ -7,6 +7,7 @@
 - [ ] Write text
 - [ ] Review text
 - [ ] Proofread
+- [ ] Gist
 
 # Applying GitOps Principles To Jenkins X
 
@@ -871,18 +872,10 @@ cd ..
 
 TODO: Review
 
-TODO: [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
-
 ```bash
 mkdir -p jx-infra
 
 cd jx-infra
-
-# TODO: Add ACR to Terraform
-
-open https://gist.github.com/269331f15510f2a463a669278facdee7
-
-# Copy the contents of that Gist to `main.tf`
 
 az login
 
@@ -890,16 +883,23 @@ az group create \
     --name jxdemo \
     --location eastus
 
+open https://gist.github.com/269331f15510f2a463a669278facdee7
+
+# TODO: Add ACR to Terraform
+
+# Copy the contents of that Gist to `main.tf`
+
 az aks get-versions --location eastus
 
-export K8S_VERSION=[...]
+export K8S_VERSION=[...] # Should not be newer than 1.5
 
 terraform init
 
 terraform apply \
-    --var k8s_version=$K8S_VERSION # Should not be newer than 1.6
+    --var k8s_version=$K8S_VERSION
 
-export CLUSTER_NAME=jxdemo
+export CLUSTER_NAME=$(\
+    terraform output cluster_name)
 
 export KUBECONFIG=$PWD/kubeconfig
 
@@ -1050,6 +1050,8 @@ First, there is a group of values that define our `cluster`. You should be able 
 cp $PATH_TO_TERRAFORM/jx-requirements.yml .
 ```
 
+TODO: Note that Terraform jx-requirements.yml is only for the initial use.
+
 Please open `jx-requirements.yml` in your favorite editor and change the following values.
 
 * Set `cluster.clusterName` to the name of your cluster. It should be the same as the name of the environment variable `CLUSTER_NAME`. If you already forgot it, execute `echo $CLUSTER_NAME`.
@@ -1070,11 +1072,15 @@ Next, we have `secretStorage` currently set to `local`. The whole platform will 
 
 All in all, secrets storage is an easy choice.
 
+TODO: Not if AKS
+
 * Set the value of `secretStorage` to `vault`.
 
 Below the `secretStorage` value is the whole section that defines `storage` for `logs`, `reports`, and `repository`. If enabled, those artifacts will be stored on a network drive. As you already know, containers and nodes are short-lived, and if we want to preserve any of those, we need to store them elsewhere. That does not necessarily mean that network drives are the best place, but rather that's what comes out of the box. Later on, you might choose to change that and, let's say, ship logs to a central database like ElasticSearch, PaperTrail, CloudWatch, StackDriver, etc.
 
 For now, we'll keep it simple and enable network storage for all three types of artifacts.
+
+TODO: Not if AKS
 
 * Set the value of `storage.logs.enabled` to `true`
 * Set the value of `storage.reports.enabled` to `true`
@@ -1256,6 +1262,8 @@ cat env/parameters.yaml
 ```
 
 The output, in my case, is as follows.
+
+TODO: If NOT Vault, it should say `local`.
 
 ```yaml
 adminUser:
@@ -1667,6 +1675,8 @@ cd $PATH_TO_TERRAFORM
 
 # If using Terraform
 terraform destroy
+
+# TODO: https://github.com/jenkins-x/terraform-aws-eks-jx/issues/68
 
 # TODO: https://github.com/jenkins-x/terraform-google-jx/issues/80
 ```
