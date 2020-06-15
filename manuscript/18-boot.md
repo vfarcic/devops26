@@ -4,6 +4,7 @@
 - [X] Test EKS
 - [ ] Test GKE
 - [ ] Test AKS
+- [ ] Replace prow with lighthouse
 - [ ] Write text
 - [ ] Review text
 - [ ] Proofread
@@ -89,6 +90,7 @@ echo "module \"jx\" {
   zone           = \"us-east1-b\"
   min_node_count = 3
   max_node_count = 6
+  force_destroy  = true
 }" | tee main.tf
 
 terraform init
@@ -300,7 +302,7 @@ Terraform will perform the following actions:
   # module.jx.module.vault.kubernetes_service_account.vault_sa will be created
   + resource "kubernetes_service_account" "vault_sa" {
       ...
-Plan: 61 to add, 0 to change, 0 to destroy.
+Plan: 53 to add, 0 to change, 0 to destroy.
 ...
 ```
 
@@ -384,6 +386,12 @@ webhook: "prow"
 ```
 
 ```bash
+# TODO: https://github.com/jenkins-x/terraform-google-jx/issues/110
+
+cat jx-requirements.yml \
+    | sed -e "s@us-central1-a@us-east1-b@g" \
+    | tee jx-requirements.yml
+
 export PATH_TO_TERRAFORM=$PWD
 
 cd ..
@@ -1100,29 +1108,6 @@ So, what can we do if `prow` is not a choice if you do not use GitHub, and `jenk
 
 In any case, we'll keep `prow` as our `webhook` (for now).
 
-W> Please execute the commands that follow only if you are using **EKS**. They will add additional information related to Vault, namely the IAM user that has sufficient permissions to interact with it. Make sure to replace `[...]` with your IAM user that has sufficient permissions (being admin always works).
-
-```bash
-# TODO: If not EKS and Terraform
-export IAM_USER=[...] # e.g., jx-boot
-
-echo "vault:
-  aws:
-    autoCreate: true
-    iamUserName: \"$IAM_USER\"" \
-    | tee -a jx-requirements.yml
-```
-
-W> Please execute the command that follows only if you are using **EKS**. The `jx-requirements.yaml` file contains `zone` entry and for AWS we need a `region`. That command will replace one with the other.
-
-```bash
-# TODO: Remove
-cat jx-requirements.yml \
-    | sed -e \
-    's@zone@region@g' \
-    | tee jx-requirements.yml
-```
-
 Let's take a peek at how `jx-requirements.yml` looks like now.
 
 ```bash
@@ -1131,6 +1116,8 @@ cat jx-requirements.yml
 
 In my case, the output from using GKE is as follows (yours is likely going to be different).
 
+TODO: Output from GKE
+
 ```yaml
 autoUpdate:
   enabled: false
@@ -1138,11 +1125,10 @@ autoUpdate:
 cluster:
   clusterName: "jx-demo"
   devEnvApprovers: []
-
   environmentGitOwner: ""
-  project: "jx-demo-project"
+  project: "jx-demo-276816"
   provider: gke
-  zone: "us-east1-b"
+  zone: "us-central1-a"
 gitops: true
 environments:
 - key: dev
@@ -1158,33 +1144,27 @@ ingress:
 kaniko: true
 storage:
   backup:
-    enabled: true
-    url: gs://backup-jx-demo-4cabfed7eb9f
+    enabled: false
   logs:
     enabled: true
-    url: gs://logs-jx-demo-4cabfed7eb9f
+    url: gs://logs-jx-demo-53af71c741fa
   reports:
     enabled: true
-    url: gs://reports-jx-demo-4cabfed7eb9f
+    url: gs://reports-jx-demo-53af71c741fa
   repository:
     enabled: true
-    url: gs://repository-jx-demo-4cabfed7eb9f
+    url: gs://repository-jx-demo-53af71c741fa
 secretStorage: vault
 vault:
   name: jx-demo
-  bucket: vault-jx-demo-4cabfed7eb9f
-  key: crypto-key-jx-demo-4cabfed7eb9f
-  keyring: keyring-jx-demo-4cabfed7eb9f
+  bucket: vault-jx-demo-53af71c741fa
+  key: crypto-key-jx-demo-53af71c741fa
+  keyring: keyring-jx-demo-53af71c741fa
   serviceAccount: jx-demo-vt
-velero:
-  namespace: velero
-  schedule: "0 * * * *"
-  serviceAccount: jx-demo-vo
-  ttl: "720h0m0s"  
 versionStream:
   ref: master
   url: https://github.com/jenkins-x/jenkins-x-versions.git
-webhook: "prow"
+webhook: "lighthouse"
 ```
 
 I> Feel free to modify some values further or to add those that we skipped. If you used my Gist to create a cluster, the current setup will work. On the other hand, if you created a cluster on your own, you will likely need to change some values.
@@ -1371,7 +1351,7 @@ cluster:
   gitName: github
   gitServer: https://github.com
   namespace: jx
-  project: jx-demo-project
+  project: jx-demo-276816
   provider: gke
   registry: gcr.io
   vaultName: jx-demo
@@ -1379,7 +1359,7 @@ cluster:
   zone: us-east1-b
 environments:
 - ingress:
-    domain: 34.74.88.151.nip.io
+    domain: 104.196.145.112.nip.io
     externalDNS: false
     namespaceSubDomain: -jx.
     tls:
@@ -1410,7 +1390,7 @@ environments:
   repository: environment-jx-demo-production
 gitops: true
 ingress:
-  domain: 34.74.88.151.nip.io
+  domain: 104.196.145.112.nip.io
   externalDNS: false
   namespaceSubDomain: -jx.
   tls:
@@ -1422,32 +1402,30 @@ repository: nexus
 secretStorage: vault
 storage:
   backup:
-    enabled: true
-    url: gs://backup-jx-demo-4cabfed7eb9f
+    enabled: false
+    url: ""
   logs:
     enabled: true
-    url: gs://logs-jx-demo-4cabfed7eb9f
+    url: gs://logs-jx-demo-53af71c741fa
   reports:
     enabled: true
-    url: gs://reports-jx-demo-4cabfed7eb9f
+    url: gs://reports-jx-demo-53af71c741fa
   repository:
     enabled: true
-    url: gs://repository-jx-demo-4cabfed7eb9f
+    url: gs://repository-jx-demo-53af71c741fa
 vault:
-  bucket: vault-jx-demo-4cabfed7eb9f
-  key: crypto-key-jx-demo-4cabfed7eb9f
-  keyring: keyring-jx-demo-4cabfed7eb9f
+  bucket: vault-jx-demo-53af71c741fa
+  key: crypto-key-jx-demo-53af71c741fa
+  keyring: keyring-jx-demo-53af71c741fa
   name: jx-demo
   serviceAccount: jx-demo-vt
 velero:
-  namespace: velero
-  schedule: 0 * * * *
-  serviceAccount: jx-demo-vo
-  ttl: 720h0m0s
+  schedule: ""
+  ttl: ""
 versionStream:
-  ref: v1.0.437
+  ref: v1.0.495
   url: https://github.com/jenkins-x/jenkins-x-versions.git
-webhook: prow
+webhook: lighthouse
 ```
 
 As you can see both from `git diff` and directly from `jx-requirements.yml`, the file does not contain only the changes we made initially. The `jx boot` command modified it as well by adding some additional information. I'll assume that you do remember which changes you made, so we'll comment only on those done by Jenkins X Boot.

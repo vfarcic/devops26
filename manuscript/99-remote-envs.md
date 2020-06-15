@@ -10,12 +10,12 @@ jx add app \
 
 jx get apps
 
-export CLUSTER_NAME=[...] # Replace `[...]` with the name of a non-dev cluster (e.g., `staging`)
+export REMOTE_CLUSTER_NAME=[...] # Replace `[...]` with the name of a non-dev cluster (e.g., `staging`)
 
 export PROJECT_ID=[...] # Replace `[...]` with the project ID
 
 gcloud container clusters \
-    create $CLUSTER_NAME \
+    create $REMOTE_CLUSTER_NAME \
     --project $PROJECT_ID \
     --region us-east1 \
     --machine-type e2-standard-4 \
@@ -28,18 +28,22 @@ export GH_OWNER=[...] # Replace `[...]` with the GitHub owner
 
 export GH_USER=[...] # Replace `[...]` with the GitHub user
 
-export ENVIRONMENT=[...] # Replace `[...]` with the name of the environment (e.g., `staging`)
+export ENVIRONMENT_AUTO=[...] # Replace `[...]` with the name of the environment (e.g., `integration`)
 
 # Use the default answers
 jx remote create \
-    --env $ENVIRONMENT \
+    --env $ENVIRONMENT_AUTO \
     --provider gke \
     --env-git-owner $GH_OWNER \
     --approver $GH_USER
 
-git clone https://github.com/$GH_OWNER/environment-$ENVIRONMENT
+git clone https://github.com/$GH_OWNER/environment-$REMOTE_CLUSTER_NAME
 
-cd environment-$ENVIRONMENT
+cd environment-$REMOTE_CLUSTER_NAME
+
+cat jx-requirements.yml
+
+# TODO: Replace some values in jx-requirements.yml
 
 jx remote secrets edit
 
@@ -47,54 +51,103 @@ jx remote run
 
 cd ..
 
-export DEV_REPO_PATH=[...]
+jx context # Switch to the dev cluster
 
-cd $DEV_REPO_PATH
+# TODO: Change to jx-requirements.yaml in the dev repo
+jx create env \
+    --name $ENVIRONMENT_AUTO \
+    --git-url https://github.com/$GH_OWNER/environment-$REMOTE_CLUSTER_NAME \
+    --remote
 
-echo "
-- ingress:
-    domain: ""
-    externalDNS: false
-    namespaceSubDomain: ""
-    tls:
-      email: ""
-      enabled: false
-      production: false
-  key: $ENVIRONMENT
-  repository: environment-$ENVIRONMENT
-  remoteCluster: true"
+export ENVIRONMENT_MANUAL=[...] # Replace `[...]` with the name of the environment (e.g., `pre-prod`)
 
-vim jx-requirements.yml
+jx context # Switch to the remote cluster
 
-# Copy & paste the output into the `environments:` section
+# Use the default answers except to the `git repository name` question. Use `echo environment-$ENVIRONMENT_MANUAL`.
+jx remote create \
+    --env $ENVIRONMENT_MANUAL \
+    --provider gke \
+    --env-git-owner $GH_OWNER \
+    --approver $GH_USER
 
-# Save and exit
+git clone https://github.com/$GH_OWNER/environment-$ENVIRONMENT_MANUAL
 
-git add .
+cd environment-$ENVIRONMENT_MANUAL
 
-git commit -m "Added remote environment"
+cat jx-requirements.yml
 
-git push
+# TODO: Replace some values in jx-requirements.yml
 
-jx get activities --filter dev --watch
-
-# Cancel with ctrl+c when the activity is finished
+# Select `Manual` as the `Promotion Strategy`
+jx create env \
+    --name $ENVIRONMENT_MANUAL \
+    --git-url https://github.com/$GH_OWNER/environment-$ENVIRONMENT_MANUAL \
+    --remote
 
 jx get environments
 
 cd ..
+
+jx context # Switch to the dev cluster
+
+jx create quickstart \
+    --name test1 \
+    --project-name test1 \
+    --filter golang-http
+
+jx get activities \
+    --filter test1 \
+    --watch
+
+export DEV_CLUSTER_NAME=[...] # Replace with the name of the `dev` cluster
+    
+jx get activities \
+    --filter environment-$DEV_CLUSTER_NAME-dev/master \
+    --watch
+
+jx get activities \
+    --filter environment-$DEV_CLUSTER_NAME-staging/master \
+    --watch
+
+jx get activities \
+    --filter environment-$ENVIRONMENT_AUTO \
+    --watch
+
+jx get applications
+
+export STAGING_ADDR=[...]
+
+curl $STAGING_ADDR
+
+jx context # Change to the remote cluster
+
+jx remote applications
+
+# TODO: Promote to the remote env manually
 ```
 
 ## Cleanup
 
 ```bash
 gcloud container clusters \
-    delete $CLUSTER_NAME \
+    delete $REMOTE_CLUSTER_NAME \
     --project $PROJECT_ID \
     --region us-east1 \
     --quiet
 
-hub delete -y $GH_OWNER/environment-staging
+hub delete -y $GH_OWNER/environment-$REMOTE_CLUSTER_NAME
 
-rm -rf environment-staging
+rm -rf environment-$REMOTE_CLUSTER_NAME
+
+hub delete -y $GH_OWNER/environment-$ENVIRONMENT_AUTO
+
+rm -rf environment-$ENVIRONMENT_AUTO
+
+hub delete -y $GH_OWNER/environment-$ENVIRONMENT_MANUAL
+
+rm -rf environment-$ENVIRONMENT_MANUAL
+
+hub delete -y $GH_OWNER/test1
+
+rm -rf test1
 ```
