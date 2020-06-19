@@ -891,14 +891,125 @@ az group create \
     --name jxdemo \
     --location eastus
 
-open https://gist.github.com/269331f15510f2a463a669278facdee7
+curl -L --output main.tf \
+    https://gist.github.com/vfarcic/269331f15510f2a463a669278facdee7/raw
 
+cat main.tf
+```
+
+```
+variable "region" {
+  type    = string
+  default = "eastus"
+}
+
+variable "resource_group" {
+  type    = string
+  default = "jxdemo"
+}
+
+variable "cluster_name" {
+  type    = string
+  default = "jxdemo"
+}
+
+variable "dns_prefix" {
+  type    = string
+  default = "jxdemo"
+}
+
+variable "k8s_version" {
+  type = string
+}
+
+variable "min_node_count" {
+  type    = number
+  default = 3
+}
+
+variable "max_node_count" {
+  type    = number
+  default = 9
+}
+
+variable "machine_type" {
+  type    = string
+  default = "Standard_A2_v2"
+}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_kubernetes_cluster" "primary" {
+  name                = var.cluster_name
+  location            = var.region
+  resource_group_name = var.resource_group
+  dns_prefix          = var.dns_prefix
+  kubernetes_version  = var.k8s_version
+  default_node_pool {
+    name                = var.cluster_name
+    vm_size             = var.machine_type
+    enable_auto_scaling = true
+    max_count           = var.max_node_count
+    min_count           = var.min_node_count
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+output "cluster_name" {
+  value = var.cluster_name
+}
+
+output "region" {
+  value = var.region
+}
+
+output "resource_group" {
+  value = var.resource_group
+}
+```
+
+```bash
 # TODO: Add ACR to Terraform
 
-# Copy the contents of that Gist to `main.tf`
-
 az aks get-versions --location eastus
+```
 
+```json
+{
+  "id": "/subscriptions/7f9f9b08-7d00-43c9-9d30-f10bb79e9a61/providers/Microsoft.ContainerService/locations/eastus/orchestrators",
+  "name": "default",
+  "orchestrators": [
+    ...
+    {
+      "default": null,
+      "isPreview": true,
+      "orchestratorType": "Kubernetes",
+      "orchestratorVersion": "1.18.1",
+      "upgrades": [
+        {
+          "isPreview": true,
+          "orchestratorType": "Kubernetes",
+          "orchestratorVersion": "1.18.2"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "isPreview": true,
+      "orchestratorType": "Kubernetes",
+      "orchestratorVersion": "1.18.2",
+      "upgrades": null
+    }
+  ],
+  "type": "Microsoft.ContainerService/locations/orchestrators"
+}
+```
+
+```bash
 export K8S_VERSION=[...] # Should not be newer than 1.5
 
 terraform init
@@ -918,6 +1029,10 @@ az aks get-credentials \
     $(terraform output resource_group) \
     --file \
     $KUBECONFIG
+
+# Create ACR
+
+# Enable ACR *Admin user*
 
 export PATH_TO_TERRAFORM=$PWD
 
@@ -988,8 +1103,6 @@ Next, we'll define a variable `CLUSTER_NAME` that will, as you can guess, hold t
 W> In the commands that follow, please replace the first occurrence of `[...]` with the name of the cluster and the second with your GitHub user.
 
 ```bash
-export CLUSTER_NAME=[...]
-
 export GH_USER=[...]
 ```
 
@@ -1055,8 +1168,7 @@ I> The format of the `jx-requirements.yml` file might have changed since I wrote
 First, there is a group of values that define our `cluster`. You should be able to figure out what it represents by looking at the variables inside it. It probably won't take you more than a few moments to see that we have to change at least some of those values, so that's what we'll do next.
 
 ```bash
-# If GKE or EKS and if the cluster was created with Terraform
-
+# If GKE or EKS
 cp $PATH_TO_TERRAFORM/jx-requirements.yml .
 ```
 
@@ -1183,6 +1295,13 @@ Off we go. Let's install Jenkins X.
 jx boot
 ```
 
+TODO: Write text
+```
+...
+jx boot has only been validated on GKE and EKS, we'd love feedback and contributions for other Kubernetes providers
+? Continue execution anyway? (Y/n) 
+```
+
 Now we need to answer quite a few questions. In the past, we tried to avoid answering questions by specifying all answers as arguments to commands we were executing. That way, we had a documented method for doing things that do not end up in a Git repository. Someone else could reproduce what we did by running the same commands. This time, however, there is no need to avoid questions since everything we'll do will be stored in a Git repository. Later on, we'll see where exactly will Jenkins X Boot store the answers. For now, we'll do our best to provide the information is needs.
 
 I> The Boot process might change by the time you read this. If that happens, do your best to answer by yourself the additional questions that are not covered here.
@@ -1215,7 +1334,20 @@ The next in line is Vault. The Boot will install it and attempt to populate it w
 
 The process will need to know how to access our GitHub repositories, so it asks us for the Git `username`, `email address`, and `token`. I'm sure that you know the answers to the first two questions. As for the token, if you did not save the one we created before, you'll need to create a new one. Do that, if you must, and feed it to the Boot. Finally, the last question related to secrets is `HMAC token`. Feel free to press the enter key, and the process will create it for you.
 
-Finally comes the last question. `Do you want to configure an external Docker Registry?` Press the enter key to use the default answer (`N`) and the Boot will create it inside the cluster or, as in case of most cloud providers, use the registry provided as a service. In case of GKE, that would be GCR, for EKS that's ECR, and if you're using AKS, that would be ACR. In any case, by not configuring an external Docker Registry, the Boot will use whatever makes the most sense for a given provider.
+Finally comes the last question. `Do you want to configure an external Docker Registry?`
+
+TODO: If AKS
+
+```
+? Do you want to configure non default Docker Registry? Yes
+? Docker Registry Url https://jxdemo.azurecr.io
+? Docker Registry username jxdemo
+Docker Registry password *** [Automatically accepted existing value]
+? Docker Registry email viktor@farcic.com
+WARNING: Unexpected registry auth URL https://jxdemo.azurecr.io - using it as registry push URL
+```
+
+Press the enter key to use the default answer (`N`) and the Boot will create it inside the cluster or, as in case of most cloud providers, use the registry provided as a service. In case of GKE, that would be GCR, for EKS that's ECR, and if you're using AKS, that would be ACR. In any case, by not configuring an external Docker Registry, the Boot will use whatever makes the most sense for a given provider.
 
 The rest of the process will install and configure all the components of the platform. We won't go into all of them since they are the same as those we used before. What matters is that the system will be fully operational a while later.
 
