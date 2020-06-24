@@ -1355,6 +1355,11 @@ The last step will verify the installation. You might see a few warnings during 
 
 That's it. Jenkins X is now up-and-running. On the surface, the end result is the same as if we used the `jx install` command but, this time, we have the whole definition of the platform with complete configuration (except for secrets) stored in a Git repository. That's a massive improvement by itself. Later on, we'll see additional benefits like upgrades performed by changing any of the configuration files and pushing those changes to the repository. But, for now, what matters is that Jenkins X is up-and-running. Or, at least, that's what we're hoping for.
 
+```bash
+# If AKS
+az acr login --name jxdemo
+```
+
 ## Exploring The Changes Done By The Boot
 
 Now, let's take a look at the changes Jenkins X Boot did to the local copy of the repository.
